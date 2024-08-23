@@ -1,0 +1,28 @@
+/* Add here all your css styles (customizations) */
+.fa-refresh {
+    transform: scaleX(1);
+    animation: spin-reverse 2s infinite linear;
+}
+
+@keyframes spin-reverse {
+    0% {
+        transform: scaleX(-1) rotate(0deg);
+    }
+
+    100% {
+        transform: scaleX(-1) rotate(-360deg);
+    }
+}
+
+.ceploading {
+    right: 70px;
+    position: absolute;
+    top: 13px !important;
+    display: none;
+}
+.icon-loading {
+    right: 50px;
+    position: absolute;
+    top: 13px !important;
+    display: none;
+}

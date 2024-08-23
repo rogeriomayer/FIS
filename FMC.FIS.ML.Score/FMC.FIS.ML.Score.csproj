@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML" Version="1.6.0" />
+    <PackageReference Include="Microsoft.ML.FastTree" Version="1.6.0" />
+    <PackageReference Include="Microsoft.ML.LightGbm" Version="1.6.0" />
+  </ItemGroup>
+  <ItemGroup Label="MLGeneric">
+    <None Include="MLGeneric.consumption.cs">
+      <DependentUpon>MLGeneric.mbconfig</DependentUpon>
+    </None>
+    <None Include="MLGeneric.training.cs">
+      <DependentUpon>MLGeneric.mbconfig</DependentUpon>
+    </None>
+    <None Include="MLGeneric.zip">
+      <DependentUpon>MLGeneric.mbconfig</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

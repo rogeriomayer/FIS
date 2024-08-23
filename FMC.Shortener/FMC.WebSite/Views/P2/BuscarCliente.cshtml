@@ -1,0 +1,263 @@
+﻿@model IEnumerable<object>
+@using Microsoft.AspNetCore.Http
+@{
+    FMC.Shortener.Models.PersonRequest personRequest = (FMC.Shortener.Models.PersonRequest)Model.ElementAt(0);
+    FMC.Shortener.Models.PersonResponse personResponse = (FMC.Shortener.Models.PersonResponse)Model.ElementAt(1);
+    IList<string> statusAgreement = (IList<string>)Model.ElementAt(2);
+Layout = "_Admin";
+}
+<div class="g-hidden-sm-down g-bg-gray-light-v8 g-pa-20">
+    <ul class="u-list-inline g-color-gray-dark-v6">
+
+        <li class="list-inline-item g-mr-10">
+            <a class="u-link-v5 g-color-gray-dark-v6 g-color-secondary--hover g-valign-middle" href="#!">Dashboard</a>
+            <i class="hs-admin-angle-right g-font-size-12 g-color-gray-light-v6 g-valign-middle g-ml-10"></i>
+        </li>
+
+        <li class="list-inline-item g-mr-10">
+            <a class="u-link-v5 g-color-gray-dark-v6 g-color-secondary--hover g-valign-middle" href="#!"> P2</a>
+            <i class="hs-admin-angle-right g-font-size-12 g-color-gray-light-v6 g-valign-middle g-ml-10"></i>
+        </li>
+        <li class="list-inline-item">
+            <span class="g-valign-middle">Pesquisar Cliente</span>
+        </li>
+    </ul>
+</div>
+
+
+<div class="g-pa-20">
+
+    <h1 class="g-font-weight-300 g-font-size-28 g-color-black g-mb-28">Pesquisar Cliente</h1>
+
+    <div class="row">
+        @if (ViewBag.Message != null)
+        {
+            <div class="col-md-12">
+                <div class="noty_bar noty_type__error noty_theme__unify--v1 noty_close_with_click noty_close_with_button g-mb-25">
+                    <div class="noty_body">
+                        <div class="g-mr-20">
+                            <div class="noty_body__icon">
+                                <i class="hs-admin-alert"></i>
+                            </div>
+                        </div>
+
+                        <div>@Html.Raw(ViewBag.Message)</div>
+                    </div>
+
+                    <div class="noty_close_button">×</div>
+                </div>
+            </div>
+        }
+        <!-- Buscar Cliente -->
+        <div class="col-md-12">
+            <form id="form-submit" novalidate asp-action="BuscarCliente">
+                <div class="g-brd-around g-brd-gray-light-v7 g-rounded-4 g-pa-15 g-pa-20--md g-mb-30">
+                    <h3 class="d-flex align-self-center text-uppercase g-font-size-12 g-font-size-default--md g-color-black g-mb-20">Buscar Cliente</h3>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="g-mb-5" asp-for="@personRequest.Cpf">CPF</label>
+
+                                <div class="g-pos-rel">
+                                    <span class="g-pos-abs g-top-0 g-right-0 d-block g-width-40 h-100 opacity-0 g-opacity-1--success">
+                                        <i class="hs-admin-check g-absolute-centered g-font-size-default g-color-secondary"></i>
+                                    </span>
+                                    <span class="icon-loading"><i class="hs-admin-reload fa-refresh g-font-size-16 g-color-secondary fa-spin g-absolute-centered"></i></span>
+                                    <input asp-for="@personRequest.Cpf" class="form-control form-control-md g-brd-gray-light-v7 g-brd-gray-light-v3--focus g-rounded-4 g-px-14 g-py-10 mask-cpf" type="text" placeholder="">
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="col-md-3">
+                            <div class="media g-mt-25">
+                                <div class="media-body align-self-center text-left">
+                                    <button class="btn btn-xl u-btn-primary g-width-160--md g-font-size-default g-ml-10 btn-search">Procurar Cliente</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- End Buscar Cliente -->
+        <!-- Dados do Cliente -->
+        @if (personResponse != null && personResponse.Accounts.Count() > 0)
+        {
+            <div class="col-md-12">
+                <div class="g-brd-around g-brd-gray-light-v7 g-rounded-4 g-pa-15 g-pa-20--md g-mb-30">
+                    <h3 class="d-flex align-self-center text-uppercase g-font-size-12 g-font-size-default--md g-color-black g-mb-20">Contas Encontradas</h3>
+                    <div class="row g-mb-10">
+                        <div class="col-md-12">
+                            @if (personResponse.Accounts.Count() > 0)
+                            {
+                                <table class="table table-responsive-sm w-100">
+                                    <thead>
+                                        <tr>
+                                            <th class="g-font-weight-300 g-color-gray-dark-v6 g-brd-top-none g-pl-20">Produto</th>
+                                            <th class="g-font-weight-300 g-color-gray-dark-v6 g-brd-top-none">Cartão</th>
+                                            <th class="text-center g-font-weight-300 g-color-gray-dark-v6 g-brd-top-none">Data de Vencimento</th>
+                                            <th class="text-right g-font-weight-300 g-color-gray-dark-v6 g-brd-top-none">Valor</th>
+                                            <th class="text-right g-font-weight-300 g-color-gray-dark-v6 g-brd-top-none">Pagamento Mínimo</th>
+                                            <th class="text-right g-font-weight-300 g-color-gray-dark-v6 g-brd-top-none">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var account in personResponse.Accounts)
+                                        {
+                                            decimal balance = account.Balance;
+                                            decimal minimumPayment = account.Balance;
+
+                                            if (account.Agreement != null && statusAgreement.Contains(account.Agreement.StatusCode))
+                                            {
+                                                if (account.Agreement.EntraceValue < Convert.ToDecimal(0.5) || (Convert.ToDateTime(account.Agreement.EntraceDate) < DateTime.Today && account.Agreement.IndDelayedEntrance == "N"))
+                                                {
+                                                    //parcela
+                                                    if (account.Agreement.DelayedParcelValue > 0)
+                                                    {
+                                                        balance = account.Agreement.DelayedParcelValue;
+                                                        minimumPayment = balance;
+                                                    }
+                                                    else
+                                                    {
+                                                        if (account.Agreement.ParcelValue > 0)
+                                                        {
+                                                            balance = account.Agreement.ParcelValue;
+                                                            minimumPayment = balance;
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    //entrada
+                                                    if (account.Agreement.EntraceValue > 0)
+                                                    {
+                                                        balance = account.Agreement.EntraceValue;
+                                                        minimumPayment = balance;
+                                                    }
+                                                }
+                                            }
+
+
+                                            <tr>
+                                                <td class="g-font-size-default g-color-black g-valign-middle g-brd-top-none g-brd-bottom g-brd-2 g-brd-gray-light-v4 g-py-10 g-pl-20">
+                                                    @account.Product
+                                                </td>
+                                                <td class="g-font-size-default g-color-black g-valign-middle g-brd-top-none g-brd-bottom g-brd-2 g-brd-gray-light-v4 g-py-10">
+                                                    @if (account.CardNumber.Length > 16 && account.CardNumber.Substring(0, 3) == "000")
+                                                    {
+                                                        string card = account.CardNumber.Substring(3, 4) + " " + account.CardNumber.Substring(7, 4) + " " + account.CardNumber.Substring(11, 4) + " " + account.CardNumber.Substring(15, 4);
+                                                        <text>@card</text>
+                                                    }
+                                                    else
+                                                    {
+                                                        string card = account.CardNumber.Substring(0, 4) + " " + account.CardNumber.Substring(4, 4) + " " + account.CardNumber.Substring(8, 4) + " " + account.CardNumber.Substring(12, 4);
+                                                        <text>@card</text>
+                                                    }
+                                                </td>
+                                                <td class="text-center g-font-size-default g-color-black g-valign-middle g-brd-top-none g-brd-bottom g-brd-2 g-brd-gray-light-v4 g-py-10">
+                                                    @account.DueDate.ToString("dd/MM/yyyy")
+                                                    @*<span class="u-tags-v1 text-center g-width-100 g-brd-around g-brd-lightblue-v3 g-bg-lightblue-v3 g-font-size-default g-color-white g-rounded-50 g-py-4 g-px-15">approved</span>*@
+                                                </td>
+                                                <td class="text-right g-valign-middle g-brd-top-none g-brd-bottom g-brd-2 g-brd-gray-light-v4 g-py-10 g-font-weight-600  g-color-blue">
+                                                    @balance.ToString("C2")
+                                                </td>
+                                                <td class="text-right g-font-size-default g-color-black g-valign-middle g-brd-top-none g-brd-bottom g-brd-2 g-brd-gray-light-v4 g-py-10 g-font-weight-600 g-color-red">
+                                                    @minimumPayment.ToString("C2")
+                                                </td>
+                                                <td class="text-right g-font-size-default g-color-black g-valign-middle g-brd-top-none g-brd-bottom g-brd-2 g-brd-gray-light-v4 g-py-10">
+                                                    @using (Html.BeginForm("produto-selecionado", "p2", FormMethod.Post, new { target = "_self", style = "" }))
+                                                    {
+                                                        <input type="hidden" value="@account.CardNumber" name="card" />
+                                                        <button type="submit" class="btn btn-sm btn-outline-primary g-bg-primary--hover">Gerar Boleto</button>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        <!-- End Dados do Cliente -->
+    </div>
+</div>
+@section Scripts {
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('.noty_close_button').click(function () {
+                $('.noty_bar').hide();
+            });
+            $('input.mask-cpf').mask('000.000.000-00');
+            $('.busca-cep').click(function () {
+                var cep = $('.mask-cep').val().replace(/[^0-9]/, '');
+                if (cep) {
+                    var url = '@Url.Action("ConsultaCep", "P1")?cep=' + cep;
+                    $.ajax({
+                        url: url,
+                        dataType: 'json',
+                        crossDomain: true,
+                        contentType: "application/json",
+                        beforeSend: function () {
+                            $('.ceploading').fadeIn();
+                        },
+                        success: function (json) {
+                            if (json != null) {
+                                console.log(json);
+                                if (json.hasOwnProperty('logradouro')) {
+                                    $("input.address").val(json.logradouro);
+                                    $("input.district").val(json.bairro);
+                                    $("input.city").val(json.localidade);
+                                    $(".uf").val(json.uf).change();
+
+                                    if (json.logradouro.length > 0)
+                                        $('.g-pos-abs', $("input.address").closest('.g-pos-rel')).removeClass('opacity-0');
+                                    else
+                                        $('.g-pos-abs', $("input.address").closest('.g-pos-rel')).addClass('opacity-0')
+
+                                    if (json.bairro.length > 0)
+                                        $('.g-pos-abs', $("input.district").closest('.g-pos-rel')).removeClass('opacity-0');
+                                    else
+                                        $('.g-pos-abs', $("input.district").closest('.g-pos-rel')).addClass('opacity-0');
+
+                                    if (json.localidade.length > 0)
+                                        $('.g-pos-abs', $("input.city").closest('.g-pos-rel')).removeClass('opacity-0');
+                                    else
+                                        $('.g-pos-abs', $("input.city").closest('.g-pos-rel')).addClass('opacity-0');
+
+                                } else {
+                                    $('.ceploading').fadeOut();
+                                }
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            var err = eval("(" + xhr.responseText + ")");
+                            $('.ceploading').fadeOut();
+                        },
+                        complete: function () {
+                            $('.ceploading').fadeOut();
+                        }
+                    });
+                }
+            });
+            $('#form-submit input').on('change', function (e) {
+                if ($(this).val().length > 0) {
+                    $('.g-pos-abs', $(this).closest('.g-pos-rel')).removeClass('opacity-0');
+                } else {
+                    $('.g-pos-abs', $(this).closest('.g-pos-rel')).addClass('opacity-0');
+                }
+            });
+
+            $('#form-submit .btn-search').click(function () {
+                if ($('input.mask-cpf').val().length > 0) {
+                    $('.icon-loading').fadeIn(300);
+                } else {
+                    $('.icon-loading').fadeOut(300);
+                }
+            });
+        });
+    </script>
+}

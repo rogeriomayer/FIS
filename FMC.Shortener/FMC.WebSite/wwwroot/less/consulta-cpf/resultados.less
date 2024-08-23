@@ -1,0 +1,120 @@
+#pg-consulta-cpf-resultados {
+
+	.container {
+		max-width: 1200px;
+	}//container
+
+	.resultado-dividas {
+		padding: 30px 0 50px 0;
+
+		h1 {
+			color: @verde-topo;
+			font-size: 4em;
+			font-weight: 700;
+			line-height: 110%;
+			margin-bottom: 50px;
+		}//h1
+
+		ul {
+			text-align: left;
+		
+			li {
+				background: #E6E8E8;
+				width: 580px;
+				height: 200px;
+				margin: 0 10px 10px 0;
+				.d-inline-block;
+				.v-align-top;
+				border-radius: 100px;
+				padding: 45px 0 0 265px;
+				.relative;
+
+				h2 {
+					color: @verde-topo;
+					font-size: 3em;
+					font-weight: 300;
+					margin-bottom: 20px;
+
+					strong {
+						font-weight: 700;
+					}//strong
+
+				}//h2
+
+				.img-cartao {
+					.absolute;
+					top: 15px;
+					left: 0;
+				}//img-cartao
+
+				a {
+					background: @verde-topo;
+					color: #fff;
+					padding: 10px;
+					font-size: 1.6em;
+					font-weight: 700;
+					color: #fff;
+				}//a
+
+			}//li
+
+		}//ul
+
+	}//resultado-dividas
+
+}//pg-consulta-cpf-resultados-nao-consta
+
+@media screen and (max-width: 1050px) {
+
+	#pg-consulta-cpf-resultados {
+
+		.resultado-dividas {
+			padding: 30px 20px 30px 20px;
+
+			h1 {
+				font-size: 3em;
+				margin-bottom: 40px;
+			}//h1
+
+			ul {
+			
+				li {
+					background: #E6E8E8;
+					width: 100%;
+					height: auto;
+					margin: 0 10px 10px 0;
+					.d-inline-block;
+					.v-align-top;
+					border-radius: 20px;
+					padding: 30px 20px 30px 20px;
+					.relative;
+
+					h2 {
+						font-size: 2em;
+						text-align: center;
+					}//h2
+
+					.img-cartao {
+						.relative;
+						top: auto;
+						left: auto;
+						display: block;
+						margin: 0 auto;
+						margin-bottom: 20px;
+					}//img-cartao
+
+					a {
+						display: block;
+						font-size: 1.4em;
+						text-align: center;
+					}//a
+
+				}//li
+
+			}//ul
+
+		}//resultado-dividas
+
+	}//pg-consulta-cpf-resultados-nao-consta
+
+}//1050px

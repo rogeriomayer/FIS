@@ -1,0 +1,147 @@
+#pg-contato {
+	background: url(../images/contato/bg.jpg) top right no-repeat;
+	height: 819px;
+	padding-top: 80px;
+
+	.container {
+		max-width: 1200px;
+	}//container
+
+	h1 {
+		color: @verde-topo;
+		font-size: 4em;
+		font-weight: 700;
+		line-height: 105%;
+		margin-bottom: 20px;
+	}//h1
+
+	h2 {
+		color: @verde-topo;
+		font-size: 1.6em;
+		font-weight: 400;
+		margin-bottom: 90px;
+	}//h2
+
+	form {
+		width: 500px;
+	}//form
+
+	input,select {
+		background: #fff;
+		width: 100%;
+		height: 40px;
+		padding-left: 15px;
+		.d-inline-block;
+		.v-align-top;
+		border: #e5e5e5 solid 1px;
+		.open-sans;
+		color: #9c9aa0;
+		font-size: 1.6em;
+		font-weight: 400;
+		margin: 0 0 10px 0;
+
+		&::placeholder {
+			color: #9c9aa0;
+		}//placeholder
+
+		&.telefone-preferencial {
+			width: 245px;
+			margin-right: 7px;
+		}//telefone-preferencial
+
+		&.telefone-secundario {
+			width: 245px;
+		}//telefone-secundario
+
+	}//input
+
+	textarea {
+		background: #fff;
+		width: 100%;
+		height: 150px;
+		padding-top: 15px;
+		padding-left: 15px;
+		.d-inline-block;
+		.v-align-top;
+		border: #e5e5e5 solid 1px;
+		.open-sans;
+		color: #9c9aa0;
+		font-size: 1.6em;
+		font-weight: 400;
+		resize: none;
+
+		&::placeholder {
+			color: #9c9aa0;
+		}//placeholder
+
+	}//textarea
+
+	.btn-contato {
+		background: #006666;
+		width: 250px;
+		height: 50px;
+		.f-right;
+		border: none;
+		color: #fff;
+		.open-sans;
+		font-weight: 400;
+		text-align: left;
+		font-size: 1.6em;
+		padding-left: 23px;
+		cursor: pointer;
+		margin-top: 10px;
+	}//btn-negociar-agora
+
+}//pg-contato
+
+@media screen and (max-width: 1050px) {
+
+	#pg-contato {
+		background: url(../images/contato/bg.jpg) top right no-repeat;
+		height: auto;
+		padding: 40px 20px 40px 20px;
+
+		h1 {
+
+			br {
+				display: none;
+			}//br
+
+		}//h1
+
+		h2 {
+			margin-bottom: 40px;
+			line-height: 140%;
+		}//h2
+
+		form {
+			width: 100%;
+		}//form
+
+		input,select {
+			height: 50px;
+
+			&::placeholder {
+				color: #9c9aa0;
+			}//placeholder
+
+			&.telefone-preferencial {
+				width: 100%;
+				margin-right: 0;
+			}//telefone-preferencial
+
+			&.telefone-secundario {
+				width: 100%;
+			}//telefone-secundario
+
+		}//input
+
+		.btn-contato {
+			float: none;
+			margin-right: 0;
+			width: 100%;
+		}//btn-negociar-agora
+
+	}//pg-contato
+
+}//1050px

@@ -1,0 +1,120 @@
+.barra-nova-consulta-cpf {
+	background: #fff url(../images/consulta-cpf/obrigado/bg.jpg) top center no-repeat;
+	height: 325px;
+	padding-top: 110px;
+
+	.container {
+		max-width: 1200px;
+	}//container
+
+	h1 {
+		color: #fff;
+		font-size: 8em;
+		font-weight: 700;
+		line-height: 110%;
+		margin-bottom: 25px;
+		text-shadow: 0 3px 13px rgba(0,0,0,0.5);
+		letter-spacing: -4px;
+	}//h1
+
+	input {
+		background: #fff url(../images/negociar-agora/icone-cpf.png) top 18px left 20px no-repeat;
+		width: 580px;
+		height: 60px;
+		padding-left: 50px;
+		.d-inline-block;
+		.v-align-top;
+		border: #e5e5e5 solid 1px;
+		.open-sans;
+		color: #9c9aa0;
+		font-size: 2.2em;
+		font-weight: 300;
+
+		&::placeholder {
+			color: #9c9aa0;
+		}//placeholder
+
+	}//input
+
+	.btn-nova-consulta {
+		background: #006666;
+		width: 190px;
+		height: 60px;
+		.d-inline-block;
+		.v-align-top;
+		border: none;
+		margin-left: 6px;
+		color: #fff;
+		.open-sans;
+		font-weight: 400;
+		text-align: left;
+		font-size: 1.6em;
+		padding-left: 23px;
+		cursor: pointer;
+		box-shadow: 3px 3px 10px 0 rgba(0,0,0,0.2);
+	}//btn-nova-consulta
+
+}//barra-consulta-cpf
+
+.barra-resultado-cpf {
+	background: #f7f8f8;
+	padding: 30px 0 30px 0;
+
+	.container {
+		max-width: 1200px;
+	}//container
+
+	p {
+		color: @verde-topo;
+		font-size: 1.4em;
+		font-weight: 700;
+		margin-bottom: 10px;
+		.uppercase;
+	}//p
+
+	span.cpf {
+		color: #9c9aa0;
+		font-size: 5em;
+		font-weight: 300;
+		.uppercase;
+	}//cpf
+
+}//barra-resultado-cpf
+
+@media screen and (max-width: 1050px) {
+
+	.barra-nova-consulta-cpf {
+		background-size: cover;
+		height: auto;
+		padding-top: 110px;
+		padding: 40px 20px 40px 20px; 
+
+		h1 {
+			font-size: 5em;
+			margin-bottom: 25px;
+		}//h1
+
+		input {
+			width: 100%;
+			display: block;
+			font-size: 1.8em;
+		}//input
+
+		.btn-nova-consulta {
+			width: 100%;
+			display: block;
+			margin-left: 0;
+		}//btn-nova-consulta
+
+	}//barra-nova-consulta-cpf
+
+	.barra-resultado-cpf {
+		padding: 30px 20px 30px 20px;
+
+		span.cpf {
+			font-size: 2.7em;
+		}//cpf
+
+	}//barra-resultado-cpf
+
+}//1050px
