@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FMC.FIS.API</name>
+    </assembly>
+    <members>
+        <member name="T:FMC.FIS.API.Controllers.Login">
+            <summary>
+            Login para geração de token de acesso
+            </summary>
+        </member>
+    </members>
+</doc>
