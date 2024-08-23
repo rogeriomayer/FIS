@@ -1,0 +1,88 @@
+﻿@model IEnumerable<object>
+@using Microsoft.AspNetCore.Http
+@{
+    ConsultaCpfCnpj _model = (ConsultaCpfCnpj)Model.ElementAt(0);
+    string portal = Context.Session.GetString("portal");
+}
+@{
+    Layout = "_Layout";
+}
+<section id="pg-negociar-agora" class="scroll-secao">
+    <div class="container">
+        <h1>
+            Verifique se possui dívidas <br>
+            e resolva agora!
+        </h1>
+
+        @using (Html.BeginForm(FormMethod.Post, new { @class = "form-cpf" }))
+        {
+            <div class="portal-negociacao"><div class="logo-portal"><img src="~/images/negociar-agora/logo.png" /></div><div class="texto">PORTAL DE NEGOCIAÇÃO AUTORIZADO</div></div>
+            @Html.TextBoxFor(p => _model.CpfCnpj, null, new { @class = "mask-cpf", placeholder = "Digite seu CPF ou CNPJ", maxlength = "18" })
+            @Html.ValidationMessageFor(p => _model.CpfCnpj)
+            <button type="submit" class="btn-negociar-agora">Consultar</button>
+        }
+        <div class="logo-cartoes">
+            <div class="grupo-cartoes">
+                <ul class="bradescard">
+                    <li class='destaque'><img src="~/images/renegociar-pelo-whatsapp/logos/bradescard.png" /></li>
+                    <li class='list'><img src="~/images/renegociar-pelo-whatsapp/logos/cea.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/ibi.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/americanas.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/clube-angeloni.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/lojas-colombo.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/compcard.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/cencosud.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/coop.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/cvc.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/dotz.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/eskala.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/lebiscuit.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/lojas-rede.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/makro.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/mateuscard.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/mapfre.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/paguemenos.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/passarela.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/sportcard.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/telerio.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/tng.png" /></li>
+                </ul>
+                <ul class="bradesco">
+                    <li class='destaque'><img src="~/images/renegociar-pelo-whatsapp/logos/bradesco.png" /></li>
+                    <li class='list'><img src="~/images/renegociar-pelo-whatsapp/logos/americanexpress.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/visa.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/mastercard.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/elo.png" /></li>
+                </ul>
+                <ul class="outros">
+                    <li class="multiloja"><img src="~/images/renegociar-pelo-whatsapp/logos/logo-multiloja.png" /></li>
+                    <li class="pepsico"><img src="~/images/renegociar-pelo-whatsapp/logos/logo-pepsico.png" /></li>
+                    <li class="simplic"><img src="~/images/renegociar-pelo-whatsapp/logos/logo-simplic.png" /></li>
+                    <li class="moneyman"><img src="~/images/renegociar-pelo-whatsapp/logos/logo-moneyman.png" /></li>
+                </ul>
+                <div class="clearfix"></div>
+            </div>
+        </div> <!-- container -->
+        <div class="clearfix"></div>
+    </div>
+</section> <!-- pg negociar agora -->
+@section scripts{
+<script type="text/javascript">
+
+    $("form.form-cpf").submit(function (e) {
+        if (!$(this).valid()) {
+
+            $('#load-page').fadeOut(300);
+            $('body').css("overflow", "");
+            e.preventDefault();
+        }
+    });
+    if (isMobile()) {
+        $('html, body').animate({ scrollTop: $('#pg-negociar-agora').position().top }, 'slow', 'swing');
+    }
+    function isMobile() {
+        return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+    }
+
+</script>
+}

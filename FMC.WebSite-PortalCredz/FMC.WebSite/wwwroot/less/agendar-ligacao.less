@@ -1,0 +1,133 @@
+#pg-agendar-ligacao {
+	background: url(../images/agendar-ligacao/bg.jpg) top center no-repeat;
+	height: 828px;
+	padding-top: 85px;
+
+	.container {
+		max-width: 1200px;
+	}//container
+
+	h1 {
+		color: #fff;
+		font-size: 8em;
+		font-weight: 700;
+		line-height: 110%;
+		text-shadow: 0 3px 13px rgba(0,0,0,0.2);
+		margin-bottom: 20px;
+	}//h1
+
+	h2 {
+		color: #fff;
+		font-size: 1.6em;
+		font-weight: 600;
+		margin-bottom: 110px;
+		text-shadow: 0 0 50px @verde-topo;
+	}//h2
+
+	form {
+		width: 790px;
+	}//form
+
+	input {
+		background: #fff;
+		width: 380px;
+		height: 60px;
+		padding-left: 25px;
+		.d-inline-block;
+		.v-align-top;
+		border: #e5e5e5 solid 1px;
+		.open-sans;
+		color: #9c9aa0;
+		font-size: 1.6em;
+		font-weight: 300;
+		margin: 0 10px 10px 0;
+
+		&::placeholder {
+			color: #9c9aa0;
+		}//placeholder
+
+		&.nome {
+			width: 774px;
+			margin-right: 0;
+		}//nome
+
+	}//input
+
+	select {
+		background: #fff;
+		width: 380px;
+		height: 60px;
+		padding-left: 25px;
+		.d-inline-block;
+		.v-align-top;
+		border: #e5e5e5 solid 1px;
+		.open-sans;
+		color: #9c9aa0;
+		font-size: 1.6em;
+		font-weight: 300;
+		margin-right: 10px;
+	}//input
+
+	.btn-agendar-ligacao {
+		background: #006666;
+		width: 380px;
+		height: 60px;
+		.d-inline-block;
+		.v-align-top;
+		border: none;
+		color: #fff;
+		.open-sans;
+		font-weight: 400;
+		text-align: left;
+		font-size: 1.6em;
+		padding-left: 23px;
+		cursor: pointer;
+	}//btn-negociar-agora
+
+}//pg-agendar-ligacao
+
+@media screen and (max-width: 1050px) {
+
+	#pg-agendar-ligacao {
+		background: url(../images/agendar-ligacao/bg-mobile.jpg) top center no-repeat;
+		height: auto;
+		padding: 240px 20px 40px 20px;
+
+		h1 {
+			font-size: 5em;
+			margin-bottom: 20px;
+		}//h1
+
+		h2 {
+			margin-bottom: 40px;
+		}//h2
+
+		form {
+			width: 100%;
+		}//form
+
+		input {
+			width: 100%;
+			display: block;
+			margin: 0 0 10px 0;
+			&.nome {
+				width: 100%;
+			}//nome
+
+		}//input
+
+		select {
+			width: 100%;
+			display: block;
+			margin-right: 0;
+			margin-bottom: 10px;
+		}//input
+
+		.btn-agendar-ligacao {
+			width: 100%;
+			display: block;
+		}//btn-negociar-agora
+
+	}//pg-agendar-ligacao
+
+}//1050px

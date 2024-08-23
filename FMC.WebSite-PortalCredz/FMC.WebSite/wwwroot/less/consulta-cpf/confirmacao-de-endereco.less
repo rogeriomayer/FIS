@@ -1,0 +1,127 @@
+#consulta-cpf-confirmacao-de-endereco {
+	
+	h2 {
+		color: @verde-topo;
+		font-size: 3.7em;
+		font-weight: 700;
+		line-height: 110%;
+		margin-bottom: 15px;
+	}//h2
+
+	h3 {
+		color: @verde-topo;
+		font-size: 1.6em;
+		font-weight: 400;
+		margin-bottom: 40px;
+	}//h3
+
+	form {
+		width: 678px;
+	}//form
+
+	input,select {
+		.d-inline-block;
+		.v-align-top;
+		border: #e5e5e5 solid 1px;
+		height: 60px;
+		.open-sans;
+		font-weight: 400;
+		font-size: 1.6em;
+		color: #9c9aa0;
+		padding-left: 20px;
+		margin: 0 3px 10px 0;
+
+		&::placeholder {
+			color: #9c9aa0;
+		}//placeholder;
+
+		&.rua,&.bairro {
+			width: 450px;
+		}//rua
+
+		&.numero,&.cep {
+			width: 216px;
+		}//numero
+
+		&.complemento {
+			width: 216px;
+		}//complemento
+
+		&.cidade {
+			width: 216px;
+			margin: 0 3px 0 12px;
+		}//cidade
+
+		&.estado {
+			width: 216px;
+		}//estado
+
+		&.telefone {
+			width: 330px;
+			margin-right: 9px;
+		}//telefone	
+
+		&.celular {
+			width: 330px;
+		}//celular
+
+	}//input
+
+	.btn-enviar {
+		background: #006666;
+		width: 671px;
+		height: 60px;
+		.d-inline-block;
+		.v-align-top;
+		border: none;
+		color: #fff;
+		.open-sans;
+		text-align: left;
+		font-size: 1.6em;
+		padding-left: 23px;
+		cursor: pointer;
+		box-shadow: 3px 3px 10px 0 rgba(0,0,0,0.2);
+		.uppercase;
+		font-weight: 700;
+	}//btn-enviar
+
+}//consulta-cpf-confirmacao-de-endereco
+
+@media screen and (max-width: 1050px) {
+
+	#consulta-cpf-confirmacao-de-endereco {
+		padding: 30px 20px 30px 20px!important;
+
+		h2 {
+			font-size: 3em;
+			margin-bottom: 15px;
+
+			br {
+				display: none;
+			}//br
+
+		}//h2
+
+		h3 {
+			margin-bottom: 30px;
+			line-height: 130%;
+		}//h3
+
+		form {
+			width: 100%;
+		}//form
+
+		input,select {
+			width: 100%!important;
+			margin: 0 0 10px 0!important;
+			display: block;
+			height: 60px;
+		}//input
+
+		.btn-enviar {
+			width: 100%;
+		}//btn-enviar
+
+	}//consulta-cpf-confirmacao-de-endereco
+
+}//1050px

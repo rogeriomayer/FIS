@@ -1,0 +1,128 @@
+#servicos {
+
+	.container {
+		max-width: 1185px;
+	}//container
+
+	.chamada {
+		background: url(../images/servicos/bg-topo.jpg) top center no-repeat;
+		height: 250px;
+		margin-bottom: 40px;
+		padding-top: 123px;
+
+		h1 {
+			color: #036868;
+			font-size: 8em;
+			font-weight: 700;
+			line-height: 100%;
+		}//h1
+
+	}//chamada
+
+	.conteudo {
+
+		h2 {
+			color: #006666;
+			font-size: 1.6em;
+			font-weight: 700;
+			margin-bottom: 30px;
+		}//h2
+
+		p {
+			color: #006666;
+			font-size: 1.6em;
+			font-weight: 400;
+			line-height: 170%;
+		}//p
+
+		.infraestrutura {
+			margin: 45px 0 45px 0;
+		}//infraestrutura
+
+		.cobranca {
+			
+			p {
+				margin-bottom: 30px;
+
+				&:last-of-type {
+					margin-bottom: 0;
+				}//last-of-type
+
+			}//p
+
+		}//cobranca
+
+		.certificacoes-e-tecnologias {
+			margin-top: 70px;
+			margin-bottom: 50px;
+			text-align: center;
+
+			h2 {
+				text-align: left;
+				margin-bottom: 40px;
+			}//h2
+
+			img {
+				.d-inline-block;
+				.v-align-top;
+				margin-right: 25px;
+			}//img
+
+		}//certificacoes-e-tecnologias
+
+	}//conteudo
+
+}//servicos
+
+@media screen and (max-width: 1050px) {
+
+	#servicos {
+
+		.chamada {
+			background: url(../images/servicos/bg-topo-mobile.jpg) top center no-repeat;
+			background-size: cover;
+			height: 331px;
+			margin-bottom: 30px;
+			padding-top: 230px;
+			padding-left: 20px;
+
+			h1 {
+				font-size: 5.5em;
+			}//h1
+
+		}//chamada
+
+		.conteudo {
+			padding: 0 20px 0 20px;
+
+			br {
+				display: none;
+			}//br
+
+			p {
+				font-size: 1.5em;
+			}//p
+
+			.infraestrutura {
+				margin: 30px 0 30px 0;
+			}//infraestrutura
+
+			.certificacoes-e-tecnologias {
+				margin-top: 30px;
+
+				h2 {
+					margin-bottom: 30px;
+				}//h2
+
+				img {
+					margin-right: 10px;
+					width: 30%;
+				}//img
+
+			}//certificacoes-e-tecnologias
+
+		}//conteudo
+
+	}//servicos
+
+}//1050px

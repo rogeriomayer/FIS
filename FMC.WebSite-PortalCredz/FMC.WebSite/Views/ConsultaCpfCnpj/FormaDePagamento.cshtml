@@ -1,0 +1,445 @@
+﻿@model IEnumerable<object>
+@using Microsoft.AspNetCore.Http
+@{
+    ConsultaCpfCnpj _model = (ConsultaCpfCnpj)Model.ElementAt(0);
+    CardResponse conta = (CardResponse)Model.ElementAt(1);
+    AgreementSimulateResponse parcelamento = (AgreementSimulateResponse)Model.ElementAt(2);
+    ParcelamentoFaturaResponse parcelamentoFaturaResponse = (ParcelamentoFaturaResponse)Model.ElementAt(3);
+    SimulaParcelamento simula = (SimulaParcelamento)Model.ElementAt(4);
+
+    IList<string> message = (IList<string>)ViewData["Message"];
+    IList<object> selectList = new List<object>();
+    //if (simula != null && simula.Entrada != null && Convert.ToDouble((simula.Entrada).Replace(",", "").Replace(".", "")) >= 0)
+    //{
+    IList<string> disableDate = new List<string>();
+
+    selectList.Add(new { value = 0, text = "A Vista" });
+    if (parcelamento != null && parcelamento.VlFull > 0)
+    {
+        //decimal totParc = parcelamento.AgreementBal / 30;
+        decimal totParc = parcelamento.VlFull / 30;
+        for (int i = 1; i <= 36; i++)
+        {
+            if (i > totParc) { break; }
+            if (i == 1)
+            {
+                selectList.Add(new { value = i, text = i.ToString() + " parcela" });
+            }
+            else
+            {
+                selectList.Add(new { value = i, text = i.ToString() + " parcelas" });
+            }
+        }
+    }
+
+    //}
+    //else
+    //{
+    //    selectList = new List<Object> { new { value = 0, text = "A Vista" } };
+    //}
+}
+<link rel="stylesheet" type="text/css" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+<link href="~/css/jquery-confirm.min.css" type="text/css" rel="stylesheet" asp-append-version="true" />
+<link href="~/fontawesome/css/all.css" rel="stylesheet">
+<section id="pg-consulta-cpf-forma-de-pagamento" class="scroll-secao">
+    <section class="barra-nova-consulta-cpf none">
+        <div class="container">
+            <h1>Faça uma nova consulta</h1>
+            @using (Html.BeginForm("Index", "Home", FormMethod.Post, new { @class = "form-cpf" }))
+            {
+                @Html.TextBoxFor(model => _model.CpfCnpj, null, new { @class = "mask-cpf", placeholder = "Digite seu CPF ou CNPJ", maxlength = "18" })
+                @Html.ValidationMessageFor(model => _model.CpfCnpj)
+                <button type="submit" class="btn-nova-consulta">Consultar</button>
+            }
+        </div> <!-- container -->
+    </section> <!-- barra-nova-consulta-cpf -->
+
+    <section class="barra-resultado-cpf none">
+
+        <div class="container">
+            <p>
+                Encontramos as seguintes pendências para o
+                @if (_model.CpfCnpj.Count() <= 14)
+                {
+                    @Html.Raw("CPF")
+                }
+                else
+                {
+                    @Html.Raw("CNPJ")
+                }
+            </p>
+            <span class="cpf">@_model.CpfCnpj</span>
+        </div> <!-- container -->
+    </section> <!-- barra resultado cpf -->
+
+    <section class="box-forma-de-pagamento container">
+
+        <div class="informacoes-do-cartao">
+            @if (conta != null)
+            {
+                string imageCard = conta.CardImage;
+                if (string.IsNullOrEmpty(imageCard))
+                {
+                    imageCard = "~/images/cartao/cardgenerico-v2.png";
+                }
+
+                <img src="@imageCard" />
+                <span class="nome-cartao">
+                    @conta.CardName
+                </span>
+                <span class="numero-cartao">
+                    <text>
+                        @conta.CardNumber
+                    </text>
+                </span>
+                @if (parcelamento != null)
+                {
+                    <span class="saldo-devedor">R$ @parcelamento.VlFull.ToString("N2")</span>
+                }
+                else
+                {
+                    <span class="saldo-devedor">R$ @conta.VlDue.ToString("N2")</span>
+                }
+
+                <span class="dias-atraso"><strong>DIAS EM ATRASO</strong>: @conta.Age</span>
+            }
+        </div> <!-- informacoes do cartao -->
+        @if (conta != null)
+        {
+            //ACORDO
+            if (Convert.ToInt32(conta.Age) > FMC.WebSite.FIS.Utils.AppSettings.MaxPromisse)
+            {
+            //PARA ACORDOS
+                <h1 class="txt-simulation">Você pode alterar o <b>Valor e Data de entrada</b> e clicar <b>Calcular</b> para simular outras opções de parcelamento!</h1>
+
+                <div class="form">
+                    @using (Html.BeginForm("FormaDePagamento", "ConsultaCpfCnpj", FormMethod.Post))
+                    {
+                        <div class="box-input">
+                            <span>Valor de Entrada</span>
+                            @Html.TextBoxFor(model => simula.Entrada, null, new { @class = "entrada", placeholder = "Valor de Entrada", maxlength = "10" })
+                            <span class="loading"><img src="~/images/loading.gif" /></span>
+                        </div>
+
+                        <div class="box-input">
+                            <span>Data da Entrada</span>
+                            @Html.TextBoxFor(model => simula.DataEntrada, null, new { @class = "mask-data", placeholder = "__/__/____", maxlength = "10" })
+                        </div>
+                        <div class="box-input box-button">
+                            <span>&nbsp;</span>
+                            <button class="btn-enviar" type="submit">Calcular</button>
+                        </div>
+
+                        @if (message != null)
+                        {
+                            foreach (string msg in message)
+                            {
+                                <div class="message-search">&bull; @msg</div>
+                            }
+                        }
+                    }
+                </div>
+
+                <br />
+                <br />
+
+                <h2>
+                    @if (parcelamento != null && parcelamento.ParcelResponse != null)
+                    {
+                        if (parcelamento.ParcelResponse.Count == 1)
+                        {
+                            @Html.Raw("Clique em <b>Contratar</b> para confirmar sua negociação!")
+                        }
+                        else
+                        {
+                            @Html.Raw("Clique em <b>Contratar</b> na forma de pagamento que melhor lhe atende e confirme sua negociação!")
+                        }
+                    }
+                </h2>
+
+                <ul class="opcoes-de-pagamento">
+                    @if (conta != null && parcelamento != null && parcelamento.ParcelResponse != null && parcelamento.ParcelResponse.Count() > 0)
+                    {
+                        <h3>Seu saldo devedor atualizado é <strong>R$  @parcelamento.VlFull.ToString("N2")</strong>.</h3>
+
+                        <h3>
+
+                            @if (parcelamento.ParcelResponse.Count() == 1)
+                            {
+                                @Html.Raw(" Simulação de acordo com QUITAÇÃO programada para o dia <strong>")  @simula.DataEntrada  @Html.Raw("</strong>.")
+                            }
+                            else
+                            {
+                                @Html.Raw(" Opções de acordo com <strong>PRIMEIRO PAGAMENTO</strong> programado para o dia <strong>")  @simula.DataEntrada  @Html.Raw("</strong>.")
+                            }
+
+                        </h3>
+
+
+
+                        foreach (var parcel in parcelamento.ParcelResponse)
+                        {
+                            <li>
+                                <div class="left">
+                                    <span class="parcelas">
+
+                                        @if (parcel.NrParcel > 0)
+                                        {
+                                            @Html.Raw("R$ ")  @parcel.ValueEntrace.ToString("N2")  @Html.Raw(" + ")
+                                        }
+                                        else
+                                        {
+                                            @Html.Raw(" 1x ") @Html.Raw("R$ ")  @parcel.ValueEntrace.ToString("N2")
+                                        }
+
+                                        @if (parcel.NrParcel > 0)
+                                        {
+                                            @(parcel.NrParcel) @Html.Raw("x R$ ") @parcel.VlParcel.ToString("N2")
+                                        }
+                                    </span>
+                                    @if (@parcel.VlDiscount > 0)
+                                    {
+                                        <b> <span class="desconto">DESCONTO: R$ @parcel.VlDiscount.ToString("N2")</span></b>
+                                    }
+
+                                </div> <!-- left -->
+
+                <div class="right">
+                                    <span class="juros">
+                                        TOTAL: R$ @Html.Raw(@parcel.VlFull.ToString("N2"))
+                                    </span>
+                                    @using (Html.BeginForm("TermosECondicoes", "ConsultaCpfCnpj", FormMethod.Post))
+                                    {
+                                        @Html.Hidden("TotalParcel", parcel.NrParcel)
+                                        <button class="btn-contratar" type="submit">Contratar</button>
+                                    }
+                                </div> <!-- right -->
+                <div class="clearfix"></div>
+                            </li>
+                        }
+                    }
+                    else
+                    {
+                    }
+                </ul>  <!-- opcoes de pagamento -->
+            }
+            else if (conta.Age <= FMC.WebSite.FIS.Utils.AppSettings.MaxPromisse)
+            {
+                //PROMESSA
+
+                <br />
+                <h1>
+                    @Html.Raw("Selecione uma das opções disponíveis para pagamento")
+                </h1>
+
+                <ul class="opcoes-de-pagamento">
+                    @if (conta != null)
+                    {
+                        <h3>
+                            @if (simula != null && simula.DataEntrada != null)
+                            {
+                                @Html.Raw("Pagamento programado para o dia <strong>")  @simula.DataEntrada  @Html.Raw("</strong>.")
+                            }
+                        </h3>
+                        <li>
+                            <div class="left">
+                                <span class="parcelas">
+                                    PAGAMENTO MÍNIMO DA FATURA
+                                </span>
+                            </div> <!-- left -->
+
+                <div class="right">
+                                <span class="juros">
+                                    TOTAL: R$@conta.VlMinimum.ToString("N2")
+                                </span>
+                                @using (Html.BeginForm("TermosECondicoes", "ConsultaCpfCnpj", FormMethod.Post))
+                                {
+                                    @Html.Hidden("TotalParcel", 0)
+                                    <button class="btn-contratar" type="submit">Contratar</button>
+                                }
+                            </div> <!-- right -->
+                <div class="clearfix"></div>
+                        </li>
+                        <li>
+                            <div class="left">
+                                <span class="parcelas">
+                                    PAGAMENTO TOTAL DA FATURA
+                                </span>
+                            </div> <!-- left -->
+
+                <div class="right">
+                                <span class="juros">
+                                    TOTAL: R$@conta.VlFull.ToString("N2")
+                                </span>
+                                @using (Html.BeginForm("TermosECondicoes", "ConsultaCpfCnpj", FormMethod.Post))
+                                {
+                                    @Html.Hidden("TotalParcel", 1)
+                                    <button class="btn-contratar" type="submit">Contratar</button>
+                                }
+                            </div> <!-- right -->
+                <div class="clearfix"></div>
+                        </li>
+                    }
+                    else
+                    {
+                    }
+                </ul>  <!-- opcoes de pagamento -->
+                <br />
+                <h2 style="margin-top:20px">Parcelamento de Fatura</h2>
+
+                <div class="form">
+                    @using (Html.BeginForm("FormaDePagamento", "ConsultaCpfCnpj", FormMethod.Post))
+                    {
+                        <div class="box-input">
+                            <span>Valor Entrada</span>
+                            @Html.TextBoxFor(model => simula.Entrada, null, new { @class = "entrada", placeholder = "Valor da entrada parcelamento", maxlength = "10" })
+                            <span class="loading"><img src="~/images/loading.gif" /></span>
+                        </div>
+                        <div class="box-input">
+                            <span>Data Entrada</span>
+                            @Html.TextBoxFor(model => simula.DataEntrada, null, new { disabled = "disabled"})
+                        </div>
+
+                        <div class="box-input box-button">
+                            <span>&nbsp;</span>
+                            <button class="btn-enviar" type="submit">Calcular</button>
+                        </div>
+                        @if (message != null)
+                        {
+                            foreach (string msg in message)
+                            {
+                                <div class="message-search">&bull; @msg</div>
+                            }
+                        }
+                    }
+                    <div style="clear: both"></div>
+                </div>
+                <br />
+                <br />
+                <br />
+                @if (simula != null && simula.Entrada != null && parcelamentoFaturaResponse != null && parcelamentoFaturaResponse.responseData != null && parcelamentoFaturaResponse.responseData.listaParcelamentoOpcao.Count > 0)
+                {
+                    <ul class="opcoes-de-pagamento">
+                        @foreach (var parcel in parcelamentoFaturaResponse.responseData.listaParcelamentoOpcao)
+                        {
+                            <li>
+                                <div class="left">
+                                    <span class="parcelas">
+                                        @if (simula != null && simula.Entrada != null && Convert.ToDecimal(simula.Entrada.Replace(",", "").Replace(".", "")) / 100 > 0)
+                                        {
+                                            if (Convert.ToInt32(parcel.quantidadeParcelas) > 0)
+                                            {
+                                                @Html.Raw("R$ ")  @parcelamentoFaturaResponse.responseData.valorAdesao.Trim()  @Html.Raw(" + ")
+                                            }
+                                            else
+                                            {
+                                                @Html.Raw(" 1x ") @Html.Raw("R$ ")  @parcelamentoFaturaResponse.responseData.valorAdesao.Trim()
+                                            }
+                                        }
+                                        @if (Convert.ToInt32(parcel.quantidadeParcelas) > 0)
+                                        {
+                                            @(parcel.quantidadeParcelas.Trim()) @Html.Raw("x R$ ") @parcel.valorParcela
+                                        }
+                                    </span>
+                                </div> <!-- left -->
+
+                <div class="right">
+                                    <span class="juros">
+                                        TOTAL: R$ @Html.Raw(Convert.ToDecimal(Convert.ToDecimal(parcel.quantidadeParcelas) *
+                        Convert.ToDecimal(parcel.valorParcela) +
+                        Convert.ToDecimal(parcelamentoFaturaResponse.responseData.valorAdesao)).ToString("N2"))
+                                    </span>
+                                    @using (Html.BeginForm("TermosECondicoes", "ConsultaCpfCnpj", FormMethod.Post))
+                                    {
+                                        @Html.Hidden("TotalParcel", parcel.quantidadeParcelas.Trim())
+                                        <button class="btn-contratar" type="submit">Contratar</button>
+                                    }
+                                </div> <!-- right -->
+                <div class="clearfix"></div>
+                            </li>
+                        }
+                    </ul>
+                }
+            }
+        }
+    </section> <!-- box forma de pagamentos -->
+
+</section> <!-- consulta cpf # resultados -->
+<script src="~/js/jquery-confirm.min.js"></script>
+
+@section Scripts {
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('ul.opcoes-de-pagamento li .right form .btn-contratar').on('click', function (e) {
+            var form = $(this).parents('form');
+            var id = $('#TotalParcel',$(this).parents('form')).val();
+            e.preventDefault();
+            $.confirm({
+                theme: 'modern',
+                type: 'blue',
+                columnClass: 'l',
+                @if (conta != null && parcelamento != null)
+                {
+                    @Html.Raw("title: '<div class=\"logo-bradescard\"><img src=\"/images/topo/credz-logo-azulclaro.png\" /></div>Termos e Condições',")
+                }
+                else
+                {
+                    @Html.Raw("title: 'Informação Importante',")
+                }
+                content: function () {
+                    return $.ajax({
+                        url: '@Url.Action("Termos-Do-Acordo", "Consulta-Documento")',
+                        dataType: 'text/html',
+                        method: 'post',
+                        data: { totalParcel: id }
+                    });
+                },
+                contentLoaded: function (data, status, xhr) {
+
+                    this.setContentAppend(data.responseText);
+                },
+                @if (conta == null || parcelamento == null)
+                {
+                    @Html.Raw("icon: 'fa fa-question',")
+                }
+                animation: 'scale',
+                closeAnimation: 'scale',
+                opacity: 0.5,
+                buttons: {
+                    'confirm': {
+                        text: 'Confirmar',
+                        btnClass: 'btn-blue-afinz',
+                        action: function () {
+                            $('body').css("overflow", "hidden");
+                            $('#load-page, #load-page .background-opacity').css({
+                                width: window.innerWidth,
+                                height: screen.height
+                            });
+                            $('#load-page').fadeIn(300);
+                            form.submit();
+                        }
+                    },
+                    'cancel': {
+                        text: 'Cancelar',
+                        btnClass: 'btn-blue-afinz',
+                        action: function () {
+                            $('#load-page').fadeOut(300);
+                            $('body').css("overflow", "");
+                            //$.alert('you clicked on <strong>cancel</strong>');
+                        }
+                    }
+                }
+
+            });
+        });
+        $('.form .entrada').focus();
+        if (isMobile()) {
+            $('html, body').animate({ scrollTop: $('#pg-consulta-cpf-forma-de-pagamento h1.txt-simulation').position().top }, 'slow', 'swing');
+        }
+        function isMobile() {
+            return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+        }
+    });
+</script>
+}

@@ -1,0 +1,158 @@
+﻿@model IEnumerable<object>
+@using Microsoft.AspNetCore.Http
+@{
+    ConsultaCpfCnpj _model = (ConsultaCpfCnpj)Model.ElementAt(0);
+    string portal = Context.Session.GetString("portal");
+
+    var url = Context.Request.Host;
+    string host = url.Host;
+}
+@{
+    //Layout = "_Bradescard";
+    Layout = "_FIS";
+}
+<link rel="stylesheet" type="text/css" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+<link href="~/css/jquery-confirm.min.css" type="text/css" rel="stylesheet" asp-append-version="true" />
+<link href="~/fontawesome/css/all.css" rel="stylesheet">
+
+<section id="pg-negociar-agora" class="scroll-secao">
+    <div class="container">
+        <h1 class="h1mobile">
+            A forma mais
+            <br />
+            rápida e fácil
+            <br />
+            de colocar suas
+            <br />
+            contas em dia!
+
+        </h1>
+        <div class="portal-negociacao">
+            @using (Html.BeginForm(FormMethod.Post, new { @class = "form-cpf" }))
+            {
+
+                @Html.TextBoxFor(p => _model.CpfCnpj, null, new { @class = "mask-cpf", placeholder = "Digite seu CPF e clique em Avançar", maxlength = "14" })
+                @Html.ValidationMessageFor(p => _model.CpfCnpj)
+                <button type="submit" class="btn-negociar-agora">Avançar</button>
+            }
+            @using (Html.BeginForm(FormMethod.Post, new { @class = "form-cartoes" }))
+            {
+                @Html.Hidden("TotalParcel")
+                <button type="submit" class="btn-cartoes-credz">Clique aqui e veja a lista de cartões Credz</button>
+            }
+            <div id="carousel" class="carouselMobile">
+                <div id="carouselTopo" style="display: flex;justify-content: center;position: relative;top: 15px;z-index: 2;">
+                    <img src="~/images/home/CarrosselTopo.png">
+                </div>
+                <div id="carouselExampleControls" class="carousel slide" data-ride="carousel">
+                    <div class="carousel-inner">
+                        <div class="carousel-item active">
+                            <img class="d-block w-100" src="~/images/home/Carrossel1.png" alt="Passo 1">
+                        </div>
+                        <div class="carousel-item">
+                            <img class="d-block w-100" src="~/images/home/Carrossel2.png" alt="Passo 2">
+                        </div>
+                        <div class="carousel-item">
+                            <img class="d-block w-100" src="~/images/home/Carrossel3.png" alt="Passo 3">
+                        </div>
+                        <div class="carousel-item">
+                            <img class="d-block w-100" src="~/images/home/Carrossel4.png" alt="Passo 4">
+                        </div>
+                    </div>
+                    <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Anterior</span>
+                    </a>
+                    <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Proximo</span>
+                    </a>
+                </div>
+            </div>
+            <!-- container -->
+            <div class="clearfix">
+            </div>
+        </div>
+</section> <!-- pg negociar agora -->
+
+<script src="~/js/jquery-confirm.min.js"></script>
+@section scripts{
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+<script type="text/javascript">
+
+    $("form.form-cpf").submit(function (e) {
+        if (!$(this).valid()) {
+
+            $('#load-page').fadeOut(300);
+            $('body').css("overflow", "");
+            e.preventDefault();
+        }
+    });
+    $(document).ready(function () {
+        $('form.form-cartoes .btn-cartoes-credz').on('click', function (e) {
+            var form = $(this).parents('form');
+            e.preventDefault();
+            $.confirm({
+                theme: 'modern',
+                type: 'blue',
+                title: 'Cartões Credz',
+                content:
+                function () {
+                    return $.ajax({
+                        url: '@Url.Action("CartoesCredz", "Consulta-Documento")',
+                        dataType: 'text/html',
+                        method: 'post',
+                        data: { totalParcel: '123' }
+                    });
+                },
+
+                contentLoaded: function (data, status, xhr) {
+                    this.setContentAppend(data.responseText);
+                },
+                animation: 'scale',
+                closeAnimation: 'scale',
+                opacity: 0.5,
+                buttons: {
+                    'cancel': {
+                        text: 'Fechar',
+                        btnClass: 'btn-blue-afinz',
+                        action: function () {
+                            $('#load-page').fadeOut(300);
+                            $('body').css("overflow", "");
+                        }
+                    }
+                }
+
+            });
+        });
+     });
+
+     /*
+     //pop inicial
+     $(document).ready(function () {
+           $.alert({
+                 title: '<h1 style="color:Tomato;">FUJA DO GOLPE DO BOLETO 😱</h1>',
+                 content: '<p style="font-size: 1.5em;font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;">Antes de pagar, verifique se o boleto foi emitido pelo <span style="color: red;">Bradesco</span> e se o nome do beneficiário é a <b>Credz</b>!</p>',
+                 buttons: {
+                    'cancel': {
+                        text: 'OK,ENTENDI',
+                        btnClass: 'btn-blue-afinz',
+                        action: function () {
+                            $('#load-page').fadeOut(300);
+                            $('body').css("overflow", "");
+                        }
+                    }
+                }
+            });
+     });
+     */
+    if (isMobile()) {
+        $('html, body').animate({ scrollTop: $('#pg-negociar-agora').position().top }, 'slow', 'swing');
+    }
+    function isMobile() {
+        return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+    }
+
+
+</script>
+}

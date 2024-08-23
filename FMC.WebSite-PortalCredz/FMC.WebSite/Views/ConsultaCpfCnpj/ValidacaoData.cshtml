@@ -1,0 +1,76 @@
+﻿@model IEnumerable<object>
+@{
+    ConsultaCpfCnpj _model = (ConsultaCpfCnpj)Model.ElementAt(0);
+    ValidationDate _validation = (ValidationDate)Model.ElementAt(1);
+
+    var days = new List<SelectListItem>();
+    for (var i = 1; i <= 31; i++)
+    {
+        days.Add(new SelectListItem() { Text = i.ToString(), Value = i.ToString() });
+    }
+    var months = new List<SelectListItem> {
+        new SelectListItem {Text = "Janeiro", Value = "1", Selected =  _validation.Month == "1"},
+        new SelectListItem {Text = "Fevereiro", Value = "2", Selected =  _validation.Month == "2"},
+        new SelectListItem {Text = "Março", Value = "3", Selected =  _validation.Month == "3"},
+        new SelectListItem {Text = "Abril", Value = "4", Selected =  _validation.Month == "4"},
+        new SelectListItem {Text = "Maio", Value = "5", Selected =  _validation.Month == "5"},
+        new SelectListItem {Text = "Junho", Value = "6", Selected =  _validation.Month == "6"},
+        new SelectListItem {Text = "Julho", Value = "7", Selected =  _validation.Month == "7"},
+        new SelectListItem {Text = "Agosto", Value = "8", Selected =  _validation.Month == "8"},
+        new SelectListItem {Text = "Setembro", Value = "9", Selected =  _validation.Month == "9"},
+        new SelectListItem {Text = "Outubro", Value = "10", Selected = _validation.Month == "10"},
+        new SelectListItem {Text = "Novembro", Value = "11", Selected = _validation.Month == "11"},
+        new SelectListItem {Text = "Dezembro", Value = "12", Selected = _validation.Month == "12"},
+      };
+    var years = new List<SelectListItem>();
+    for (var i = DateTime.Today.AddYears(-15).Year; i >= 1920; i--)
+    {
+        years.Add(new SelectListItem { Text = i.ToString(), Value = i.ToString(), Selected = _validation.Year == i.ToString() });
+    }
+}
+<section id="pg-autenticar" class="scroll-secao">
+    <div class="container">
+        <div class="box">
+            <h2>Vamos confirmar que você é o titular do cartão!</h2>
+            <p>Informe sua data de nascimento.</p>
+            @using (Html.BeginForm("ValidacaoData", "ConsultaCpfCnpj", FormMethod.Post, new { @class = "form-cpf" }))
+            {
+                <div class="date" >
+                    @Html.DropDownListFor(model => _validation.Day ,days, "Dia")
+                    @Html.DropDownListFor(model => _validation.Month ,months, "Mês")
+                    @Html.DropDownListFor(model => _validation.Year ,years, "Ano")
+                </div>
+                @if (ViewBag.Message != null)
+                {
+                    <div class="msg">@ViewBag.Message</div>
+                }
+                <br />
+                @Html.HiddenFor(model => _validation.GoogleCaptchaToken, new { @class = "GoogleCaptchaToken" })
+                <div class="button"><button type="submit" class="btn">Validar</button></div>
+
+            }
+        </div>
+    </div> <!-- obrigado -->
+
+</section> <!-- pg consulta cpf # obrigado -->
+@section Scripts{
+<script>
+    $(document).ready(function () {
+        $('.set-day').on('click', function () {
+            $('.valid-day').val($(this).val());
+            $(this).addClass('selected');
+            form = $(this).parents('form');
+            form.submit();
+        });
+    });
+</script>
+<script src="https://www.google.com/recaptcha/api.js?render=@ViewBag.publicKey"></script>
+<script>
+    grecaptcha.ready(function () {
+        grecaptcha.execute('@ViewBag.publicKey', { action: 'homepage' }).then(function (token) {
+            $(".GoogleCaptchaToken").val(token);
+        });
+    });
+
+</script>
+}

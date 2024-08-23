@@ -1,0 +1,17 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+
+namespace FMC.WebSite.FIS.Controllers
+{
+    [Route("Nossa-Historia")]
+    public class NossaHistoriaController : Controller
+    {
+        public IActionResult Index()
+        {
+            return View();
+        }
+    }
+}

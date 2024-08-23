@@ -1,0 +1,91 @@
+﻿@model IEnumerable<object>
+@using Microsoft.AspNetCore.Http
+@{
+    ConsultaCpfCnpj _model = (ConsultaCpfCnpj)Model.ElementAt(0);
+    Produto produto = (Produto)Model.ElementAt(2);
+    string linhaDigitavel = (string)Model.ElementAt(3);
+}
+<section id="pg-consulta-cpf-resultados-nao-consta" class="scroll-secao">
+    <section class="barra-nova-consulta-cpf">
+        <div class="container">
+            <h1>Faça uma nova consulta</h1>
+            @using (Html.BeginForm("Index", "Home", FormMethod.Post, new { @class = "form-cpf" }))
+            {
+                @Html.TextBoxFor(model => _model.CpfCnpj, null, new { @class = "mask-cpf", placeholder = "Digite seu CPF ou CNPJ", maxlength = "18" })
+                @Html.ValidationMessageFor(model => _model.CpfCnpj)
+                <button type="submit" class="btn-nova-consulta">Consultar</button>
+            }
+        </div> <!-- container -->
+    </section> <!-- barra-nova-consulta-cpf -->
+    <section class="barra-resultado-cpf">
+        <div class="container">
+
+            @if (produto.NomeProduto == "IBI")
+            {
+                <p>Já existe um acordo em andamento para este cartão</p>
+                <span class="cpf">
+                    <text>
+                        @if (produto.CodProduto.Trim().Length == 19)
+                        {
+                            @produto.CodProduto.Trim().ToString().Substring(3, 16)
+                        }
+                        else if (produto.CodProduto.Trim().Length == 16)
+                        {
+                            @produto.CodProduto.Trim().ToString()
+                        }
+
+                        @produto.CodProduto.Trim().Substring(produto.CodProduto.Trim().Length - 4, 4)
+                    </text>
+                </span>
+            }
+            else if (produto.NomeProduto == "NACC")
+            {
+                <p>Já existe um acordo em andamento para este documento</p>
+                <span class="cpf">@_model.CpfCnpj</span>
+            }
+        </div> <!-- container -->
+
+    </section> <!-- barra resultado cpf -->
+
+    <section class="central-de-cobranca container">
+
+        <div class="acordo-existente">
+            @if (produto.NomeProduto == "IBI")
+            {
+                /*
+                @if (ibiUr83.ValorEntrada > 0)
+                {
+                <p><b>Valor de Entrada:</b> @ibiUr83.ValorEntrada.ToString("C2") </p>
+                <p><b>Data da Entrada:</b> @ibiUr83.DataEntradaAcordo </p>
+                }
+                @if (Convert.ToInt32(ibiUr83.NumeroParcelaAtraso) > 0)
+                {
+                <p><b>Data da Parcela em Atraso:</b> @ibiUr83.DtVctoParcelaAtraso </p>
+                <p><b>Número da Parcela em Atraso:</b> @ibiUr83.NumeroParcelaAtraso </p>
+                }
+                @if (Convert.ToInt32(ibiUr83.NumeroParcelasAcordo) > 0)
+                {
+                <p><b>Quantidade de Parcelas:</b> @ibiUr83.NumeroParcelasAcordo </p>
+                }
+                @if (ibiUr83.ValorParcela > 0)
+                {
+                <p><b>Valor das Parcelas:</b> @ibiUr83.ValorParcela.ToString("C2") </p>
+                <p><b>Dia de Vencimento:</b> @ibiUr83.DiaVencimento</p>
+                }
+                */
+                <p>
+                    @if (TempData["AcordoQuebrado"] == "Sim")
+                    {
+                        @Html.Raw("ENTRE EM CONTATO COM A CENTRAL")
+                        <a href="@Url.Action("Central-De-Cobranca", "Consulta-Documento")" class="clique">CLICANDO AQUI</a>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("Imprimir", "Consulta-Documento")" class="imprimir" target="_blank">Imprimir Boleto</a>
+                    }
+                </p>
+            }
+
+        </div>
+    </section> <!-- central de cobranca -->
+</section>

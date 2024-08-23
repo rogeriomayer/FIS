@@ -1,0 +1,90 @@
+#consulta-cpf-termos-e-condicoes {
+
+	.box-termos {
+		width: 750px;
+		max-height: 500px;
+		overflow: auto;
+		padding-right: 30px;
+
+		&::-webkit-scrollbar {
+			width: 12px;
+			background-color: #edeef0;
+		}
+
+		&::-webkit-scrollbar-thumb {
+			background-color: #c4c4c4;
+			border-radius: 20px;
+		}
+
+	}//box-termos
+
+	h2 {
+		color: @verde-topo;
+		font-size: 3.7em;
+		font-weight: 700;
+		margin-bottom: 50px;
+	}//h2
+
+	p {
+		color: @verde-topo;
+		font-size: 1.6em;
+		font-weight: 400;
+		line-height: 150%;
+		margin-bottom: 20px;
+	}//p
+
+	.btn-concordo {
+		background: #006666;
+		width: 100%;
+		height: 60px;
+		.d-inline-block;
+		.v-align-top;
+		border: none;
+		color: #fff;
+		.open-sans;
+		text-align: left;
+		font-size: 1.6em;
+		cursor: pointer;
+		box-shadow: 3px 3px 10px 0 rgba(0,0,0,0.2);
+		.uppercase;
+		font-weight: 700;
+		text-align: center;
+		margin-top: 40px;
+	}//btn-concordo
+
+}//consulta-cpf-termos-e-condicoes
+
+@media screen and (max-width: 1050px) {
+
+	#consulta-cpf-termos-e-condicoes {
+		padding: 30px!important;
+
+		.box-termos {
+			width: 90%;
+			max-height: 300px;
+			overflow: auto;
+			padding-right: 30px;
+
+		}//box-termos
+
+		h2 {
+			font-size: 3em;
+			margin-bottom: 30px;
+		}//h2
+
+		p {
+			font-size: 1.4em;
+		}//p
+
+		.btn-concordo {
+			background: #006666;
+			width: 100%;
+			height: auto;
+			padding: 20px;
+
+			margin-top: 30px;
+		}//btn-concordo
+
+	}//consulta-cpf-termos-e-condicoes
+
+}//1050px

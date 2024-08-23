@@ -1,0 +1,199 @@
+﻿@model IEnumerable<object>
+@using Microsoft.AspNetCore.Http
+@{
+    Produto _produto = (Produto)Model.ElementAt(0);
+    TermoECondicao termo = (TermoECondicao)Model.ElementAt(1);
+
+    string portal = Context.Session.GetString("portal");
+
+    var url = Context.Request.Host;
+    string host = url.Host;
+}
+
+<section id="pg-consulta-cpf-forma-de-pagamento" class="scroll-secao">
+    <section id="consulta-cpf-lightbox" class="container">
+
+        <div class="content-lightbox padding-top-40 box-forma-de-pagamento " id="consulta-cpf-termos-e-condicoes">
+
+            <div class="informacoes-do-cartao">
+                <div class="logo-bradescard"><img src="~/images/negociar-agora/logo.bradescard.png" /></div>
+                <h2>Termos e condições</h2>
+
+                @if (_produto.NomeProduto == "IBI")
+                {
+                    <p>
+                        <strong>Termos de Aceite</strong>
+
+                        <br />
+                        <br />
+                        As condições anteriormente propostas são válidas apenas para esta negociação realizada neste canal na data de
+                        @DateTime.Now.ToString("dd/MM/yyyy").
+                        O desconto concedido somente será valido se o pagamento for feito em sua totalidade e até a data de vencimento.
+                    </p>
+                    @if (termo.Age > FMC.WebSite.FIS.Utils.AppSettings.MaxPromisse) //>56
+                    {
+                        <p>
+                            Ratificamos que devido a negociação dessa dívida, ocorrerá o cancelamento do seu cartão de crédito, inclusive dos seus dependentes.
+                        </p>
+
+                        @*@if (termo.ValueEntrance == 0 && termo.NrParcel == 1 &&  termo.Age < 360)
+                            {
+                            <p>
+                            Para este acordo está inclusa a taxa de @termo.PercentageTax.ToString()% AO MÊS.
+                            </p>
+                            }
+                            else
+                            {
+                            <p>
+                            Está inclusa a taxa de @termo.PercentageTax.ToString()% ao mês.
+                            </p>
+                            }*@
+                        <p>
+                            Após o aceite desta proposta a sua negociação será processada e a reabilitação de seu CPF junto aos órgãos de proteção ao crédito (SPC / SERASA) ocorrerá em aproximadamente 5 dias úteis.
+                        </p>
+                        <p>
+                            Caso tenha utilizado o cartão recentemente e as despesas realizadas ainda não estejam postadas na fatura, tais valores não estarão inclusos na composição desta renegociação e será cobrada à parte em sua fatura.
+                        </p>
+                        <p>
+                            Caso tenha dúvidas, por favor, entre em contato com a nossa Central de Atendimento:
+                        </p>
+                        <p>
+                            4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(demais regiões).
+                        </p>
+                        <p>
+                            Ou pelo e-mail: cobranca@credz.com.br .
+                        </p>
+                        <p>
+                            <br />
+                            <strong>Lembrando</strong>
+                            <br /><br />
+                            @if (termo.ValueEntrance == 0 && termo.NrParcel == 1)
+                            {
+                                @Html.Raw("Foi formalizado o ACORDO à vista no valor de ")
+                                @Html.Raw(termo.ValueParcel.ToString("C2"))
+                                @Html.Raw(" com vencimento para o dia ")
+                                @Html.Raw(termo.DateEntranceParcel.Date.ToString("dd/MM/yyyy"))
+                                @Html.Raw(".")
+                            }
+                            else
+                            {
+                                if (termo.ValueEntrance == 0 && termo.NrParcel > 1)
+                                {
+                                    @Html.Raw("Foi formalizado o ACORDO SEM ENTRADA com primeiro vencimento para o dia ")
+                                    @Html.Raw(termo.DateEntranceParcel.Date.ToString("dd/MM/yyyy"))
+                                    @Html.Raw(" no valor de ")
+                                    @Html.Raw(termo.ValueParcel.ToString("C2"))
+                                    @Html.Raw(",  mais ")
+                                    @Html.Raw(termo.NrParcel - 1)
+                                    @if (termo.NrParcel - 1 > 1)
+                                    {
+                                        @Html.Raw(" parcelas de ")
+                                    }
+                                    else
+                                    {
+                                        @Html.Raw(" parcela de ")
+                                    }
+                                    @Html.Raw(termo.ValueParcel.ToString("C2"))
+                                    @Html.Raw(" e demais vencimentos para todo dia ")
+                                    @Html.Raw(termo.DateParcel.Day)
+                                    @Html.Raw(".")
+                                }
+                                else
+                                {
+                                    @Html.Raw("Foi formalizado o ACORDO COM ENTRADA para dia ")
+                                    @Html.Raw(termo.DateEntranceParcel.Date.ToString("dd/MM/yyyy"))
+                                    @Html.Raw(" no valor de ")
+                                    @Html.Raw(termo.ValueEntrance.ToString("C2"))
+                                    @Html.Raw(",  mais ")
+                                    @Html.Raw(termo.NrParcel)
+                                    @if (termo.NrParcel > 1)
+                                    {
+                                        @Html.Raw(" parcelas de ")
+                                    }
+                                    else
+                                    {
+                                        @Html.Raw(" parcela de ")
+                                    }
+                                    @Html.Raw(termo.ValueParcel.ToString("C2"))
+                                    @Html.Raw(", sendo primeiro vencimento para o dia ")
+                                    @Html.Raw(termo.DateParcel.ToString("dd/MM/yyyy"))
+                                    @Html.Raw(" e demais vencimentos para todo dia ")
+                                    @Html.Raw(termo.DateParcel.Day)
+                                    @Html.Raw(".")
+                                }
+                            }
+                        </p>
+                        <p>
+                            Será cobrado IOF em todas as parcelas e caso a fatura atual esteja em atraso será cobrado multa com a 1ª parcela.
+                        </p>
+                        <p>
+                            Para este acordo está inclusa a taxa de @termo.PercentageTax.ToString()% AO MÊS. <br /><br />
+                            <strong>Custo Efetivo Total (CET)</strong><br />
+                            <span style="padding:3px; background-color: #ccc">Percentual </span><br />
+                            @termo.CETMensal.ToString("N4")% ao mês<br />
+                            @termo.CETAnual.ToString("N4")% ao ano
+                        </p>
+                        <p>
+                            Agradecemos sua atenção. Tenha
+                            @if (DateTime.Now.Hour >= 12 && DateTime.Now.Hour < 18)
+                            {
+                                @Html.Raw("uma Boa Tarde.")
+                            }
+                            else if (DateTime.Now.Hour >= 18 && DateTime.Now.Hour <= 23)
+                            {
+                                @Html.Raw("uma Boa Noite.")
+                            }
+                            else
+                            {
+                                @Html.Raw("um Bom Dia.")
+                            }
+                        </p>
+                    }
+                    else
+                    {
+                        <p>
+                            @Html.Raw("Foi formalizado uma PROMESSA de pagamento no valor de ")
+                            @Html.Raw(termo.ValueEntrance.ToString("C2"))
+                            @Html.Raw(" com vencimento para o dia ")
+                            @Html.Raw(termo.DateEntranceParcel.Date.ToString("dd/MM/yyyy"))
+                            @Html.Raw(".")
+                        </p>
+                        <p>
+                            Se houver restrições externas, serão excluídas em até 05 dias úteis após o pagamento do saldo em atraso.
+                        </p>
+                        <p>
+                            Tenha
+                            @if (DateTime.Now.Hour >= 12 && DateTime.Now.Hour < 18)
+                            {
+                                @Html.Raw("uma Boa Tarde.")
+                            }
+                            else if (DateTime.Now.Hour >= 18 && DateTime.Now.Hour <= 23)
+                            {
+                                @Html.Raw("uma Boa Noite.")
+                            }
+                            else
+                            {
+                                @Html.Raw("um Bom Dia.")
+                            }
+                        </p>
+                    }
+                }
+            </div> <!-- box termos -->
+            <form method="post" action="@Url.Action("Finalizar","Consulta-Documento")">
+                <button class="btn-concordo">Li e concordo com os termos!</button>
+            </form>
+        </div> <!-- content -->
+
+    </section> <!-- lightbox -->
+
+</section> <!-- consulta cpf # resultados -->
+@section scripts{
+<script type="text/javascript">
+    if (isMobile()) {
+        $('html, body').animate({ scrollTop: $('#pg-consulta-cpf-forma-de-pagamento').position().top }, 'slow', 'swing');
+    }
+    function isMobile() {
+        return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+    }
+</script>
+}

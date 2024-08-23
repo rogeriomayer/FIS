@@ -1,0 +1,54 @@
+﻿@model IEnumerable<object>
+@using Microsoft.AspNetCore.Http
+@{
+    ConsultaCpfCnpj _model = (ConsultaCpfCnpj)Model.ElementAt(0);
+    string portal = Context.Session.GetString("portal");
+
+    var url = Context.Request.Host;
+    string host = url.Host;
+}
+@{
+    //Layout = "_Bradescard";
+    Layout = "_FIS";
+}
+<section id="pg-negociar-agora" class="scroll-secao">
+    <div class="container">
+        @using (Html.BeginForm(FormMethod.Post, new { @class = "form-cpf" }))
+        {
+            <div class="portal-negociacao"></div>
+            @Html.TextBoxFor(p => _model.CpfCnpj, null, new { @class = "mask-cpf", placeholder = "Digite seu CPF ou CNPJ", maxlength = "18" })
+            @Html.ValidationMessageFor(p => _model.CpfCnpj)
+            <button type="submit" class="btn-negociar-agora">Consultar</button>
+        }
+        <div class="logo-cartoes">
+            <!--
+            <div class="grupo-cartoes">
+                <ul class="bradescard">
+                    <li class='destaque'><img src="~/images/cards/cartaoAfinz.webp" /></li>
+                </ul>
+                <div class="clearfix"></div>
+            </div>
+            -->
+        </div> <!-- container -->
+        <div class="clearfix"></div>
+</section> <!-- pg negociar agora -->
+@section scripts{
+<script type="text/javascript">
+
+    $("form.form-cpf").submit(function (e) {
+        if (!$(this).valid()) {
+
+            $('#load-page').fadeOut(300);
+            $('body').css("overflow", "");
+            e.preventDefault();
+        }
+    });
+    if (isMobile()) {
+        $('html, body').animate({ scrollTop: $('#pg-negociar-agora').position().top }, 'slow', 'swing');
+    }
+    function isMobile() {
+        return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+    }
+
+</script>
+}

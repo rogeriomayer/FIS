@@ -1,0 +1,83 @@
+﻿@model IEnumerable<object>
+@{
+    ConsultaCpfCnpj _model = (ConsultaCpfCnpj)Model.ElementAt(0);
+}
+@{
+    Layout = "_Layout";
+}
+<section id="pg-negociar-agora" class="segunda-via scroll-secao">
+    <div class="container">
+        <h1>
+            Retire agora a <br>
+            segunda via do seu boleto!
+        </h1>
+        @using (Html.BeginForm("Index", "Segunda-Via", FormMethod.Post, new { @class = "form-cpf" }))
+        {
+            @Html.TextBoxFor(model => _model.CpfCnpj, null, new { @class = "mask-cpf", placeholder = "Digite seu CPF ou CNPJ", maxlength = "18" })
+            @Html.ValidationMessageFor(model => _model.CpfCnpj)
+            <button type="submit" class="btn-negociar-agora">Consultar</button>
+        }
+        <div class="logo-cartoes">
+            <div>
+                <ul class="bradescard">
+                    <li class='destaque'><img src="~/images/renegociar-pelo-whatsapp/logos/bradescard-red.png" /></li>
+                    <li class='list'><img src="~/images/renegociar-pelo-whatsapp/logos/cea.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/americanas.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/casas-bahia.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/clube-angeloni.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/lojas-colombo.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/compcard.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/cencosud.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/coop.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/cvc.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/dotz.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/eskala.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/lebiscuit.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/lojas-rede.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/makro.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/mateuscard.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/mapfre.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/paguemenos.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/passarela.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/sportcard.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/telerio.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/tng.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/ibi.png" /></li>
+                </ul>
+                <ul class="bradesco">
+                    <li class='destaque'><img src="~/images/renegociar-pelo-whatsapp/logos/bradesco-red.png" /></li>
+                    <li class='list'><img src="~/images/renegociar-pelo-whatsapp/logos/americanexpress.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/visa.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/mastercard.png" /></li>
+                    <li><img src="~/images/renegociar-pelo-whatsapp/logos/elo.png" /></li>
+                </ul>
+                <ul class="outros">
+                    <li class="multiloja"><img src="~/images/renegociar-pelo-whatsapp/logos/logo-multiloja-o.png" /></li>
+                    <!--li class="pepsico"><img src="~/images/renegociar-pelo-whatsapp/logos/logo-pepsico-o.png" /></li-->
+                    <li class="simplic"><img src="~/images/renegociar-pelo-whatsapp/logos/logo-simplic-o.png" /></li>
+                </ul>
+                <div class="clearfix"></div>
+            </div>
+            <div class="clearfix"></div>
+        </div> <!-- container -->
+        <div class="clearfix"></div>
+</section> <!-- pg negociar agora -->
+<div class="clearfix"></div>
+@section scripts{
+    <script type="text/javascript">
+        $("form.form-cpf").submit(function (e) {
+            if (!$(this).valid()) {
+
+                $('#load-page').fadeOut(300);
+                $('body').css("overflow", "");
+                e.preventDefault();
+            }
+        });
+        if (isMobile()) {
+            $('html, body').animate({ scrollTop: $('#pg-negociar-agora').position().top }, 'slow', 'swing');
+        }
+        function isMobile() {
+            return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+        }
+    </script>
+}

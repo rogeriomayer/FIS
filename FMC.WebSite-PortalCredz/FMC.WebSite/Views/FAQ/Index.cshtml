@@ -1,0 +1,123 @@
+﻿@model IEnumerable<object>
+@using Microsoft.AspNetCore.Http
+@{
+    Layout = "_Layout";
+}
+<section id="clientes" class="scroll-secao">
+    <div class="container">
+        <div>
+            <input class="btn btn-primary" action="action" type="button" value="Voltar" onclick="history.go(-1);" />
+            <br />
+            <br />
+        </div>
+        <div>
+            <h1>
+                FAQ (Dúvidas frequentes)
+            </h1>
+        </div>
+        <div>
+            <h3>
+                01 - O que é o Negociador Digital?
+            </h3>
+            <p>
+                É um portal que permite que você negocie suas dívidas com a Credz de forma simples, rápida e segura, na hora e no lugar mais apropriados para você. É um autosserviço que te dá total autonomia porque você não fala com atendentes. Mas atenção, caso o prazo de sua dívida seja inferior a 78 dias de atraso, não será possível negociar pelo portal e você deverá entrar em contato com a central de cobrança 4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(demais regiões).
+            </p>
+            <h3>
+                02 - A empresa FIS/FMC Brasil tem autorização para realizar a negociação para a Credz?
+            </h3>
+            <p>
+                Sim. A  FIS/FMC Brasil é um fornecedor homologado pela Credz e possuem contrato para realizar a prestação de serviço de cobrança. Você pode conferir a autenticidade da empresa ligando na Central de Atendimento de Cobrança: 4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(demais regiões).
+            </p>
+            <h3>
+                03 - Como posso verificar as ofertas de negociação disponíveis para a minha dívida?
+            </h3>
+            <p>
+                Acesse o portal NEGOCIADOR DIGITAL com o seu CPF. Em seguida, confirme seus dados pessoais (Nome e data de nascimento) para garantirmos que realemnte você é o titular da conta. Feito isto, você já pode navegar no portal e conferir as ofertas de negociação (atualizadas sempre com as melhores condições para o momento). Mas atenção, caso o prazo de sua dívida seja inferior a 78 dias de atraso, você deverá entrar em contato com a central de cobrança 4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(demais regiões).
+            </p>
+            <h3>
+                04 - Não lembro o meu número de CPF. De que outra forma posso acessar o Portal?
+            </h3>
+            <p>
+                No momento não há outra forma de acesso ao NEGOCIADOR DIGITAL.
+            </p>
+            <h3>
+                05 - Estou em dívida com a Credz, mas não consigo acessar o Negociador Digital para realizar o meu acordo, por quê?
+            </h3>
+            <p>
+                Porque o portal NEGOCIADOR DIGITAL respeita um TEMPO MÍNIMO de atraso da dívida, que hoje é de 78 DIAS. Se sua dívida ainda não alcançou este tempo, o acesso não estará liberado. Existem outras situações que também pode impossibilitar a negociação através do portal. Neste caso, você deverá entrar em contato através do portal Credz ou central de cobrança 4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(demais regiões).
+            </p>
+            <h3>
+                06 - Como posso aproveitar as ofertas de negociação que a Credz tem para mim?
+            </h3>
+            <p>
+                As ofertas de negociação disponíveis aparecerão em sua tela logo após a confirmação de seus dados. Clique em <b>"NEGOCIAR"</b> no cartão correspondente e o portal apresentará os VALORES E CONDIÇÕES DE PAGAMENTO. Você ainda poderá simular outras condições alterando o <b>Valor de Entrada</b> e <b>Data de Entrada</b> e clicando em <b>CALCULAR</b>.
+            </p>
+            <h3>
+                07 - Quais opções de negociação eu tenho?
+            </h3>
+            <p>
+                A Credz analisou seu perfil com muita atenção para preparar as melhores ofertas para você! A sua MELHOR OPÇÃO DE ACORDO aparecerá destacada, pois é a mais adequada às suas condições financeiras atuais. Mas nada lhe impede de escolher livremente entre as opções disponíveis e clicar em <b>CONTRATAR</b>.
+            </p>
+            <h3>
+                08 - Cliquei em contratar na minha melhor opção de acordo. Qual o próximo passo?
+            </h3>
+            <p>
+                Confirme se as condições que aparecem nesta caixa são as que você realmente deseja e clique em <b>Confirmar</b>, será lhe apresentado uma tela com boleto onde você terá as opções de receber <b>copiar o código de barras</b>, <b>baixar o boleto em PDF para impressão</b> , <b>enviar seu boleto via e-mail</b> ou <b> enviar um SMS com código de barra</b>.
+            </p>
+            <h3>
+                09 - Como efetuo o pagamento?
+            </h3>
+            <p>
+                Você poderá pagar seu boleto com a linha digitável através do aplicativo de seu banco, em uma agência bancária ou lotérica com o boleto baixado ou recebido por e-mail. Antes de pagar, verifique se o boleto foi emitido pelo Bradesco e se o nome do beneficiário é a Credz.
+            </p>
+            <h3>
+                10 - Em até quantas vezes posso parcelar minha dívida?
+            </h3>
+            <p>
+                O portal CALCULA AUTOMATICAMENTE A QUANTIDADE DE PARCELAS, assim como as condições de negociação de acordo com o seu perfil e o valor devido.
+            </p>
+            <h3>
+                11 - Como posso acompanhar meu acordo?
+            </h3>
+            <p>
+                Acesse a área restrita do Negociador Digital, informando o seu CPF e Data de Nascimento, para acompanhar seu acordo em detalhes: o número da parcela, a data de vencimento, o valor e se a parcela está paga ou em aberto.
+            </p>
+            <h3>
+                12 - Recebi o boleto, mas não estou conseguindo pagar, por quê?
+            </h3>
+            <p>
+                Vale lembrar que, por conta da nova plataforma de cobrança, você pode não conseguir pagar o seu boleto imediatamente após recebê-lo. Caso isso aconteça, TENTE REALIZAR O PAGAMENTO NOVAMENTE após algumas horas, ou no próximo dia util.
+            </p>
+            <h3>
+                13 - Não consegui pagar meu boleto na data acordada. Como posso prorrogar o prazo para pagamento?
+            </h3>
+            <p>
+                Após o atraso, o acordo será rescindido sendo necessário a formalização de um NOVO ACORDO.
+            </p>
+            <h3>
+                14 - Terei meu acordo cancelado se uma parcela não puder ser paga na data de vencimento?
+            </h3>
+            <p>
+                Após o atraso, o acordo será rescindido sendo necessário a formalização de um NOVO ACORDO.
+            </p>
+            <h3>
+                15 - Quanto tempo depois de quitada a dívida, terei meu nome removido da Lista de Inadimplentes?
+            </h3>
+            <p>
+                A baixa da restrição ocorrerá de 3 A 5 DIAS ÚTEIS, a contar da data do 1º pagamento (em situações de acordo em dia). Caso o acordo seja rescindido o registro será direcionado novamente para negativação.
+            </p>
+            <h3>
+                16 - Posso transferir minha dívida para outra pessoa física ou jurídica?
+            </h3>
+            <p>
+                Não. As dívidas e ofertas de negociação são pessoais e INTRANSFERÍVEIS.
+            </p>
+            <h3>
+                17 - Eu não recebi meu boleto, o que devo fazer?
+            </h3>
+            <p>
+                Você deve entrar em contato com a Central de Atendimento de Cobrança: 4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(demais regiões).
+            </p>
+        </div>
+    </div> <!-- container -->
+</section> <!-- clientes -->

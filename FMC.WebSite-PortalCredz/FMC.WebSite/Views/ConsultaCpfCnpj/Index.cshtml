@@ -1,0 +1,142 @@
+﻿@model IEnumerable<object>
+@using Microsoft.AspNetCore.Http
+@{
+    ConsultaCpfCnpj _model = (ConsultaCpfCnpj)Model.ElementAt(0);
+    PersonResponse pessoa = Model.ElementAt(1) as PersonResponse;
+    AgreementResponse agreement = null;
+}
+
+<section id="pg-consulta-cpf-resultados" class="scroll-secao">
+    <section class="barra-resultado-cpf">
+        <div class="container">
+            <p>
+                Encontramos as seguintes pendências para o
+                @if (_model.CpfCnpj.Count() <= 14)
+                {
+                    @Html.Raw("CPF")
+                }
+                else
+                {
+                    @Html.Raw("CNPJ")
+                }
+            </p>
+            <span class="cpf">@Html.Raw(_model.CpfCnpj)</span>
+        </div> <!-- container -->
+
+    </section> <!-- barra resultado cpf -->
+
+    <section class="resultado-dividas container">
+
+        <h1>Selecione a dívida que deseja renegociar agora.</h1>
+
+        <ul>
+            @if (pessoa != null && pessoa.Cards.Count() > 0)
+            {
+                foreach (var conta in pessoa.Cards.OrderByDescending(p => p.AvailableBilling).ThenByDescending(p => p.Age).Where(p => p.VlFull > 0).ToList())
+                {
+                    string imageCard = "~/images/cartao/cardgenerico-v2.png";
+                    if (!string.IsNullOrEmpty(conta.CardImage))
+                        imageCard = conta.CardImage;
+
+                    <li>
+                        <img src="@imageCard" class="img-cartao" />
+                        <h2>
+                            @conta.CardName
+                        </h2>
+                        <h2 class="card">
+                            <text>
+                                @if (conta.CardNumber.Trim().Length == 19)
+                                {
+                                    @conta.CardNumber.Trim().ToString().Substring(3, 16)
+                                }
+                                else if (conta.CardNumber.Trim().Length == 16)
+                                {
+                                    @conta.CardNumber.Trim().ToString()
+                                }
+                                <br />
+                                <br />
+                                @if (conta.Age >= 78 && conta.AvailableBilling)
+                                {
+
+                                    <span>
+                                        <br />
+                                        @Html.Raw("Atraso:") @Html.Raw(@conta.Age) @Html.Raw(" dias")
+                                        <br />
+                                    </span>
+                                }
+                                else if (conta.AvailableBilling == false
+                                && conta.StatusLeadResponse.Count() > 0
+                                && conta.StatusLeadResponse.Where(p => p.AgreementResponse != null).Count() > 0)
+                                {
+                                    agreement = conta.StatusLeadResponse.Where(p => p.AgreementResponse != null).OrderByDescending(p => p.IdStatusLead).FirstOrDefault().AgreementResponse;
+                                    var agreementParcelResponse = @agreement.AgreementParcelResponse.Where(p => p.Status == "EmAberto" && p.DtParcel >= DateTime.Today.AddDays(-10)).FirstOrDefault();
+                                    var parcel = agreementParcelResponse != null ? agreementParcelResponse.NrParcel + 1 : agreement.AgreementParcelResponse.OrderByDescending(p=> p.NrParcel).FirstOrDefault().NrParcel;
+                                    var qtdParcel = agreement.QtParcel -1;
+                                                                        
+                                    <span>
+                                        @if (agreement.AgreementParcelResponse.Count() > 1)
+                                        {
+                                            @Html.Raw("Acordo: R$") @agreement.VlEntrace.ToString("N2") @Html.Raw(" + ") @qtdParcel @Html.Raw("X de R$") @agreement.VlParcel.ToString("N2")
+                                            <br />
+                                            @Html.Raw("Parcela Atual: ") @parcel
+                                        }
+                                        else
+                                        {
+                                            @Html.Raw("<b>Acordo à vista de R$</b>") @agreement.VlAgreement.ToString("N2")
+                                            <br />
+                                        }
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span>
+                                        <br />
+                                        @Html.Raw("Indisponível para renegociação!")
+                                        <br />
+                                    </span>
+                                }
+                            </text>
+                        </h2>
+                        @if (conta.Age >= 78 && conta.AvailableBilling)
+                        {
+                            <div class="dv-btn">
+                                @using (Html.BeginForm("SimularNegociacao", "ConsultaCpfCnpj", FormMethod.Post))
+                                {
+                                    @Html.HiddenFor(m => conta.Account)
+                                    @Html.HiddenFor(m => conta.CardNumber)
+                                    <button type="submit" class="btn-nova-consulta">Negociar Agora</button>
+                                }
+                            </div>
+                        }
+                        @if (conta.AvailableBilling == false
+                       && conta.StatusLeadResponse.Count() > 0
+                       && conta.StatusLeadResponse.Where(p => p.AgreementResponse != null).Count() > 0)
+                        {
+                            <div class="dv-btn-boleto">
+                                @using (Html.BeginForm("Finalizar", "ConsultaCpfCnpj", FormMethod.Post))
+                                {
+                                    @Html.HiddenFor(m => conta.Account)
+                                    @Html.HiddenFor(m => conta.CardNumber)
+
+                                    <button type="submit" class="btn-nova-consulta">Segunda Via</button>
+                                }
+                            </div>
+                        }
+                    </li>
+                }
+            }
+        </ul>
+
+    </section>
+</section>
+<div class="clearfix"></div>
+@section scripts{
+<script type="text/javascript">
+    if (isMobile()) {
+        $('html, body').animate({ scrollTop: $('#pg-consulta-cpf-resultados .barra-resultado-cpf').position().top }, 'slow', 'swing');
+    }
+    function isMobile() {
+        return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+    }
+</script>
+}

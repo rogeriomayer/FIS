@@ -1,0 +1,374 @@
+#topo {
+	background: @verde-topo;
+	width: 100%;
+	height: 66px;
+	.absolute;
+	top: 0;
+	left: 0;
+
+	.logo {
+		.d-inline-block;
+		.v-align-top;
+		padding-top: 14px;
+	}//logo
+
+	.busca {
+		.d-inline-block;
+		.v-align-top;
+		margin: 0 70px 0 160px;
+		.relative;
+
+		input {
+			width: 598px;
+			background: transparent;
+			height: 66px;
+			border: none;
+			border-bottom: #fff solid 2px;
+			.open-sans;
+			font-weight: 400;
+			font-size: 1.6em;
+			color: #fff;
+			.transition;
+
+			&:focus {
+				padding-left: 7px;
+			}//focus
+
+		}//input
+
+		input::placeholder {
+			color: #fff;
+		}//place-holder
+
+		.btn-busca {
+			background: url(../images/topo/btn-busca.png) top 23px right 14px no-repeat;
+			width: 45px;
+			height: 66px;
+			border: none;
+			cursor: pointer;
+			.absolute;
+			top: 0;
+			right: 0;
+		}//btn-busca
+
+	}//busca
+
+	.consultar-cpf {
+		.d-inline-block;
+		.v-align-top;
+		.relative;
+		padding-top: 19px;
+
+		input {
+			width: 240px;
+			background: #fff;
+			height: 30px;
+			border: none;
+			border-radius: 30px;
+			padding-left: 15px;
+			.open-sans;
+			font-weight: 600;
+			font-size: 1.2em;
+			color: @verde-topo;
+			.transition;
+
+			&:focus {
+			}//focus
+
+		}//input
+
+		input::placeholder {
+			color: @verde-topo;
+		}//place-holder
+
+		.btn-consultar-cpf {
+			background: url(../images/topo/btn-consultar-cpf.png);
+			width: 41px;
+			height: 40px;
+			border: none;
+			cursor: pointer;
+			.absolute;
+			top: 15px;
+			right: -10px;
+
+			span {
+				.open-sans;
+				font-weight: 400;
+				color: #fff;
+				font-size: 12px;
+				display: block;
+				margin-top: -2px;
+				margin-left: -2px;
+			}//span
+
+		}//btn-busca
+
+	}//consultar-cpf
+
+}//topo
+
+#bar-negociacoes {
+	padding: 25px 0 25px 0;
+	width: 100%;
+	height: 200px;
+	.absolute;
+	top: 66px;
+	left: 0;
+	box-shadow: 0 2px 10px 1px rgba(0,0,0,0.1);
+	z-index: 998;
+
+	ul {
+		text-align: center;
+
+		li {
+			.d-inline-block;
+			.v-align-top;
+			text-align: left;
+
+			h2 {
+				font-size: 2em;
+				font-weight: 400;
+				color: @verde-topo;
+				.uppercase;
+				margin-bottom: 7px;
+			}//h2
+
+			p {
+				font-size: 1.2em;
+				font-weight: 400;
+				color: @verde-topo;
+				line-height: 120%;
+			}//p
+
+			&.negociar-agora {
+
+				a {
+					background: url(../images/topo/icone-negociar.png) top 50px left 9px no-repeat;
+					display: block;
+					padding: 56px 91px 0 101px;
+					height: 150px;
+
+					&:hover {
+						background: url(../images/topo/icone-negociar.png) top 45px left 9px no-repeat;
+						padding-top: 51px;
+					}//hover
+
+				}//a
+
+			}//negociar-agora
+
+			&.renegociar-pelo-whatsapp {
+				border-left: @verde-topo solid 1px;
+				border-right: @verde-topo solid 1px;
+
+				a {
+					background: url(../images/topo/icone-renegociar-wpp.png) top 51px left 77px no-repeat;
+					display: block;
+					padding: 42px 78px 0 165px;
+					height: 150px;
+
+					&:hover {
+						background: url(../images/topo/icone-renegociar-wpp.png) top 46px left 77px no-repeat;
+						padding-top: 37px;
+					}//hover
+
+				}//a
+
+			}//negociar-agora
+
+			&.agendar-ligacao {
+
+				a {
+					background: url(../images/topo/icone-agendar-ligacao.png) top 51px left 75px no-repeat;
+					display: block;
+					padding: 49px 40px 0 159px;
+					height: 150px;
+
+					&:hover {
+						background: url(../images/topo/icone-agendar-ligacao.png) top 46px left 75px no-repeat;
+						padding-top: 44px;
+					}//hover
+
+				}//a
+
+			}//negociar-agora
+
+		}//li
+
+	}//ul
+
+}//bar-negociacoes
+
+@media screen and (max-width: 1290px) {
+
+	#topo {
+
+		.logo {
+			padding-left: 20px;
+		}//logo
+
+		.busca {
+			margin: 0 105px 0 105px;
+		}//busca
+
+	}//topo
+
+	#bar-negociacoes {
+		padding: 25px 0 25px 35px;
+	}//bar-negociacoes
+
+}//1290px
+
+@media screen and (max-width: 1050px) {
+
+	#topo {
+		.relative;
+		top: auto;
+		left: auto;
+		height: auto;
+		padding-top: 20px;
+
+		.logo {
+			width: 100%;
+			padding-top: 0;
+			margin-bottom: 10px;
+
+			img {
+				width: 103px;
+				display: block;
+				margin: 0 auto;
+			}//img
+
+		}//logo
+
+		.busca {
+			margin: 0 0 0 0;
+			width: 100%;
+			padding: 0 20px 0 20px;
+
+			input {
+				width: 100%;
+				height: 60px;
+				font-size: 1.4em;
+			}//input
+
+			.btn-busca {
+				right: 20px;
+			}//btn-busca
+
+		}//busca
+
+		.consultar-cpf {
+			background: #307676;
+			width: 100%;
+			padding: 25px 0 25px 0;
+
+			form {
+				width: 250px;
+				display: block;
+				margin: 0 auto;
+				.relative;
+			}//form
+
+			input {
+				width: 250px;
+			}//input
+
+			.btn-consultar-cpf {
+				top: -4px;
+				right: -9px;
+			}//btn-busca
+
+		}//consultar-cpf
+
+	}//topo
+
+	#bar-negociacoes {
+		padding: 0 0 0 0;
+		height: auto;
+		.relative;
+		top: auto;
+		left: auto;
+
+		ul {
+
+			li {
+				width: 100%;
+
+				h2 {
+					font-size: 1.5em;
+					margin-bottom: 7px;
+					line-height: 120%;
+				}//h2
+
+				p {
+					font-size: 1.2em;
+					font-weight: 400;
+					color: @verde-topo;
+					line-height: 120%;
+
+					
+				}//p
+
+				br {
+					display: none;
+				}//br
+
+				a {
+					padding: 25px 20px 25px 80px!important;
+					height: auto!important;
+					border-bottom: @verde-topo solid 1px;
+				}//a
+
+				&.negociar-agora {
+
+					a {
+						background: url(../images/topo/icone-negociar-mobile.png) top 50% left 25px no-repeat;
+
+						&:hover {
+							background: url(../images/topo/icone-negociar-mobile.png) top 50% left 25px no-repeat;
+							padding-top: 25px;
+						}//hover
+
+					}//a
+
+				}//negociar-agora
+
+				&.renegociar-pelo-whatsapp {
+					border-left: none;
+					border-right: none;
+
+					a {
+						background: url(../images/topo/icone-renegociar-wpp-mobile.png) top 50% left 25px no-repeat;
+
+						&:hover {
+							background: url(../images/topo/icone-renegociar-wpp-mobile.png) top 50% left 25px no-repeat;
+							padding-top: 25px;
+						}//hover
+
+					}//a
+
+				}//negociar-agora
+
+				&.agendar-ligacao {
+
+					a {
+						background: url(../images/topo/icone-agendar-ligacao-mobile.png) top 50% left 25px no-repeat;
+						border-bottom: none;
+
+						&:hover {
+							background: url(../images/topo/icone-agendar-ligacao-mobile.png) top 50% left 25px no-repeat;
+							padding-top: 25px;
+						}//hover
+
+					}//a
+
+				}//negociar-agora
+
+			}//li
+
+		}//ul
+
+	}//bar-negociacoes
+
+}//1050px

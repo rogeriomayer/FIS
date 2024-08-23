@@ -1,0 +1,42 @@
+﻿@model ErrorViewModel
+@{
+    ViewData["Title"] = "Error";
+}
+
+<section id="pg-consulta-cpf-obrigado" class="scroll-secao">
+
+    <div class="obrigado container">
+
+        <h2>Desculpe!</h2>
+        <p>
+            <br /><br />
+            Neste momento nosso sistema encontra-se indisponível para negociação! <br />
+            Por gentileza tente mais tarde.<br /><br />
+            Agradecemos sua compreensão!
+        </p>
+        <p></p>
+
+
+    </div> <!-- obrigado -->
+
+</section> <!-- pg consulta cpf # obrigado -->
+
+@*
+<h1 class="text-danger">Error.</h1>
+<h2 class="text-danger">An error occurred while processing your request.</h2>
+
+@if (Model.ShowRequestId)
+{
+    <p>
+        <strong>Request ID:</strong> <code>@Model.RequestId</code>
+    </p>
+}
+
+<h3>Development Mode</h3>
+<p>
+    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
+</p>
+<p>
+    <strong>Development environment should not be enabled in deployed applications</strong>, as it can result in sensitive information from exceptions being displayed to end users. For local debugging, development environment can be enabled by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>, and restarting the application.
+</p>
+*@

@@ -1,0 +1,96 @@
+#pg-negociar-agora {
+	background: url(../images/negociar-agora/bg.jpg) top center no-repeat;
+	height: 1285px;
+	padding-top: 110px;
+
+	.container {
+		max-width: 1200px;
+	}//container
+
+	h1 {
+		color: @verde-topo;
+		font-size: 8em;
+		font-weight: 700;
+		line-height: 110%;
+		margin-bottom: 100px;
+		text-shadow: 0 3px 13px rgba(0,0,0,0.2);
+		letter-spacing: -4px;
+	}//h1
+
+	input {
+		background: #fff url(../images/negociar-agora/icone-cpf.png) top 18px left 20px no-repeat;
+		width: 580px;
+		height: 60px;
+		padding-left: 50px;
+		.d-inline-block;
+		.v-align-top;
+		border: #e5e5e5 solid 1px;
+		.open-sans;
+		color: #9c9aa0;
+		font-size: 1.6em;
+		font-weight: 300;
+
+		&::placeholder {
+			color: #9c9aa0;
+		}//placeholder
+
+	}//input
+
+	.btn-negociar-agora {
+		background: #006666;
+		width: 190px;
+		height: 60px;
+		.d-inline-block;
+		.v-align-top;
+		border: none;
+		margin-left: 6px;
+		color: #fff;
+		.open-sans;
+		font-weight: 400;
+		text-align: left;
+		font-size: 1.6em;
+		padding-left: 23px;
+		cursor: pointer;
+	}//btn-negociar-agora
+
+}//pg-negociar-agora
+
+@media screen and (max-width: 1050px) {
+
+	#pg-negociar-agora {
+		background: url(../images/negociar-agora/bg-mobile.jpg) top center no-repeat;
+		background-size: cover;
+		height: 900px;
+		padding-top: 60px;
+		padding-bottom: 80px;
+
+		.container {
+			padding: 0 20px 0 20px;
+		}//container
+
+		h1 {
+			padding: 0 20px 0 20px;
+			font-size: 5.2em;
+			margin-bottom: 50px;
+
+			br {
+				display: none;
+			}//br
+
+		}//h1
+
+		input {
+			width: 100%;
+			display: block;
+			font-size: 1.8em;
+		}//input
+
+		.btn-negociar-agora {
+			width: 100%;
+			display: block;
+			margin-left: 0;
+		}//btn-negociar-agora
+
+	}//pg-negociar-agora
+
+}//1050px

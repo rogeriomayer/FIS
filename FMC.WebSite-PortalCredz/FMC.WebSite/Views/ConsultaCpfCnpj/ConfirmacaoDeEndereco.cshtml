@@ -1,0 +1,391 @@
+﻿@model IEnumerable<object>
+@using Microsoft.AspNetCore.Http
+@{
+    ConsultaCpfCnpj _model = (ConsultaCpfCnpj)Model.ElementAt(0);
+    Endereco endereco = (Endereco)Model.ElementAt(1);
+    Produto produto = (Produto)Model.ElementAt(2);
+    EnderecoUpdate enderecoUpdate = (EnderecoUpdate)Model.ElementAt(3);
+    string email = (string)Model.ElementAt(4);
+
+}
+<section id="pg-consulta-cpf-forma-de-pagamento" class="scroll-secao">
+    <section class="barra-nova-consulta-cpf none">
+        <div class="container">
+            <h1>Faça uma nova consulta</h1>
+            @using (Html.BeginForm("Index", "Home", FormMethod.Post, new { @class = "form-cpf" }))
+            {
+                @Html.TextBoxFor(model => _model.CpfCnpj, null, new { @class = "mask-cpf", placeholder = "Digite seu CPF ou CNPJ", maxlength = "18" })
+                @Html.ValidationMessageFor(model => _model.CpfCnpj)
+                <button type="submit" class="btn-nova-consulta">Consultar</button>
+            }
+
+        </div> <!-- container -->
+
+    </section> <!-- barra-nova-consulta-cpf -->
+
+    <section id="consulta-cpf-lightbox" class="container">
+
+        <div class="content-lightbox padding-top-40" id="consulta-cpf-confirmacao-de-endereco">
+            <h2>
+                Precisamos que atualize alguns <br>
+                dos seus dados para que possamos <br>
+                atendê-lo melhor.
+            </h2>
+
+            <h3>O nosso objetivo é atender-lhe com qualidade e eficiência.</h3>
+
+            @using (Html.BeginForm("AtualizaEndereco", "ConsultaCpfCnpj", FormMethod.Post, new { @class = "form-cpf" }))
+            {
+                <span class="boxload">
+                    @Html.TextBoxFor(model => endereco.Cep, null, new { @class = "cep mask-cep", placeholder = "CEP", maxlength = "10" })
+                    @Html.ValidationMessageFor(model => endereco.Cep)
+                    <span class="ceploading"><img src="~/images/loading.gif" /></span>
+                    <span class="search"><img src="~/images/search.png" /></span>
+                </span>
+
+                @Html.TextBoxFor(model => endereco.Rua, null, new { @class = "rua", placeholder = "Rua", maxlength = "150" })
+                @Html.ValidationMessageFor(model => endereco.Rua)
+
+                @Html.TextBoxFor(model => endereco.Numero, null, new { @class = "numero", placeholder = "Número", maxlength = "15" })
+                @Html.ValidationMessageFor(model => endereco.Numero)
+
+                @Html.TextBoxFor(model => endereco.Complemento, null, new { @class = "complemento", placeholder = "Complemento", maxlength = "30" })
+                @Html.ValidationMessageFor(model => endereco.Complemento)
+
+                @if (produto.NomeProduto != "IBI")
+                {
+                    
+                    @Html.TextBoxFor(model => endereco.Bairro, null, new { @class = "bairro", placeholder = "Bairro", maxlength = "30" })
+                    @Html.ValidationMessageFor(model => endereco.Bairro)
+                }
+
+
+                @Html.TextBoxFor(model => endereco.Cidade, null, new { @class = "cidade", placeholder = "Cidade", maxlength = "30" })
+                @Html.ValidationMessageFor(model => endereco.Cidade)
+
+
+                @Html.DropDownListFor(
+                   model => endereco.Estado,
+                   new SelectList(
+                          new List<Object>{
+                               new { value = "-" , text = "Estado"  },
+                               new { value = "AC", text = "Acre" },
+                                new { value = "AL", text = "Alagoas" },
+                                new { value = "AP", text = "Amapá" },
+                                new { value = "AM", text = "Amazonas" },
+                                new { value = "BA", text = "Bahia" },
+                                new { value = "CE", text = "Ceará" },
+                                new { value = "DF", text = "Distrito Federal" },
+                                new { value = "ES", text = "Espírito Santo" },
+                                new { value = "GO", text = "Goiás" },
+                                new { value = "MA", text = "Maranhão" },
+                                new { value = "MT", text = "Mato Grosso" },
+                                new { value = "MS", text = "Mato Grosso do Sul" },
+                                new { value = "MG", text = "Minas Gerais" },
+                                new { value = "PA", text = "Pará" },
+                                new { value = "PB", text = "Paraíba" },
+                                new { value = "PR", text = "Paraná" },
+                                new { value = "PE", text = "Pernambuco" },
+                                new { value = "PI", text = "Piauí" },
+                                new { value = "RJ", text = "Rio de Janeiro" },
+                                new { value = "RN", text = "Rio Grande do Norte" },
+                                new { value = "RS", text = "Rio Grande do Sul" },
+                                new { value = "RO", text = "Rondônia" },
+                                new { value = "RR", text = "Roraima" },
+                                new { value = "SC", text = "Santa Catarina" },
+                                new { value = "SP", text = "São Paulo" },
+                                new { value = "SE", text = "Sergipe" },
+                                new { value = "TO", text = "Tocantins" }
+                            },
+                          "value",
+                          "text",
+                           (endereco != null) ? endereco.Estado : "-"
+                   ), new { @class = "estado" }
+                )
+                @Html.ValidationMessageFor(model => endereco.Estado)
+
+
+                @if (produto.NomeProduto == "IBI")
+                {
+                    @Html.TextBoxFor(model => email, null, new { @class = "email", placeholder = "Email", maxlength = "70" })
+                }
+
+                <button class="btn-enviar" type="submit">Atualizar</button>
+                @if (ViewBag.MessageSuccess != null)
+                {
+                    <span class="msgUpdate">
+                        @foreach (string m in ViewBag.MessageSuccess)
+                        {
+                            @m
+                        }
+                    </span>
+                }
+            }
+        </div> <!-- content -->
+        <div class="lista-telefone">
+            <h3>Abaixo, temos os telefones para lhe contatar. <br />Caso algum deles esteja incorreto, ajude-nos a manter esta lista atualizada.</h3>
+            <ul>
+                @if (endereco.Telefones != null && endereco.Telefones.Count > 0)
+                {
+                    foreach (var phone in endereco.Telefones)
+                    {
+                        @if (phone.NrPhone != null)
+                        {
+                            string tel = new System.Text.RegularExpressions.Regex(@"\D").Replace(phone.NrPhone, string.Empty);
+                            <li data-value="@tel">
+                                @if (tel.Length == 10)
+                                {
+                                    tel = String.Format("{0:(##) ####-####}", Convert.ToInt64(tel));
+                                    @Html.Raw(tel)
+                                    if (produto.NomeProduto == "IBI")
+                                    {
+                                        <a href="#" class="btn-remove-tel">Remover</a>
+                                    }
+                                }
+                                else if (tel.Length == 11)
+                                {
+                                    tel = String.Format("{0:(##) # ####-####}", Convert.ToInt64(tel));
+                                    @Html.Raw(tel)
+                                    if (produto.NomeProduto == "IBI")
+                                    {
+                                        <a href="#" class="btn-remove-tel">Remover</a>
+                                    }
+                                }
+                                else
+                                {
+                                    @Html.Raw(tel)
+                                    if (produto.NomeProduto == "IBI")
+                                    {
+                                        <a href="#" class="btn-remove-tel">Remover</a>
+                                    }
+                                }
+                            </li>
+                        }
+                    }
+                }
+                else
+                {
+                    if (endereco.NaccTelefones != null && endereco.NaccTelefones.Count > 0)
+                    {
+                        foreach (var phone in endereco.NaccTelefones)
+                        {
+                            string tel = new System.Text.RegularExpressions.Regex(@"\D").Replace(Convert.ToInt64(phone).ToString(), string.Empty);
+                            <li data-value="@tel">
+                                @if (tel.Length == 10)
+                                {
+                                    tel = String.Format("{0:(##) ####-####}", Convert.ToInt64(tel));
+                                    @Html.Raw(tel)
+                                    if (produto.NomeProduto == "IBI")
+                                    {
+                                        <a href="#" class="btn-remove-tel">Remover</a>
+                                    }
+                                }
+                                else if (tel.Length == 11)
+                                {
+                                    tel = String.Format("{0:(##) # ####-####}", Convert.ToInt64(tel));
+                                    @Html.Raw(tel)
+                                    if (produto.NomeProduto == "IBI")
+                                    {
+                                        <a href="#" class="btn-remove-tel">Remover</a>
+                                    }
+                                }
+                                else
+                                {
+                                    @Html.Raw(tel)
+                                    if (produto.NomeProduto == "IBI")
+                                    {
+                                        <a href="#" class="btn-remove-tel">Remover</a>
+                                    }
+                                }
+                            </li>
+                        }
+                    }
+                }
+            </ul>
+            <div class="clearfix"></div>
+            <h3>Caso tenha outro número, preencha no campo abaixo e adicione em nossa lista.</h3>
+            <div class="form-new-fone">
+                <input type="text" class="mask-telefone novo-telefone" placeholder="Novo Telefone" maxlength="15">
+                <a href="#" class="adicionar-telefone">Adicionar</a> <div class='loading'></div>
+            </div>
+            <div class="clearfix"></div>
+            <h3>Após atualizar o seu endereço, escolha uma das opções abaixo:</h3>
+
+            <a href="@Url.Action("Index","Consulta-Documento")" class="btn-voltar">Voltar</a>
+            <a href="@Url.Action("Endereco-Atualizado","Consulta-Documento")" class="btn-continuar">Continuar</a>
+            @if (ViewBag.MessageEnderecoUpdate != null)
+            {
+                <div class="messageContinue">
+                    @foreach (string m in ViewBag.MessageEnderecoUpdate)
+                    {
+                        <span>  @Html.Raw("&bull;") @m @Html.Raw(" <br />") </span>
+                    }
+                </div>
+            }
+        </div>
+    </section> <!-- lightbox -->
+
+</section> <!-- consulta cpf # resultados -->
+@section Scripts {
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#pg-consulta-cpf-forma-de-pagamento span.search').click(function () {
+                var cep = $('#pg-consulta-cpf-forma-de-pagamento form input.cep').val().replace(/[^0-9]/, '');
+                if (cep) {
+                    var url = '@Url.Action("ConsultaCep", "ConsultaCpfCnpj")?cep=' + cep;
+                    $.ajax({
+                        url: url,
+                        dataType: 'json',
+                        crossDomain: true,
+                        contentType: "application/json",
+                        beforeSend: function () {
+                            $('.ceploading').fadeIn();
+                        },
+                        success: function (json) {
+                            if (json != null) {
+                                if (json.hasOwnProperty('logradouro')) {
+                                    $("input.rua").val(json.logradouro).addClass("valid");
+                                    $("input.bairro").val(json.bairro).addClass("valid");
+                                    $("input.cidade").val(json.cidade).addClass("valid");
+                                    $(".estado").val(json.uf).change().addClass("valid");
+                                } else {
+                                    $('.ceploading').fadeOut();
+                                }
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            var err = eval("(" + xhr.responseText + ")");
+                            $('.ceploading').fadeOut();
+                        },
+                        complete: function () {
+                            $('.ceploading').fadeOut();
+                        }
+                    });
+                }
+            });
+
+            $(".btn-remove-tel").click(function (e) {
+                var element = $(this);
+                var value = $(element.closest("li")).attr("data-value");
+
+                var url = '@Url.Action("Remove-Telefone", "Consulta-Documento")';
+                    $.ajax({
+                        url: url,
+                        data: {'phone':value},
+                        type:'POST',
+                        crossDomain: true,
+                        beforeSend: function () {
+                            $("<div class='loading'></div>").insertAfter(element);
+                        },
+                        success: function (json) {
+                            if (json) {
+                                element.parents("li").fadeOut();
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            var err = eval("(" + xhr.responseText + ")");
+                            $('.loading', element.closest("li")).fadeOut();
+                        },
+                        complete: function () {
+                            $('.loading',element.closest("li")).fadeOut();
+                        }
+                    });
+                e.preventDefault();
+            });
+            $('.adicionar-telefone').click(function (e) {
+                var telefone = $('.novo-telefone').val();
+                var htm = "<li>"+telefone + '<a href="#" class="btn-remove-tel">Remover</a></li>';
+
+                if (telefone.length >= 14 && telefone.length <= 15) {
+
+                    var url = '@Url.Action("Adicionar-Telefone", "Consulta-Documento")';
+                    $.ajax({
+                        url: url,
+                        data: { 'phone': telefone},
+                        type:'POST',
+                        crossDomain: true,
+                        beforeSend: function () {
+                            $('.form-new-fone .loading').fadeIn();
+                        },
+                        success: function (json) {
+                            if (json) {
+                                if ($(".lista-telefone ul li").length)
+                                    $(htm).insertAfter($(".lista-telefone ul li").last());
+                                else
+                                    $(".lista-telefone ul").html(htm);
+
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            var err = eval("(" + xhr.responseText + ")");
+                            $('.form-new-fone .loading').fadeOut();
+                        },
+                        complete: function () {
+                            $('.form-new-fone .loading').fadeOut();
+                        }
+                    });
+
+                } else {
+                    $('.novo-telefone').removeClass("input-valid");
+                    $('.novo-telefone').addClass("input-validation-error");
+                }
+                e.preventDefault();
+            });
+            $('.novo-telefone').keyup(function (e) {
+
+                var phone = $('.novo-telefone').val();
+                if (phone.length >= 14 && phone.length <= 15) {
+                    $('.novo-telefone').removeClass("input-validation-error");
+                    $('.novo-telefone').addClass("input-valid");
+                }
+                e.preventDefault();
+            });
+
+            $("form.form-cpf").submit(function (e) {
+                if ($(this).valid()) {
+                    $('body').css("overflow", "hidden");
+                    $('#load-page, #load-page .background-opacity').css({
+                        width: window.innerWidth,
+                        height: screen.height
+                    });
+                    $('#load-page').fadeIn(300);
+                } else {
+                    $('#load-page').fadeOut(300);
+                    $('body').css("overflow", "");
+                    e.preventDefault();
+                }
+            });
+
+            //$('form').on('click',function (e) {
+
+            //    var classe = $(this).attr("class")
+            //    var classeForm = $(this).parents("form").attr("class");
+            //    console.log(classe);
+            //    console.log(classeForm);
+            //    console.log($('.form-cpf').valid());
+            //    var erro = $('.form-cpf').valid();
+            //    if (classe == "btn-enviar" && classeForm == "form-cpf") {
+            //        if (!erro) {
+                        //$('#load-page').fadeOut(300);
+                        //$('body').css("overflow", "");
+            //        } else {
+                        //$('body').css("overflow", "hidden");
+                        //$('#load-page').css({
+                        //    width: window.innerWidth,
+                        //    height: screen.height
+                        //});
+                        //$('#load-page').fadeIn(300);
+            //        }
+            //    }
+            //});
+
+
+            if (isMobile()) {
+                $('html, body').animate({ scrollTop: $('#pg-consulta-cpf-forma-de-pagamento').position().top }, 'slow', 'swing');
+            }
+            function isMobile() {
+                return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+            };
+        });
+    </script>
+}
