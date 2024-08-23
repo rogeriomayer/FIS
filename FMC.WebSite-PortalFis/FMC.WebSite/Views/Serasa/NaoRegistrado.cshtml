@@ -1,0 +1,433 @@
+﻿@model IEnumerable<object>
+@using Microsoft.AspNetCore.Http
+@{
+    Relatorio relatorio = (Relatorio)Model.ElementAt(0);
+    ICollection<FMC.WebSite.FIS.Utils.API.Ibi.SerasaAgreement> listWsAgreementNotRegistered = (ICollection<FMC.WebSite.FIS.Utils.API.Ibi.SerasaAgreement>)Model.ElementAt(1);
+
+    var groupAgreement = listWsAgreementNotRegistered.AsParallel()?.GroupBy(p => p.DtInsert.Date).Select(p => new { Value = p.Count(), Day = (DateTime)p.Key }).OrderByDescending(p => p.Day).ToList();
+
+    var graphAgreement = listWsAgreementNotRegistered.AsParallel()?.Where(p => p.DtInsert >= p.DtInsert.AddHours(-24)).GroupBy(p => new { Date = p.DtInsert.Date, Hour = p.DtInsert.Hour }).Select(p => new { Date = p.Key.Date, Hour = p.Key.Hour, Value = p.Count() }).ToList();
+    DateTime ontem = graphAgreement.FirstOrDefault() != null ? graphAgreement.FirstOrDefault().Date : DateTime.Today;// DateTime.Now.AddHours(-24);
+    DateTime hoje = listWsAgreementNotRegistered != null && listWsAgreementNotRegistered.LastOrDefault() != null ? listWsAgreementNotRegistered.LastOrDefault().DtInsert : DateTime.Now;
+    Layout = "_Admin";
+}
+<style type="text/css">
+    .table td, .table th {
+        padding: 0.50rem !important;
+    }
+</style>
+<div class="g-bg-lightblue-v10-opacity-0_5 g-pa-20">
+    <!-- Breadcrumb-v1 -->
+    <div class="g-hidden-sm-down g-bg-gray-light-v8 g-pa-20 g-mb-20">
+        <ul class="u-list-inline g-color-gray-dark-v6">
+
+            <li class="list-inline-item g-mr-10">
+                <a class="u-link-v5 g-color-gray-dark-v6 g-color-secondary--hover g-valign-middle" href="@Url.Action("Index", "Relatorio")">Dashboard</a>
+                <i class="hs-admin-angle-right g-font-size-12 g-color-gray-light-v6 g-valign-middle g-ml-10"></i>
+            </li>
+
+            <li class="list-inline-item g-mr-10">
+                <a class="u-link-v5 g-color-gray-dark-v6 g-color-secondary--hover g-valign-middle" href="@Url.Action("Index", "Relatorio")">Relatórios</a>
+                <i class="hs-admin-angle-right g-font-size-12 g-color-gray-light-v6 g-valign-middle g-ml-10"></i>
+            </li>
+
+            <li class="list-inline-item">
+                <span class="g-valign-middle">Promessas/Acordos</span>
+            </li>
+        </ul>
+    </div>
+    <!-- End Breadcrumb-v1 -->
+
+    @if (ViewBag.Message != null)
+    {
+        <div class="noty_bar noty_type__error noty_theme__unify--v1 noty_close_with_click noty_close_with_button g-mb-25">
+            <div class="noty_body">
+                <div class="g-mr-20">
+                    <div class="noty_body__icon">
+                        <i class="hs-admin-alert"></i>
+                    </div>
+                </div>
+                <div>@Html.Raw(ViewBag.Message)</div>
+            </div>
+        </div>
+    }
+    <div class="row">
+        <div class="col-xl-12  g-mb-30">
+            <div class="g-brd-around g-brd-gray-light-v7 g-rounded-4 g-pa-15 g-pa-20--md u-card-v1">
+                <h3 class="d-flex align-self-center text-uppercase g-font-size-12 g-font-size-default--md g-color-black g-mb-20">Formulário de Pesquisa</h3>
+
+                @using (Html.BeginForm("Acordo", "Serasa", FormMethod.Post, new { @class = "row" }))
+                {
+
+                    <div class="col-xl-3 form-group g-mb-30">
+                        <label class="g-mb-10" for="">Data Inicial</label>
+                        <div class="g-pos-rel">
+                            <span class="g-pos-abs g-top-0 g-right-0 d-block g-width-40 h-100 opacity-0 g-opacity-1--success">
+                                <i class="hs-admin-check g-absolute-centered g-font-size-default g-color-secondary"></i>
+                            </span>
+                            @Html.TextBoxFor(model => relatorio.DataInicio, null, new { @class = "form-control form-control-md g-brd-gray-light-v7 g-brd-gray-light-v3--focus g-rounded-4 g-px-14 g-py-10 mask-data", placeholder = "__/__/____", maxlength = "10" })
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 form-group g-mb-30">
+                        <label class="g-mb-10" for="">Data Final</label>
+                        <div class="g-pos-rel">
+                            <span class="g-pos-abs g-top-0 g-right-0 d-block g-width-40 h-100 opacity-0 g-opacity-1--success">
+                                <i class="hs-admin-check g-absolute-centered g-font-size-default g-color-secondary"></i>
+                            </span>
+                            @Html.TextBoxFor(model => relatorio.DataFim, null, new { @class = "form-control form-control-md g-brd-gray-light-v7 g-brd-gray-light-v3--focus g-rounded-4 g-px-14 g-py-10 mask-data", placeholder = "__/__/____", maxlength = "10" })
+                        </div>
+                    </div>
+                    <div class="col-xl-2 form-group">
+                        <label class="g-mb-10" for="">&nbsp;</label>
+                        <div class="g-pos-rel g-mt-5">
+                            <button class="btn btn btn-primary" type="submit">Pesquisar</button>
+                        </div>
+                    </div>
+                    <div class="col-xl-4 form-group">
+                        <label class="g-mb-10" for=""></label>
+                        <div class="g-pos-rel"></div>
+                    </div>
+
+                }
+
+                <!-- End With Icon -->
+                <!-- With Button (Colorful BG) -->
+                <!-- End With Button (Colorful BG) -->
+            </div>
+        </div>
+        <!-- Statistic Card -->
+        <div class="col-xl-12">
+            <!-- Statistic Card -->
+            <div class="card g-brd-gray-light-v7 u-card-v1 g-pa-15 g-pa-25-30--md g-mb-30">
+                <header class="media g-mb-30">
+                    <h3 class="d-flex align-self-center text-uppercase g-font-size-12 g-font-size-default--md g-color-black mb-0">Quantitativo por hora</h3>
+                </header>
+
+                <section>
+                    <ul class="list-unstyled d-flex g-mb-45">
+                        <li class="media">
+                            <div class="d-flex align-self-center g-mr-8">
+                                <span class="u-badge-v2--md g-pos-stc g-transform-origin--top-left g-bg-teal-v2"></span>
+                            </div>
+                            <div class="media-body align-self-center g-font-size-12 g-font-size-default--md">Promessas/Acordos</div>
+                        </li>
+                    </ul>
+
+                    <div class="js-area-chart u-area-chart--v1 g-pos-rel g-line-height-0" data-height="200px" data-mobile-height="180px"
+                         data-high="@if(graphAgreement.OrderByDescending(p=>p.Value).FirstOrDefault()?.Value!=null){@graphAgreement.OrderByDescending(p=>p.Value).FirstOrDefault()?.Value}else{ (1).ToString(); }"
+                         data-low="0"
+                         data-offset-x="30"
+                         data-offset-y="50"
+                         data-postfix=""
+                         data-is-show-area="true"
+                         data-is-show-line="false"
+                         data-is-show-point="true"
+                         data-is-full-width="true"
+                         data-is-stack-bars="true"
+                         data-is-show-axis-x="true"
+                         data-is-show-axis-y="true"
+                         data-is-show-tooltips="true"
+                         data-tooltip-description-position="right"
+                         data-tooltip-custom-class="u-tooltip--v2 g-font-weight-300 g-font-size-default g-color-gray-dark-v6"
+                         data-align-text-axis-x="center"
+                         data-fill-opacity=".7"
+                         data-stroke-color="#e1eaea"
+                         data-stroke-dash-array="0"
+                         data-text-size-x="14px"
+                         data-text-color-x="#000000"
+                         data-text-offset-top-x="10"
+                         data-text-size-y="14px"
+                         data-text-color-y="#53585e"
+                         data-fill-colors='["#15d3b2"]'
+                         data-points-colors='["#15d3b2"]'
+                         data-series='[[@if (graphAgreement.Count > 0)
+                         {
+                             for (var i = ontem; i <= hoje; i = i.AddHours(1))
+                             {
+                                 int total =  graphAgreement.Where(p => p.Date == i.Date && p.Hour == i.Hour).ToList().Count() > 0 ? graphAgreement.Where(p => p.Date == i.Date && p.Hour == i.Hour).FirstOrDefault().Value : 0;
+                                 if (i > ontem){ @Html.Raw(",")}
+                                 @Html.Raw("{\"meta\": \"Promessas/Acordos &bull; "+i.Date.ToString("dd/MM")+" " +i.Hour.ToString("00\\h")+" \", \"value\": "+total+"}")
+                             }
+                         }
+              ]]' data-labels='[
+                 @{
+                             for (var i = ontem; i <= hoje.AddHours(1); i = i.AddHours(1))
+                             {
+                                  if (i > ontem){ @Html.Raw(",")}
+                                  @Html.Raw("\""+i.Hour+"hs\"")
+                                 }}]'></div>
+                </section>
+            </div>
+        </div>
+
+
+
+        <div class="col-xl-12">
+            <!-- Income Cards -->
+            <div class="card g-brd-gray-light-v7 u-card-v1 g-mb-30">
+                <header class="media g-pa-15 g-pa-25-30-0--md g-mb-20">
+                    <div class="media-body align-self-center">
+                        <h3 class="text-uppercase g-font-size-default g-color-black g-mb-8">Promessas/Acordos Realizados</h3>
+                    </div>
+                    <div class="d-flex align-self-end align-items-center">
+                        <span class="g-line-height-1 g-font-weight-300 g-font-size-28 g-color-secondary">
+                            R$ @listWsAgreementNotRegistered.Sum(x => x.VlEntrace + (x.NrParcel * x.VlParcel)).ToString("N2")
+                            @if (groupAgreement.FirstOrDefault() != null)
+                            {
+                                @Html.Raw(" [ ")
+                                @listWsAgreementNotRegistered.Count()
+                                @Html.Raw("  acordos ] ")
+                            }
+                            else
+                            {
+
+                                @Html.Raw("[ 0 acordo ]")
+                            }
+                        </span>
+                    </div>
+                </header>
+                <!--TABELA RELATORIO-->
+                <div class="g-pa-20">
+                    <div class="g-mb-5">
+                        <div class="table-responsive">
+                            <table id="relatorio" class="table u-editable-table--v1 g-color-black g-mb-20">
+
+                                <thead>
+                                    <tr>
+                                        <th class="text-center" style="width: 140px;">Dt Cadastro</th>
+                                        <th class="text-center">CPF</th>
+                                        <th>Produto</th>
+                                        <th>Conta</th>
+                                        <th class="text-center">Tipo</th>
+                                        <th class="text-center">Age</th>
+                                        <th class="text-center">Nr Parcelas</th>
+                                        <th class="text-center">Desconto</th>
+                                        <th class="text-center">Dt. Entrada</th>
+                                        <th class="text-right">Entrada</th>
+                                        <th class="text-right">Parcela</th>
+                                        <th class="text-right" style="width: 110px;">Prim. Parcela</th>
+                                        <th class="text-center">Campanha</th>
+                                        <th class="text-center" style="width: 140px;">Reg. Mainframe</th>
+                                    </tr>
+                                    <tr>
+                                        <th>Dt. Cadastro</th>
+                                        <th>CPF</th>
+                                        <th>Produto</th>
+                                        <th>Conta</th>
+                                        <th>Tipo</th>
+                                        <th>Age</th>
+                                        <th>Nr. Parcelas</th>
+                                        <th>Desconto</th>
+                                        <th>Dt. Entrada</th>
+                                        <th>Entrada</th>
+                                        <th>Parcela</th>
+                                        <th>Prim. Parcela</th>
+                                        <th>Campanha</th>
+                                        <th>Reg. Mainframe</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @if (listWsAgreementNotRegistered.Count() > 0)
+                                    {
+                                        foreach (var wsnav in listWsAgreementNotRegistered)
+                                        {
+                                    <tr>
+                                        <td class="text-center">@wsnav.DtInsert.ToString("dd/MM/yyyy HH\\hmm")</td>
+                                        <td class="text-center">@wsnav.SerasaProduct.SerasaNavigation.Cpf</td>
+                                        <td>@wsnav.SerasaProduct.DsProduct</td>
+                                        <td>@wsnav.SerasaProduct.Account</td>
+                                        <td class="text-center">
+                                            @if (wsnav.FlPromisse == true)
+                                                    {
+                                            @Html.Raw("<span class=\"u-tags-v2 text-center g-width-100 g-brd-around g-brd-teal-v2 g-bg-teal-v2 g-font-size-10 g-color-white g-rounded-50 g-py-3 g-px-15\">PROMESSA</span>")
+                                                    }
+                                                    else
+                                                    {
+                                            @Html.Raw("<span class=\"u-tags-v2 text-center g-width-100 g-brd-around g-brd-lightblue-v3 g-bg-lightblue-v3 g-font-size-10 g-color-white g-rounded-50 g-py-3 g-px-15\">ACORDO</span>")
+                                                    }
+                                        </td>
+                                        <td class="text-center">@wsnav.SerasaProduct.Age</td>
+                                        <td class="text-center">@wsnav.NrParcel</td>
+                                        <td class="text-center">@wsnav.VlDesconto %</td>
+                                        <td class="text-center">@wsnav.DtEntrace.ToString("dd/MM/yyyy")</td>
+                                        <td class="text-right">@wsnav.VlEntrace.ToString("C2")</td>
+                                        <td class="text-right">@wsnav.VlParcel.ToString("C2")</td>
+                                        <td class="text-right">
+                                            @if (wsnav.DtFirstParcel != null)
+                                                    {
+                                            @wsnav.DtFirstParcel?.ToString("dd/MM/yyyy")
+                                                    }
+                                                    else
+                                                    {
+                                            @Html.Raw("-")
+                                                    }
+                                        </td>
+                                        <td class="text-center">@wsnav.SerasaProduct.SerasaNavigation.DsOrigem</td>
+                                        <td class="text-center">
+                                            @if (wsnav.DtMainframeRegister != null)
+                                                    {
+                                            @wsnav.DtMainframeRegister?.ToString("dd/MM/yyyy HH\\hmm")
+                                                    }
+                                                    else
+                                                    {
+                                            @Html.Raw("-")
+                                                    }
+                                        </td>
+                                    </tr>
+                                        }
+                                    }
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!---TABELA RELATORIO--->
+            </div>
+            <!-- End Income Cards -->
+        </div>
+    </div>
+</div>
+@section Scripts
+{
+    <script src="~/assets/vendor/bootstrap-select/js/bootstrap-select.min.js"></script>
+    <script src="~/assets/vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/assets/vendor/datatables/media/js/dataTables.select.js"></script>
+    <script src="~/assets/vendor/table-edits/build/table-edits.min.js"></script>
+    <script src="~/assets/js/components/hs.dropdown.js"></script>
+    <script src="~/assets/js/helpers/hs.focus-state.js"></script>
+    <script src="~/assets/js/components/hs.datatables.js"></script>
+    <script src="~/assets/vendor/datatables/media/js/dataTables.buttons.min.js"></script>
+    <script src="~/assets/vendor/datatables/media/js/buttons.flash.min.js"></script>
+    <script src="~/assets/vendor/jszip/jszip.min.js"></script>
+    <script src="~/assets/vendor/pdfmake/pdfmake.min.js"></script>
+    <script src="~/assets/vendor/pdfmake/vfs_fonts.js"></script>
+    <script src="~/assets/vendor/buttons/buttons.html5.min.js"></script>
+    <script src="~/assets/vendor/buttons/buttons.print.min.js"></script>
+    <script type="text/javascript">
+        $(document).on("ready", function () {
+            $("input.mask-data").mask("00r00r0000", {
+                translation: {
+                    'r': {
+                        pattern: /[\/]/,
+                        fallback: '/'
+                    },
+                    placeholder: "__/__/____"
+                }
+            });
+            var options = {
+                onKeyPress: function (cpf, ev, el, op) {
+                    var masks = ['000.000.000-000', '00.000.000/0000-00'];
+                    $('input.mask-cpf').mask((cpf.length > 14) ? masks[1] : masks[0], op);
+                }
+            }
+            $('input.mask-cpf').length > 11 ? $('input.mask-cpf').mask('00.000.000/0000-00', options) : $('input.mask-cpf').mask('000.000.000-00#', options);
+
+
+            $('.js-select').selectpicker();
+
+            // initialization of HSDropdown component
+            $.HSCore.components.HSDropdown.init($('[data-dropdown-target]'), {
+                dropdownHideOnScroll: false,
+                dropdownType: 'css-animation',
+                dropdownAnimationIn: 'fadeIn',
+                dropdownAnimationOut: 'fadeOut'
+            });
+            // initialization of editable table
+
+            $('.js-editable-table tr').editable({
+                keyboard: true,
+                dblclick: true,
+                button: true,
+                buttonSelector: '.js-edit',
+                maintainWidth: true,
+                edit: function (values) {
+                    $('.js-edit i', this).removeClass('hs-admin-pencil').addClass('hs-admin-check g-color-secondary');
+                },
+                save: function (values) {
+                    $('.js-edit i', this).removeClass('hs-admin-check g-color-secondary').addClass('hs-admin-pencil');
+                }
+            });
+
+            $('#relatorio thead tr:eq(1) th').each(function (i) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control g-font-size-default g-brd-gray-light-v7 g-brd-lightblue-v3--focus g-rounded-4 g-px-20 g-py-10" placeholder="Busca por ' + title + '" />');
+
+                $('input', this).on('keyup change', function () {
+                    if (table.column(i).search() !== this.value) {
+                        table
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            });
+
+            $.fn.dataTable.ext.classes.sPageButton = 'button primary_button g-mr-8 u-pagination-v1__item u-pagination-v1-2 g-bg-secondary--active g-color-white--active g-brd-gray-light-v7 g-brd-secondary--hover g-brd-secondary--active g-rounded-4 g-py-8 g-px-15';
+            $.fn.dataTable.ext.classes.sPageButtonActive = "active";
+            $.fn.dataTable.ext.classes.sFilter = "table_filter";
+            $.fn.dataTable.ext.classes.sLength = "table_Lenght";
+            //$.fn.dataTable.ext.classes.sPageJUINext = "ui-icon ui-icon-circle-arrow-e";
+            //$.fn.dataTableExt.oJUIClasses.sPageJUINext = "ui-icon ui-icon-circle-arrow-s";
+            //"u-pagination-v1__item u-pagination-v1-2 g-brd-gray-light-v7 g-brd-secondary--hover g-rounded-4 g-py-8 g-px-12"
+            var table = $('#relatorio').DataTable({
+                "order": [[0, "desc"]],
+                "pageLength": 50,
+                "paging": true,
+                "orderCellsTop": true,
+                "fixedHeader": true,
+                "dom": '<"media-md align-items-center g-mb-10"lB<"media d-md-flex align-items-center ml-auto"f>>rt<"media align-items-center"i<"d-flex ml-auto"p>><"clear">',
+                "buttons": [
+                    'copy', 'csv', 'excel', 'pdf', 'print'
+                ],
+                    "language": {
+                    "sEmptyTable": "Nenhum registro encontrado",
+                    "sInfo": "Mostrando de _START_ até _END_ de _TOTAL_ registros",
+                    "sInfoEmpty": "Mostrando 0 até 0 de 0 registros",
+                    "sInfoFiltered": "(Filtrados de _MAX_ registros)",
+                    "sInfoPostFix": "",
+                    "sInfoThousands": ".",
+                    "sLengthMenu": "_MENU_  resultados por página",
+                    "sLoadingRecords": "Carregando...",
+                    "sProcessing": "Processando...",
+                    "sZeroRecords": "Nenhum registro encontrado",
+                    "sSearch": "Pesquisar ",
+                    "oPaginate": {
+                        "sNext": "Próximo",
+                        "sPrevious": "Anterior",
+                        "sFirst": "Primeiro",
+                        "sLast": "Último"
+                    },
+                    "oAria": {
+                        "sSortAscending": ": Ordenar colunas de forma ascendente",
+                        "sSortDescending": ": Ordenar colunas de forma descendente"
+                    },
+                    "select": {
+                        "rows": {
+                            "_": "Selecionado %d linhas",
+                            "0": "Nenhuma linha selecionada",
+                            "1": "Selecionado 1 linha"
+                        }
+                    },
+                    "buttons": {
+                        "copy": "Copiar para a área de transferência",
+                        "copyTitle": "Cópia bem sucedida",
+                        "copySuccess": {
+                            "1": "Uma linha copiada com sucesso",
+                            "_": "%d linhas copiadas com sucesso"
+                        }
+                    }
+                }
+
+            });
+           
+            $('.table_filter input').addClass("form-control g-font-size-default g-brd-gray-light-v7 g-brd-lightblue-v3--focus g-rounded-20 g-pl-20 g-pr-50 g-py-10").css('display', 'unset').css("width", "auto");
+            $('.table_Lenght select').addClass("btn g-brd-gray-light-v7 g-rounded-4 mb-0");
+            $('.dt-buttons').addClass("g-mb-10");
+            $('.dt-buttons .dt-button').addClass("btn btn-sm u-btn-secondary g-ml-10");
+            //$.HSCore.components.HSDatatables.init('.js-datatable');
+        });
+    </script>
+}

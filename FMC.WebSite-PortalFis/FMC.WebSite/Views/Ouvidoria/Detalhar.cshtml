@@ -1,0 +1,47 @@
+﻿@model IEnumerable<object>
+@{
+    FMC.WebSite.FIS.Utils.API.Ibi.Ouvidoria wsOuvidoria = (FMC.WebSite.FIS.Utils.API.Ibi.Ouvidoria)Model.ElementAt(0);
+};
+
+<section id="pg-contato" class="scroll-secao ouvidoria-login ouvidoria-relatorio">
+    <div class="container">
+        <h1>Detalhes da Ouvidoria</h1>
+        <div class="ouvidoria-detalhar">
+            <p><b>Nome:</b> @wsOuvidoria.Nome</p>
+            <p><b>Email:</b> @wsOuvidoria.Email</p>
+            <p><b>Tipo:</b> @wsOuvidoria.Tipo</p>
+            <p><b>Data:</b> @wsOuvidoria.DtInsert.ToString("dd/MM/yyyy HH:mm")<br /><br /></p>
+            <p><b>Mensagem:</b> @wsOuvidoria.Mensagem</p>
+        </div>
+        <div class="ouvidoria-detalhar">
+            <p>
+                <b>Status:</b>
+                @if (wsOuvidoria.Status == 1) //Visualizado
+                {
+                    @Html.Raw("Visualizado")
+                }
+                else if (wsOuvidoria.Status == 2) //Análise
+                {
+                    @Html.Raw("Em Análise")
+                }
+                else if (wsOuvidoria.Status == 3) //Importante
+                {
+                    @Html.Raw("Marcado como importante")
+                }
+                else if (wsOuvidoria.Status == 4) //Fechado
+                {
+                    @Html.Raw("Fechado")
+                }
+                else
+                {
+                    @Html.Raw("-")
+                }
+            </p>
+            <p><b>Data de Visualização:</b> @wsOuvidoria.DtVisualized?.ToString("dd/MM/yyyy HH:mm")</p>
+            <p><b>Data da Análise:</b> @wsOuvidoria.DtAnalysis?.ToString("dd/MM/yyyy HH:mm")</p>
+            <p><b>Data marcada como Importante:</b> @wsOuvidoria.DtImportant?.ToString("dd/MM/yyyy HH:mm")</p>
+            <p><b>Data do Fechamento:</b> @wsOuvidoria.DtClose?.ToString("dd/MM/yyyy HH:mm")</p>
+        </div>
+        <a href="@Url.Action("Relatorio")"  class="btn btn-success btn-lg active" role="button" aria-pressed="true">Voltar</a>
+    </div> <!-- container -->
+</section> <!-- pg contato -->

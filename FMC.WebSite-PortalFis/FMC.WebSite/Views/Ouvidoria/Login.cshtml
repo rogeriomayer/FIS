@@ -1,0 +1,35 @@
+﻿@model LoginOuvidoria
+@{
+    List<SelectListItem> items = new List<SelectListItem>();
+    items.Add(new SelectListItem() { Text = "Dúvidas e Sugestões", Value = "1" });
+    items.Add(new SelectListItem() { Text = "Comercial", Value = "2" });
+    items.Add(new SelectListItem() { Text = "Recrutamento e Seleção", Value = "3" });
+
+}
+<section id="pg-contato" class="scroll-secao ouvidoria-login">
+    <div class="container">
+        <h1>
+            Olá,<br />
+            para acessar esta parte do portal,<br />efetue o login no campo abaixo.
+        </h1>
+        <h2>Basta preencher com os dados informados na sua operação.</h2>
+        @using (Html.BeginForm("Login", "Ouvidoria", FormMethod.Post, new { @class = "form-contact" }))
+        {
+            @Html.TextBoxFor(model => model.User, null, new {placeholder = "Usuário" })
+            @Html.ValidationMessageFor(model => model.User)
+
+            @Html.TextBoxFor(model => model.Password, null, new {placeholder = "Senha", type="password" })
+            @Html.ValidationMessageFor(model => model.Password)
+
+
+            <button type="submit" class="btn-contato">Entrar<span><img src="~/images/loading-button.gif"></span></button>
+            @if(ViewBag.Message != null)
+            {
+            <div class="message" style="display: block; color: red">
+                @Html.Raw(ViewBag.Message)
+            </div>
+            }
+        
+        }
+    </div> <!-- container -->
+</section> <!-- pg contato -->

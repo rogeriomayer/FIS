@@ -1,0 +1,100 @@
+﻿@model IEnumerable<object>
+@using Microsoft.AspNetCore.Http
+@{
+    ConsultaCpfCnpj _model = (ConsultaCpfCnpj)Model.ElementAt(0);
+    PersonResponse pessoa = Model.ElementAt(1) as PersonResponse;
+
+    string lastCarteira = "";
+}
+
+<section id="pg-consulta-cpf-resultados" class="scroll-secao">
+    <section class="barra-resultado-cpf">
+        <div class="container">
+            <p>
+                Encontramos as seguintes pendências para o
+                @if (_model.CpfCnpj.Count() <= 14)
+                {
+                    @Html.Raw("CPF")
+                }
+                else
+                {
+                    @Html.Raw("CNPJ")
+                }
+            </p>
+            <span class="cpf">@Html.Raw(_model.CpfCnpj)</span>
+        </div> <!-- container -->
+
+    </section> <!-- barra resultado cpf -->
+
+    <section class="resultado-dividas container">
+
+        <h1>Selecione a dívida que deseja renegociar agora.</h1>
+
+        <ul>
+            @if (pessoa != null && pessoa.Cards.Count() > 0)
+            {
+                foreach (var conta in pessoa.Cards.AsParallel().Where(p => p.VlFull > 0))
+                {
+                    string imageCard = "cartao.png";
+                    //if (!string.IsNullOrEmpty(conta.ImagemCartao))
+                    //    imageCard =  conta.ImagemCartao;;
+
+                    <li>
+                        <img src="~/images/cartao/@imageCard" class="img-cartao" />
+                        <h2>
+                            @conta.CardName
+                        </h2>
+                        <h2 class="card">
+                            <text>
+                                @if (conta.CardNumber.Trim().Length == 19)
+                                {
+                                    @conta.CardNumber.Trim().ToString().Substring(3, 4)
+                                }
+                                else if (conta.CardNumber.Trim().Length == 16)
+                                {
+                                    @conta.CardNumber.Trim().ToString().Substring(0, 4)
+                                }
+
+                                @Html.Raw(" XXXX XXXX ")
+                                @conta.CardNumber.Trim().Substring(conta.CardNumber.Trim().Length - 4, 4)
+                            </text>
+                        </h2>
+                        <br>
+                        @if (conta.Age > 2 && conta.VlFull >= 40)
+                        {
+                            <div class="dv-btn">
+                                @using (Html.BeginForm("SimularNegociacao", "ConsultaCpfCnpj", FormMethod.Post))
+                                {
+                                    @Html.HiddenFor(m => conta.Account)
+                                    @Html.HiddenFor(m => conta.CardNumber)
+                                    <button type="submit" class="btn-nova-consulta">Negociar</button>
+                                }
+                            </div>
+                        }
+                        <div class="dv-btn-boleto">
+                            @using (Html.BeginForm("Finalizar", "ConsultaCpfCnpj", FormMethod.Post))
+                            {
+                                @Html.HiddenFor(m => conta.Account)
+                                @Html.HiddenFor(m => conta.CardNumber)
+
+                                <button type="submit" class="btn-nova-consulta">Segunda Via</button>
+                            }
+                        </div>
+                    </li>
+                }
+            }
+        </ul>
+
+    </section>
+</section>
+<div class="clearfix"></div>
+@section scripts{
+<script type="text/javascript">
+    if (isMobile()) {
+        $('html, body').animate({ scrollTop: $('#pg-consulta-cpf-resultados .barra-resultado-cpf').position().top }, 'slow', 'swing');
+    }
+    function isMobile() {
+        return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+    }
+</script>
+}

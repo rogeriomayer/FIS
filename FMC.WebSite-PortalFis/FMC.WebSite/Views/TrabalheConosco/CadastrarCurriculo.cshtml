@@ -1,0 +1,413 @@
+﻿@model Curriculo
+@{
+
+
+    IList<SelectListItem> listSexo = new List<SelectListItem>
+{
+new SelectListItem() { Text = "Sexo*", Value = "" },
+new SelectListItem() { Text = "Feminino", Value = "Feminino" },
+new SelectListItem() { Text = "Masculino", Value = "Masculino" }
+};
+    IList<SelectListItem> listUnidade = new List<SelectListItem>
+{
+new SelectListItem() { Text = "Uberlândia", Value = "Uberlândia" },
+new SelectListItem() { Text = "São Paulo", Value = "São Paulo" }
+};
+
+    IList<SelectListItem> listDisponibilidade = new List<SelectListItem> {
+new SelectListItem() { Text = "Disponibilidade*", Value = "" },
+new SelectListItem() { Text = "Manhã - 08h00 às 14h20", Value = "Manhã - 08h00 às 14h20" },
+new SelectListItem() { Text = "Tarde - 14h25 às 21h45", Value = "Tarde - 14h25 às 21h45" },
+new SelectListItem() { Text = "Integral", Value = "Integral" }
+};
+
+    IList<SelectListItem> listNivelAcademico = new List<SelectListItem>{
+new SelectListItem() { Text = "Nível Acadêmico*", Value = "" },
+new SelectListItem() { Text = "Alfabetização de Adultos", Value = "Alfabetização de Adultos" },
+new SelectListItem() { Text = "Ensino Fundamental", Value = "Ensino Fundamental" },
+new SelectListItem() { Text = "Ensino Médio Cursando", Value = "Ensino Médio Cursando" },
+new SelectListItem() { Text = "Ensino Médio Completo", Value = "Ensino Médio Completo" },
+new SelectListItem() { Text = "Curso Superior", Value = "Curso Superior" },
+new SelectListItem() { Text = "Pós-Graduação", Value = "Pós-Graduação" },
+new SelectListItem() { Text = "MBA", Value = "MBA" },
+new SelectListItem() { Text = "Mestrado", Value = "Mestrado" },
+new SelectListItem() { Text = "Doutorado", Value = "Doutorado" },
+new SelectListItem() { Text = "Pós-Doutorado", Value = "Pós-Doutorado" }
+};
+
+    IList<SelectListItem> listHorarioCurso = new List<SelectListItem> {
+new SelectListItem() { Text = "Horário do Curso", Value = "" },
+new SelectListItem() { Text = "Manhã", Value = "Manhã" },
+new SelectListItem() { Text = "Tarde", Value = "Tarde" },
+new SelectListItem() { Text = "Noite", Value = "Noite" },
+new SelectListItem() { Text = "Integral", Value = "Integral" }
+};
+
+    IList<SelectListItem> listConhecimentoInfo = new List<SelectListItem> {
+new SelectListItem() { Text = "Conhecimentos em Informática", Value = "" },
+new SelectListItem() { Text = "Básico", Value = "Básico" },
+new SelectListItem() { Text = "Intermediário", Value = "Intermediário" },
+new SelectListItem() { Text = "Avançado", Value = "Avançado" },
+new SelectListItem() { Text = "Técnico", Value = "Técnico" }
+};
+
+    IList<SelectListItem> listEstados = new List<SelectListItem>{
+new SelectListItem() { Value = "AC", Text = "Acre" },
+new SelectListItem() { Value = "AL", Text = "Alagoas" },
+new SelectListItem() { Value = "AP", Text = "Amapá" },
+new SelectListItem() { Value = "AM", Text = "Amazonas" },
+new SelectListItem() { Value = "BA", Text = "Bahia" },
+new SelectListItem() { Value = "CE", Text = "Ceará" },
+new SelectListItem() { Value = "DF", Text = "Distrito Federal" },
+new SelectListItem() { Value = "ES", Text = "Espírito Santo" },
+new SelectListItem() { Value = "GO", Text = "Goiás" },
+new SelectListItem() { Value = "MA", Text = "Maranhão" },
+new SelectListItem() { Value = "MT", Text = "Mato Grosso" },
+new SelectListItem() { Value = "MS", Text = "Mato Grosso do Sul" },
+new SelectListItem() { Value = "MG", Text = "Minas Gerais" },
+new SelectListItem() { Value = "PA", Text = "Pará" },
+new SelectListItem() { Value = "PB", Text = "Paraíba" },
+new SelectListItem() { Value = "PR", Text = "Paraná" },
+new SelectListItem() { Value = "PE", Text = "Pernambuco" },
+new SelectListItem() { Value = "PI", Text = "Piauí" },
+new SelectListItem() { Value = "RJ", Text = "Rio de Janeiro" },
+new SelectListItem() { Value = "RN", Text = "Rio Grande do Norte" },
+new SelectListItem() { Value = "RS", Text = "Rio Grande do Sul" },
+new SelectListItem() { Value = "RO", Text = "Rondônia" },
+new SelectListItem() { Value = "RR", Text = "Roraima" },
+new SelectListItem() { Value = "SC", Text = "Santa Catarina" },
+new SelectListItem() { Value = "SP", Text = "São Paulo" },
+new SelectListItem() { Value = "SE", Text = "Sergipe" },
+new SelectListItem() { Value = "TO", Text = "Tocantins" }
+};
+    IList<SelectListItem> listFicouSabendo = new List<SelectListItem>
+{
+new SelectListItem() { Text = "Como ficou sabendo da vaga*", Value = "" },
+new SelectListItem() { Text = "Indicação de Amigo", Value = "Indicação de Amigo" },
+new SelectListItem() { Text = "Indicação de um Funcionário FMC", Value = "Indicação de um Funcionário FMC" },
+new SelectListItem() { Text = "Internet", Value = "Internet" },
+new SelectListItem() { Text = "Site de Empregos", Value = "Site de Empregos" },
+new SelectListItem() { Text = "Balcão de Empregos", Value = "Balcão de Empregos" },
+new SelectListItem() { Text = "Sine", Value = "Sine" },
+new SelectListItem() { Text = "Outros", Value = "Outros" }
+};
+
+}
+<section id="pg-trabalhe-conosco" class="scroll-secao cadastrar-curriculo">
+    <div class="container">
+        <h1>Cadastre seu currículo</h1>
+        @using (Html.BeginForm("Cadastrar-Curriculo", "Trabalhe-Conosco", FormMethod.Post, new { @class = "trabalhe-conosco" }))
+        {
+            <div>
+                <h3>Local de Trabalho</h3>
+                @Html.DropDownListFor(model => model.Unidade, listUnidade, new { @name = "unidade" })
+                @Html.ValidationMessageFor(model => model.Unidade)
+            </div>
+            <div class="informacoes-pessoais">
+                <h3>Informações Pessoais</h3>
+                @Html.TextBoxFor(model => model.Nome, null, new { @name = "nome", placeholder = "Nome Completo*" })
+                @Html.ValidationMessageFor(model => model.Nome)
+
+                @Html.TextBoxFor(model => model.DataNascimento, null, new { @name = "dataNascimento", @class = "mask-data", placeholder = "Data de Nascimento*" })
+                @Html.ValidationMessageFor(model => model.DataNascimento)
+
+                @Html.DropDownListFor(model => model.Sexo, listSexo, new { @name = "sexo" })
+                @Html.ValidationMessageFor(model => model.Sexo)
+
+                @Html.DropDownListFor(model => model.Disponibilidade, listDisponibilidade, new { @name = "disponibilidade" })
+                @Html.ValidationMessageFor(model => model.Disponibilidade)
+
+                @Html.TextAreaFor(model => model.Observacoes, new { @name = "observacao", placeholder = "Observações" })
+                @Html.ValidationMessageFor(model => model.Observacoes)
+
+
+            </div>
+            <div class="documentos-pessoais">
+                <h3>Documentos Pessoais</h3>
+                @Html.TextBoxFor(model => model.Cpf, null, new { @name = "cpf", @class = "mask-cpf", placeholder = "CPF*", maxlength = "14" })
+                @Html.ValidationMessageFor(model => model.Cpf)
+
+                @Html.TextBoxFor(model => model.Ctps, null, new { @name = "ctps", placeholder = "Carteira de Trabalho (CTPS)*" })
+                @Html.ValidationMessageFor(model => model.Ctps)
+
+                @Html.TextBoxFor(model => model.Serie, null, new { @name = "serie", placeholder = "Série*" })
+                @Html.ValidationMessageFor(model => model.Serie)
+
+                @Html.TextBoxFor(model => model.Pis, null, new { @name = "pis", placeholder = "PIS*" })
+                @Html.ValidationMessageFor(model => model.Pis)
+            </div>
+            <div class="informacoes-educacionais">
+                <h3>Informações Educacionais</h3>
+                @Html.DropDownListFor(model => model.NivelAcademico, listNivelAcademico, new { @name = "nivelAcademico" })
+                @Html.ValidationMessageFor(model => model.NivelAcademico)
+
+                @Html.TextBoxFor(model => model.NomeCurso, null, new { @name = "nomeCurso", placeholder = "Nome do Curso" })
+                @Html.ValidationMessageFor(model => model.NomeCurso)
+
+                @Html.TextBoxFor(model => model.DataInicio, null, new { @name = "dataInicio", @class = "mask-data", placeholder = "Data de Início" })
+                @Html.ValidationMessageFor(model => model.DataInicio)
+
+                @Html.TextBoxFor(model => model.AnoConclusao, null, new { @name = "anoConclusao", @class = "mask-data", placeholder = "Ano de Conclusão" })
+                @Html.ValidationMessageFor(model => model.AnoConclusao)
+
+                @Html.DropDownListFor(model => model.HorarioCurso, listHorarioCurso, new { @name = "horarioCurso" })
+                @Html.ValidationMessageFor(model => model.HorarioCurso)
+
+                @Html.DropDownListFor(model => model.ConhecimentoInformatica, listConhecimentoInfo, new { @name = "conhecimentoInformatica" })
+                @Html.ValidationMessageFor(model => model.ConhecimentoInformatica)
+            </div>
+            <div class="dados-endereco">
+                <h3>Dados de Endereço</h3>
+                <div class="box-input">
+                    @Html.TextBoxFor(model => model.Cep, null, new { placeholder = "Cep*", @class = "mask-cep" })
+                    @Html.ValidationMessageFor(model => model.Cep)
+                    <span class="search"><img src="~/images/search.png" alt="Buscar" /></span>
+                    <span class="ceploading"><img src="~/images/loading.gif" /></span>
+                </div>
+                @Html.TextBoxFor(model => model.Endereco, null, new { placeholder = "Endereço*" })
+                @Html.ValidationMessageFor(model => model.Endereco)
+
+                @Html.TextBoxFor(model => model.Numero, null, new { placeholder = "Número*" })
+                @Html.ValidationMessageFor(model => model.Numero)
+
+                @Html.TextBoxFor(model => model.Complemento, null, new { placeholder = "Complemento" })
+                @Html.ValidationMessageFor(model => model.Complemento)
+
+                @Html.DropDownListFor(model => model.Estado, listEstados)
+                @Html.ValidationMessageFor(model => model.Estado)
+
+                @Html.TextBoxFor(model => model.Cidade, null, new { placeholder = "Cidade*" })
+                @Html.ValidationMessageFor(model => model.Cidade)
+
+                @Html.TextBoxFor(model => model.Bairro, null, new { placeholder = "Bairro*" })
+                @Html.ValidationMessageFor(model => model.Bairro)
+
+                @Html.TextBoxFor(model => model.TelefoneResidencial, null, new { placeholder = "Telefone Residencial*", @class = "mask-telefone" })
+                @Html.ValidationMessageFor(model => model.TelefoneResidencial)
+
+                @Html.TextBoxFor(model => model.TelefoneCelular, null, new { placeholder = "Telefone Celular*", @class = "mask-telefone" })
+                @Html.ValidationMessageFor(model => model.TelefoneCelular)
+
+                @Html.TextBoxFor(model => model.TelefoneRecado, null, new { placeholder = "Telefone para Recado*", @class = "mask-telefone" })
+                @Html.ValidationMessageFor(model => model.TelefoneRecado)
+
+            </div>
+            <div class="experiencia-profissional">
+                <h3>Experiências Profissionais</h3>
+                <div class="box-input checkbox">
+                    <label class="container">
+                        Primeiro Emprego
+                        @Html.CheckBoxFor(model => model.PrimeiroEmprego)
+                        <span class="checkmark"></span>
+                    </label>
+                </div>
+                <div class="empresa">
+                    <h4>Empresa 1</h4>
+                    @Html.TextBoxFor(model => model.Empresa1, null, new { placeholder = "Nome da Empresa*" })
+                    @Html.ValidationMessageFor(model => model.Empresa1)
+
+                    @Html.TextBoxFor(model => model.Funcao1, null, new { placeholder = "Função*" })
+                    @Html.ValidationMessageFor(model => model.Funcao1)
+
+                    @Html.TextBoxFor(model => model.DataInicio1, null, new { placeholder = "Data de Início*", @class = "mask-data" })
+                    @Html.ValidationMessageFor(model => model.DataInicio1)
+
+                    @Html.TextBoxFor(model => model.DataDesligamento1, null, new { placeholder = "Data de Desligamento*", @class = "mask-data" })
+                    @Html.ValidationMessageFor(model => model.DataDesligamento1)
+
+                    @Html.TextAreaFor(model => model.Resumo1, new { placeholder = "Resumo das atividades executadas" })
+                    @Html.ValidationMessageFor(model => model.Resumo1)
+                </div>
+                <div class="empresa">
+                    <h4>Empresa 2</h4>
+                    @Html.TextBoxFor(model => model.Empresa2, null, new { placeholder = "Nome da Empresa" })
+                    @Html.ValidationMessageFor(model => model.Empresa2)
+
+                    @Html.TextBoxFor(model => model.Funcao2, null, new { placeholder = "Função" })
+                    @Html.ValidationMessageFor(model => model.Funcao2)
+
+                    @Html.TextBoxFor(model => model.DataInicio2, null, new { placeholder = "Data de Início", @class = "mask-data" })
+                    @Html.ValidationMessageFor(model => model.DataInicio2)
+
+                    @Html.TextBoxFor(model => model.DataDesligamento2, null, new { placeholder = "Data de Desligamento", @class = "mask-data" })
+                    @Html.ValidationMessageFor(model => model.DataDesligamento2)
+
+                    @Html.TextAreaFor(model => model.Resumo2, new { placeholder = "Resumo das atividades executadas" })
+                    @Html.ValidationMessageFor(model => model.Resumo2)
+                </div>
+            </div>
+
+            <div class="ficou-sabendo">
+                @Html.DropDownListFor(model => model.FicouSabendo, listFicouSabendo, new { @name = "ficouSabendo" })
+                @Html.ValidationMessageFor(model => model.FicouSabendo)
+            </div>
+            <div class="clearfix"></div>
+            <div>
+                <button type="submit" class="btn-trabalhe">Enviar<span><img src="~/images/loading-button.gif"></span></button>
+                <div class="message"></div>
+            </div>
+        }
+        <div class="clearfix"></div>
+    </div> <!-- container -->
+</section>
+@section Scripts {
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('.cadastrar-curriculo span.search').click(function () {
+                var cep = $('.cadastrar-curriculo#pg-trabalhe-conosco #Cep').val().replace(/[^0-9]/, '');
+                if (cep) {
+                    var url = '@Url.Action("Consultar-Cep", "Trabalhe-Conosco")?cep=' + cep;
+                    $.ajax({
+                        url: url,
+                        dataType: 'json',
+                        crossDomain: true,
+                        contentType: "application/json",
+                        beforeSend: function () {
+                            $('.ceploading').fadeIn();
+                        },
+                        success: function (json) {
+                            if (json != null) {
+                                if (json.hasOwnProperty('logradouro')) {
+                                    $("input#Endereco").val(json.logradouro).addClass("valid");
+                                    $("input#Bairro").val(json.bairro).addClass("valid");
+                                    $("input#Cidade").val(json.cidade).addClass("valid");
+                                    $("#Estado").val(json.uf).change().addClass("valid");
+                                } else {
+                                    $('.ceploading').fadeOut();
+                                }
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            var err = eval("(" + xhr.responseText + ")");
+                            $('.ceploading').fadeOut();
+                        },
+                        complete: function () {
+                            $('.ceploading').fadeOut();
+                        }
+                    });
+                }
+            });
+            $('form.trabalhe-conosco').submit(function (e) {
+                //if (entrada) {
+                if ($(this).valid()) {
+                    var url = '@Url.Action("Cadastrar-Curriculo", "Trabalhe-Conosco")';
+                    $.ajax({
+                        url: url,
+                        data: getCadastro(),
+                        dataType: 'json',
+                        type: 'POST',
+                        beforeSend: function () {
+                            $('.cadastrar-curriculo .btn-trabalhe span').fadeIn();
+                        },
+                        success: function (r) {
+                            if (r) {
+                                $('.cadastrar-curriculo .btn-trabalhe span').fadeOut();
+                                $('.cadastrar-curriculo .message').text("Email enviado com sucesso!").css('color', '#198c34');
+                                $('.cadastrar-curriculo .message').fadeIn();
+                                $('.cadastrar-curriculo input, .cadastrar-curriculo textarea').val('');
+                                $('.cadastrar-curriculo select').find('option').attr("selected", false);
+                            } else {
+                                $('.cadastrar-curriculo .btn-trabalhe span').fadeOut();
+                                $('.cadastrar-curriculo .message').text("Não foi possível enviar seu curriculo, tente novamente.").css('color', 'red');
+                                $('.cadastrar-curriculo .message').fadeIn();
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            var err = eval("(" + xhr.responseText + ")");
+                            console.log(err.Message);
+                            $('.cadastrar-curriculo .btn-trabalhe span').fadeOut();
+                            $('.cadastrar-curriculo .message').text("Não foi possível enviar seu curriculo, tente novamente.").css('color', 'red');
+                            $('.cadastrar-curriculo .message').fadeIn();
+                        },
+                        complete: function () {
+                            $('#pg-fale-conosco .btn-trabalhe span').fadeOut();
+                        }
+                    });
+                }
+                e.preventDefault();
+            });
+
+            function getCadastro() {
+                var nome = $("#Nome").val();
+                var dataNascimento = $("#DataNascimento").val();
+
+                var sexo = $("#Sexo").val();
+                var observacoes = $("#Observacoes").val();
+                var disponibilidade = $("#Disponibilidade").val();
+                var cpf = $("#Cpf").val();
+                var ctps = $("#Ctps").val();
+                var serie = $("#Serie").val();
+                var pis = $("#Pis").val();
+                var nivelAcademico = $("#NivelAcademico").val();
+                var nomeCurso = $("#NomeCurso").val();
+                var dataInicio = $("#DataInicio").val();
+                var anoConclusao = $("#AnoConclusao").val();
+                var horarioCurso = $("#HorarioCurso").val();
+                var conhecimentoInformatica = $("#ConhecimentoInformatica").val();
+                var cep = $("#Cep").val();
+                var endereco = $("#Endereco").val();
+                var numero = $("#Numero").val();
+                var complemento = $("#Complemento").val();
+                var estado = $("#Estado").val();
+                var cidade = $("#Cidade").val();
+                var bairro = $("#Bairro").val();
+                var telefoneResidencial = $("#TelefoneResidencial").val();
+                var telefoneCelular = $("#TelefoneCelular").val();
+                var telefoneRecado = $("#TelefoneRecado").val();
+                var primeiroEmprego = $('#PrimeiroEmprego').is(':checked') ? true : false;
+                var empresa1 = $("#Empresa1").val();
+                var funcao1 = $("#Funcao1").val();
+                var dataInicio1 = $("#DataInicio1").val();
+                var dataDesligamento1 = $("#DataDesligamento1").val();
+                var resumo1 = $("#Resumo1").val();
+                var empresa2 = $("#Empresa2").val();
+                var funcao2 = $("#Funcao2").val();
+                var dataInicio2 = $("#DataInicio2").val();
+                var dataDesligamento2 = $("#DataDesligamento2").val();
+                var resumo2 = $("#Resumo2").val();
+                var ficouSabendo = $("#FicouSabendo").val();
+                var unidade = $("#Unidade").val();
+                return {
+                        Unidade: unidade,
+                        Nome: nome,
+                        DataNascimento: dataNascimento,
+                        Sexo: sexo,
+                        Observacoes: observacoes,
+                        Disponibilidade: disponibilidade,
+                        Cpf: cpf,
+                        Ctps: ctps,
+                        Serie: serie,
+                        Pis: pis,
+                        NivelAcademico: nivelAcademico,
+                        NomeCurso: nomeCurso,
+                        DataInicio: dataInicio,
+                        AnoConclusao: anoConclusao,
+                        HorarioCurso: horarioCurso,
+                        ConhecimentoInformatica: conhecimentoInformatica,
+                        Cep: cep,
+                        Endereco: endereco,
+                        Numero: numero,
+                        Complemento: complemento,
+                        Estado: estado,
+                        Cidade: cidade,
+                        Bairro: bairro,
+                        TelefoneResidencial: telefoneResidencial,
+                        TelefoneCelular: telefoneCelular,
+                        TelefoneRecado: telefoneRecado,
+                        PrimeiroEmprego: primeiroEmprego,
+                        Empresa1: empresa1,
+                        Funcao1: funcao1,
+                        DataInicio1: dataInicio1,
+                        DataDesligamento1: dataDesligamento1,
+                        Resumo1: resumo1,
+                        Empresa2: empresa2,
+                        Funcao2: funcao2,
+                        DataInicio2: dataInicio2,
+                        DataDesligamento2: dataDesligamento2,
+                        Resumo2: resumo2,
+                        FicouSabendo: ficouSabendo
+                };
+            };
+        });
+    </script>
+}

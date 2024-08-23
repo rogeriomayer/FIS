@@ -1,0 +1,775 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="2.0" xmlns:edmx="http://schemas.microsoft.com/ado/2008/10/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="DB_FMCModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2008" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/02/edm/ssdl">
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'DB_FMC.dbo.tabela_tmp_BPM_PIF' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="tabela_tmp_BPM_PIF">
+          <Key>
+            <PropertyRef Name="id_debtor" />
+            <PropertyRef Name="id_agreement" />
+          </Key>
+          <Property Name="id_debtor" Type="int" Nullable="false" />
+          <Property Name="id_agreement" Type="int" Nullable="false" />
+          <Property Name="vl_divida" Type="decimal" Precision="14" Scale="2" />
+          <Property Name="valor_pago" Type="decimal" Precision="38" Scale="2" />
+        </EntityType>
+        <EntityType Name="TB_DEBTOR">
+          <Key>
+            <PropertyRef Name="id_debtor" />
+          </Key>
+          <Property Name="id_debtor" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="cd_debtor" Type="char" MaxLength="25" />
+          <Property Name="ds_name" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="ds_address" Type="varchar" MaxLength="100" />
+          <Property Name="ds_complement" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="ds_city" Type="varchar" MaxLength="30" Nullable="false" />
+          <Property Name="ds_uf" Type="char" MaxLength="2" Nullable="false" />
+          <Property Name="ds_cep" Type="char" MaxLength="8" Nullable="false" />
+          <Property Name="cd_packet" Type="varchar" MaxLength="6" />
+          <Property Name="cd_document" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="cd_desk" Type="char" MaxLength="3" Nullable="false" />
+          <Property Name="DT_BEGIN" Type="smalldatetime" Nullable="false" />
+          <Property Name="dt_cancel" Type="smalldatetime" />
+          <Property Name="vl_main" Type="decimal" Precision="12" Scale="2" Nullable="false" />
+          <Property Name="vl_balance" Type="decimal" Precision="12" Scale="2" Nullable="false" />
+          <Property Name="vl_main_paid" Type="decimal" Precision="12" Scale="2" Nullable="false" />
+          <Property Name="vl_main_remaining" Type="decimal" Precision="12" Scale="2" Nullable="false" />
+          <Property Name="vl_paid" Type="decimal" Precision="12" Scale="2" Nullable="false" />
+          <Property Name="qt_returned_check" Type="smallint" Nullable="false" />
+          <Property Name="dt_company_payment" Type="smalldatetime" Nullable="false" />
+          <Property Name="ds_client" Type="varchar" MaxLength="50" />
+          <Property Name="dt_update" Type="smalldatetime" />
+          <Property Name="NR_CPF" Type="varchar" MaxLength="30" />
+          <Property Name="CD_STATUS" Type="char" MaxLength="3" />
+          <Property Name="QT_CONTACT" Type="smallint" />
+          <Property Name="DS_EMAIL" Type="varchar" MaxLength="50" />
+          <Property Name="id_program" Type="int" />
+          <Property Name="DT_RECALL" Type="smalldatetime" />
+          <Property Name="account_sent_gasco" Type="tinyint" />
+          <Property Name="account_sent_gasco_date" Type="datetime" />
+          <Property Name="DT_DEBTOR_INSERT" Type="smalldatetime" />
+          <Property Name="DS_EMAIL_DOIS" Type="nvarchar" MaxLength="80" />
+          <Property Name="TRI_NUM_PREST" Type="varchar" MaxLength="20" />
+          <Property Name="DS_EMAIL_TRES" Type="varchar" MaxLength="80" />
+          <Property Name="DS_EMAIL_QUATRO" Type="varchar" MaxLength="80" />
+          <Property Name="DT_AMEX_DATA_CORTE" Type="smalldatetime" />
+          <Property Name="vl_interest_rate" Type="decimal" Precision="12" Scale="2" />
+        </EntityType>
+        <EntityType Name="tb_debtor_comments">
+          <Key>
+            <PropertyRef Name="Id_Debtor_Comments" />
+          </Key>
+          <Property Name="Id_Debtor_Comments" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="id_debtor" Type="int" Nullable="false" />
+          <Property Name="nr_comment" Type="smallint" Nullable="false" />
+          <Property Name="dt_comment" Type="smalldatetime" Nullable="false" />
+          <Property Name="ds_comment" Type="varchar" MaxLength="2000" />
+          <Property Name="cd_user_system" Type="char" MaxLength="3" />
+          <Property Name="fl_temporary" Type="bit" Nullable="false" />
+          <Property Name="year_comment" Type="smallint" />
+          <Property Name="month_comment" Type="tinyint" />
+          <Property Name="day_comment" Type="tinyint" />
+        </EntityType>
+        <EntityType Name="tb_debtor_desks">
+          <Key>
+            <PropertyRef Name="id_debtor" />
+            <PropertyRef Name="cd_desk" />
+            <PropertyRef Name="nr_desk" />
+          </Key>
+          <Property Name="id_debtor" Type="int" Nullable="false" />
+          <Property Name="cd_desk" Type="char" MaxLength="3" Nullable="false" />
+          <Property Name="nr_desk" Type="tinyint" Nullable="false" />
+          <Property Name="dt_desk" Type="smalldatetime" Nullable="false" />
+          <Property Name="fl_temporary" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="tb_debtor_notices">
+          <Key>
+            <PropertyRef Name="id_debtor" />
+            <PropertyRef Name="cd_notice" />
+            <PropertyRef Name="nr_notice" />
+          </Key>
+          <Property Name="id_debtor" Type="int" Nullable="false" />
+          <Property Name="cd_notice" Type="char" MaxLength="3" Nullable="false" />
+          <Property Name="nr_notice" Type="int" Nullable="false" />
+          <Property Name="dt_notice" Type="smalldatetime" Nullable="false" />
+          <Property Name="fl_temporary" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="tb_debtor_phone">
+          <Key>
+            <PropertyRef Name="ID_INCREMENT" />
+          </Key>
+          <Property Name="id_phone" Type="tinyint" Nullable="false" />
+          <Property Name="id_debtor" Type="int" Nullable="false" />
+          <Property Name="cd_phone" Type="varchar" MaxLength="12" Nullable="false" />
+          <Property Name="ds_phone" Type="varchar" MaxLength="20" Nullable="false" />
+          <Property Name="id_phone_type" Type="tinyint" Nullable="false" />
+          <Property Name="DT_INSERT" Type="datetime" />
+          <Property Name="ID_INCREMENT" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+        </EntityType>
+        <EntityType Name="tb_desk_agenda">
+          <Key>
+            <PropertyRef Name="cd_desk" />
+            <PropertyRef Name="dt_agenda" />
+          </Key>
+          <Property Name="cd_desk" Type="char" MaxLength="3" Nullable="false" />
+          <Property Name="dt_agenda" Type="smalldatetime" Nullable="false" />
+          <Property Name="qt_debtor" Type="int" />
+        </EntityType>
+        <EntityType Name="TB_PROGRAM">
+          <Key>
+            <PropertyRef Name="id_program" />
+          </Key>
+          <Property Name="id_program" Type="int" Nullable="false" />
+          <Property Name="cd_program" Type="char" MaxLength="3" Nullable="false" />
+          <Property Name="id_company" Type="tinyint" Nullable="false" />
+          <Property Name="ds_program" Type="varchar" MaxLength="200" />
+          <Property Name="vl_max_parcel" Type="tinyint" Nullable="false" />
+          <Property Name="vl_max_discount" Type="decimal" Precision="12" Scale="2" Nullable="false" />
+          <Property Name="cd_program_letter" Type="char" MaxLength="1" />
+          <Property Name="VL_COMMISSION" Type="decimal" Precision="12" Scale="2" />
+          <Property Name="cd_company_code" Type="char" MaxLength="3" Nullable="false" />
+          <Property Name="vl_tax" Type="decimal" Precision="12" Scale="2" Nullable="false" />
+          <Property Name="vl_fee_company" Type="decimal" Precision="12" Scale="2" />
+          <Property Name="cd_last_debtor" Type="varchar" MaxLength="12" />
+          <Property Name="DT_LAST_DEBTOR" Type="smalldatetime" />
+          <Property Name="VL_MAX_PARCEL_WITH_DISCOUNT" Type="int" Nullable="false" />
+          <Property Name="CD_PHONE" Type="varchar" MaxLength="20" />
+          <Property Name="cessionario" Type="nvarchar" MaxLength="70" />
+          <Property Name="cedente" Type="nvarchar" MaxLength="70" />
+          <Property Name="cnpjcessionario" Type="nvarchar" MaxLength="19" />
+          <Property Name="cnpjcedente" Type="nvarchar" MaxLength="19" />
+          <Property Name="DS_MAIL_FROM" Type="varchar" MaxLength="100" />
+          <Property Name="CD_ACSP" Type="char" MaxLength="8" />
+          <Property Name="DISCONTO_PRINCIPAL_MONTANTE" Type="tinyint" />
+          <Property Name="Fl_Automation_Import" Type="bit" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'DB_FMC.dbo.TB_PROGRAM_GROUP_X_PROGRAM' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="TB_PROGRAM_GROUP_X_PROGRAM">
+          <Key>
+            <PropertyRef Name="ID_PROGRAM_GROUP" />
+          </Key>
+          <Property Name="id_program" Type="int" />
+          <Property Name="ID_PROGRAM_GROUP" Type="tinyint" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TB_REQUEST">
+          <Key>
+            <PropertyRef Name="id_request" />
+          </Key>
+          <Property Name="id_request" Type="bigint" Nullable="false" />
+          <Property Name="id_debtor" Type="int" Nullable="false" />
+          <Property Name="id_user_open" Type="smallint" Nullable="false" />
+          <Property Name="id_request_status" Type="tinyint" Nullable="false" />
+          <Property Name="id_request_type" Type="tinyint" Nullable="false" />
+          <Property Name="id_user_close" Type="smallint" />
+          <Property Name="dt_open" Type="smalldatetime" Nullable="false" />
+          <Property Name="dt_close" Type="smalldatetime" />
+          <Property Name="dt_UpdateStatus" Type="smalldatetime" />
+        </EntityType>
+        <Association Name="FK_tb_debtor_desks_tb_debtor">
+          <End Role="TB_DEBTOR" Type="Self.TB_DEBTOR" Multiplicity="1" />
+          <End Role="tb_debtor_desks" Type="Self.tb_debtor_desks" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TB_DEBTOR">
+              <PropertyRef Name="id_debtor" />
+            </Principal>
+            <Dependent Role="tb_debtor_desks">
+              <PropertyRef Name="id_debtor" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_tb_debtor_notices_tb_debtor">
+          <End Role="TB_DEBTOR" Type="Self.TB_DEBTOR" Multiplicity="1" />
+          <End Role="tb_debtor_notices" Type="Self.tb_debtor_notices" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TB_DEBTOR">
+              <PropertyRef Name="id_debtor" />
+            </Principal>
+            <Dependent Role="tb_debtor_notices">
+              <PropertyRef Name="id_debtor" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_tb_phone_tb_debtor">
+          <End Role="TB_DEBTOR" Type="Self.TB_DEBTOR" Multiplicity="1" />
+          <End Role="tb_debtor_phone" Type="Self.tb_debtor_phone" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TB_DEBTOR">
+              <PropertyRef Name="id_debtor" />
+            </Principal>
+            <Dependent Role="tb_debtor_phone">
+              <PropertyRef Name="id_debtor" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TB_REQUEST_tb_debtor">
+          <End Role="TB_DEBTOR" Type="Self.TB_DEBTOR" Multiplicity="1" />
+          <End Role="TB_REQUEST" Type="Self.TB_REQUEST" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TB_DEBTOR">
+              <PropertyRef Name="id_debtor" />
+            </Principal>
+            <Dependent Role="TB_REQUEST">
+              <PropertyRef Name="id_debtor" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Function Name="PrB_automator_login_process" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="pTnt_login_type" Type="tinyint" Mode="In" />
+          <Parameter Name="pTnt_application" Type="tinyint" Mode="In" />
+        </Function>
+        <Function Name="PrB_New_Cd_Debtor" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="pSnt_id_Program" Type="int" Mode="In" />
+        </Function>
+        <Function Name="PrI_debtor_phone" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="pInt_id_debtor" Type="int" Mode="In" />
+          <Parameter Name="pTnt_id_phone" Type="tinyint" Mode="In" />
+          <Parameter Name="pTnt_id_phone_type" Type="tinyint" Mode="In" />
+          <Parameter Name="pVch_cd_phone" Type="varchar" Mode="In" />
+          <Parameter Name="pVch_ds_phone" Type="varchar" Mode="In" />
+        </Function>
+        <Function Name="PrI_desk_agenda_detail" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="pChr_desk" Type="char" Mode="In" />
+          <Parameter Name="pChr_debtor" Type="char" Mode="In" />
+          <Parameter Name="pChr_status" Type="char" Mode="In" />
+          <Parameter Name="pDcm_balance" Type="decimal" Mode="In" />
+          <Parameter Name="pSdt_agenda" Type="smalldatetime" Mode="In" />
+          <Parameter Name="pSdt_follow" Type="smalldatetime" Mode="In" />
+          <Parameter Name="pSdt_status" Type="smalldatetime" Mode="In" />
+          <Parameter Name="pSnt_order" Type="int" Mode="In" />
+          <Parameter Name="pVch_packet" Type="varchar" Mode="In" />
+          <Parameter Name="pVch_spouse" Type="varchar" Mode="In" />
+          <Parameter Name="pVch_reference" Type="varchar" Mode="In" />
+          <Parameter Name="pVch_name" Type="varchar" Mode="In" />
+          <Parameter Name="pVch_address" Type="varchar" Mode="In" />
+          <Parameter Name="pVch_city" Type="varchar" Mode="In" />
+        </Function>
+        <EntityContainer Name="DB_FMCModelStoreContainer">
+          <EntitySet Name="TB_DEBTOR" EntityType="Self.TB_DEBTOR" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tb_debtor_comments" EntityType="Self.tb_debtor_comments" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tb_debtor_desks" EntityType="Self.tb_debtor_desks" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tb_debtor_notices" EntityType="Self.tb_debtor_notices" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tb_debtor_phone" EntityType="Self.tb_debtor_phone" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tb_desk_agenda" EntityType="Self.tb_desk_agenda" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TB_PROGRAM" EntityType="Self.TB_PROGRAM" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TB_REQUEST" EntityType="Self.TB_REQUEST" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tabela_tmp_BPM_PIF" EntityType="Self.tabela_tmp_BPM_PIF" store:Type="Tables" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+[tabela_tmp_BPM_PIF].[id_debtor] AS [id_debtor], 
+[tabela_tmp_BPM_PIF].[id_agreement] AS [id_agreement], 
+[tabela_tmp_BPM_PIF].[vl_divida] AS [vl_divida], 
+[tabela_tmp_BPM_PIF].[valor_pago] AS [valor_pago]
+FROM [dbo].[tabela_tmp_BPM_PIF] AS [tabela_tmp_BPM_PIF]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="TB_PROGRAM_GROUP_X_PROGRAM" EntityType="Self.TB_PROGRAM_GROUP_X_PROGRAM" store:Type="Tables" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+[TB_PROGRAM_GROUP_X_PROGRAM].[id_program] AS [id_program], 
+[TB_PROGRAM_GROUP_X_PROGRAM].[ID_PROGRAM_GROUP] AS [ID_PROGRAM_GROUP]
+FROM [dbo].[TB_PROGRAM_GROUP_X_PROGRAM] AS [TB_PROGRAM_GROUP_X_PROGRAM]</DefiningQuery>
+          </EntitySet>
+          <AssociationSet Name="FK_tb_debtor_desks_tb_debtor" Association="Self.FK_tb_debtor_desks_tb_debtor">
+            <End Role="TB_DEBTOR" EntitySet="TB_DEBTOR" />
+            <End Role="tb_debtor_desks" EntitySet="tb_debtor_desks" />
+          </AssociationSet>
+          <AssociationSet Name="FK_tb_debtor_notices_tb_debtor" Association="Self.FK_tb_debtor_notices_tb_debtor">
+            <End Role="TB_DEBTOR" EntitySet="TB_DEBTOR" />
+            <End Role="tb_debtor_notices" EntitySet="tb_debtor_notices" />
+          </AssociationSet>
+          <AssociationSet Name="FK_tb_phone_tb_debtor" Association="Self.FK_tb_phone_tb_debtor">
+            <End Role="TB_DEBTOR" EntitySet="TB_DEBTOR" />
+            <End Role="tb_debtor_phone" EntitySet="tb_debtor_phone" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TB_REQUEST_tb_debtor" Association="Self.FK_TB_REQUEST_tb_debtor">
+            <End Role="TB_DEBTOR" EntitySet="TB_DEBTOR" />
+            <End Role="TB_REQUEST" EntitySet="TB_REQUEST" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="DB_FMCModel" Alias="Self" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+        <EntityContainer Name="DB_FMCEntities" annotation:LazyLoadingEnabled="true" >
+          <EntitySet Name="TB_PROGRAM" EntityType="DB_FMCModel.TB_PROGRAM" />
+          <EntitySet Name="TB_PROGRAM_GROUP_X_PROGRAM" EntityType="DB_FMCModel.TB_PROGRAM_GROUP_X_PROGRAM" />
+          <EntitySet Name="tb_debtor_comments" EntityType="DB_FMCModel.tb_debtor_comments" />
+          <EntitySet Name="tb_desk_agenda" EntityType="DB_FMCModel.tb_desk_agenda" />
+          <EntitySet Name="tb_debtor_desks" EntityType="DB_FMCModel.tb_debtor_desks" />
+          <EntitySet Name="tabela_tmp_BPM_PIF" EntityType="DB_FMCModel.tabela_tmp_BPM_PIF" />
+          <EntitySet Name="tb_debtor_notices" EntityType="DB_FMCModel.tb_debtor_notices" />
+          <FunctionImport Name="InsertDebtorPhone">
+            <Parameter Name="pInt_id_debtor" Mode="In" Type="Int32" />
+            <Parameter Name="pTnt_id_phone" Mode="In" Type="Byte" />
+            <Parameter Name="pTnt_id_phone_type" Mode="In" Type="Byte" />
+            <Parameter Name="pVch_cd_phone" Mode="In" Type="String" />
+            <Parameter Name="pVch_ds_phone" Mode="In" Type="String" />
+          </FunctionImport>
+          <FunctionImport Name="InsertDeskAgendaDetail">
+            <Parameter Name="pChr_desk" Mode="In" Type="String" />
+            <Parameter Name="pChr_debtor" Mode="In" Type="String" />
+            <Parameter Name="pChr_status" Mode="In" Type="String" />
+            <Parameter Name="pDcm_balance" Mode="In" Type="Decimal" />
+            <Parameter Name="pSdt_agenda" Mode="In" Type="DateTime" />
+            <Parameter Name="pSdt_follow" Mode="In" Type="DateTime" />
+            <Parameter Name="pSdt_status" Mode="In" Type="DateTime" />
+            <Parameter Name="pSnt_order" Mode="In" Type="Int32" />
+            <Parameter Name="pVch_packet" Mode="In" Type="String" />
+            <Parameter Name="pVch_spouse" Mode="In" Type="String" />
+            <Parameter Name="pVch_reference" Mode="In" Type="String" />
+            <Parameter Name="pVch_name" Mode="In" Type="String" />
+            <Parameter Name="pVch_address" Mode="In" Type="String" />
+            <Parameter Name="pVch_city" Mode="In" Type="String" />
+          </FunctionImport>
+          <EntitySet Name="TB_REQUEST" EntityType="DB_FMCModel.TB_REQUEST" />
+          <EntitySet Name="TB_DEBTOR" EntityType="DB_FMCModel.TB_DEBTOR" />
+          <AssociationSet Name="FK_tb_debtor_desks_tb_debtor" Association="DB_FMCModel.FK_tb_debtor_desks_tb_debtor">
+            <End Role="TB_DEBTOR" EntitySet="TB_DEBTOR" />
+            <End Role="tb_debtor_desks" EntitySet="tb_debtor_desks" />
+          </AssociationSet>
+          <AssociationSet Name="FK_tb_debtor_notices_tb_debtor" Association="DB_FMCModel.FK_tb_debtor_notices_tb_debtor">
+            <End Role="TB_DEBTOR" EntitySet="TB_DEBTOR" />
+            <End Role="tb_debtor_notices" EntitySet="tb_debtor_notices" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TB_REQUEST_tb_debtor" Association="DB_FMCModel.FK_TB_REQUEST_tb_debtor">
+            <End Role="TB_DEBTOR" EntitySet="TB_DEBTOR" />
+            <End Role="TB_REQUEST" EntitySet="TB_REQUEST" />
+          </AssociationSet>
+          <EntitySet Name="tb_debtor_phone" EntityType="DB_FMCModel.tb_debtor_phone" />
+          <AssociationSet Name="FK_tb_phone_tb_debtor" Association="DB_FMCModel.FK_tb_phone_tb_debtor">
+            <End Role="TB_DEBTOR" EntitySet="TB_DEBTOR" />
+            <End Role="tb_debtor_phone" EntitySet="tb_debtor_phone" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="TB_PROGRAM">
+          <Key>
+            <PropertyRef Name="id_program" />
+          </Key>
+          <Property Type="Int32" Name="id_program" Nullable="false" />
+          <Property Type="String" Name="cd_program" Nullable="false" MaxLength="3" FixedLength="true" Unicode="false" />
+          <Property Type="Byte" Name="id_company" Nullable="false" />
+          <Property Type="String" Name="ds_program" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Type="Byte" Name="vl_max_parcel" Nullable="false" />
+          <Property Type="Decimal" Name="vl_max_discount" Nullable="false" Precision="12" Scale="2" />
+          <Property Type="String" Name="cd_program_letter" MaxLength="1" FixedLength="true" Unicode="false" />
+          <Property Type="Decimal" Name="VL_COMMISSION" Precision="12" Scale="2" />
+          <Property Type="String" Name="cd_company_code" Nullable="false" MaxLength="3" FixedLength="true" Unicode="false" />
+          <Property Type="Decimal" Name="vl_tax" Nullable="false" Precision="12" Scale="2" />
+          <Property Type="Decimal" Name="vl_fee_company" Precision="12" Scale="2" />
+          <Property Type="String" Name="cd_last_debtor" MaxLength="12" FixedLength="false" Unicode="false" />
+          <Property Type="DateTime" Name="DT_LAST_DEBTOR" Precision="0" />
+          <Property Type="Int32" Name="VL_MAX_PARCEL_WITH_DISCOUNT" Nullable="false" />
+          <Property Type="String" Name="CD_PHONE" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Type="String" Name="cessionario" MaxLength="70" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="cedente" MaxLength="70" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="cnpjcessionario" MaxLength="19" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="cnpjcedente" MaxLength="19" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="DS_MAIL_FROM" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Type="String" Name="CD_ACSP" MaxLength="8" FixedLength="true" Unicode="false" />
+          <Property Type="Byte" Name="DISCONTO_PRINCIPAL_MONTANTE" />
+          <Property Type="Boolean" Name="Fl_Automation_Import" />
+        </EntityType>
+        <EntityType Name="TB_PROGRAM_GROUP_X_PROGRAM">
+          <Key>
+            <PropertyRef Name="ID_PROGRAM_GROUP" />
+          </Key>
+          <Property Type="Int32" Name="id_program" />
+          <Property Type="Byte" Name="ID_PROGRAM_GROUP" Nullable="false" />
+        </EntityType>
+        <EntityType Name="tb_debtor_comments">
+          <Key>
+            <PropertyRef Name="Id_Debtor_Comments" />
+          </Key>
+          <Property Type="Int64" Name="Id_Debtor_Comments" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="Int32" Name="id_debtor" Nullable="false" />
+          <Property Type="Int16" Name="nr_comment" Nullable="false" />
+          <Property Type="DateTime" Name="dt_comment" Nullable="false" Precision="0" />
+          <Property Type="String" Name="ds_comment" MaxLength="2000" FixedLength="false" Unicode="false" />
+          <Property Type="String" Name="cd_user_system" MaxLength="3" FixedLength="true" Unicode="false" />
+          <Property Type="Boolean" Name="fl_temporary" Nullable="false" />
+          <Property Type="Int16" Name="year_comment" />
+          <Property Type="Byte" Name="month_comment" />
+          <Property Type="Byte" Name="day_comment" />
+        </EntityType>
+        <EntityType Name="tb_desk_agenda">
+          <Key>
+            <PropertyRef Name="cd_desk" />
+            <PropertyRef Name="dt_agenda" />
+          </Key>
+          <Property Type="String" Name="cd_desk" Nullable="false" MaxLength="3" FixedLength="true" Unicode="false" />
+          <Property Type="DateTime" Name="dt_agenda" Nullable="false" Precision="0" />
+          <Property Type="Int32" Name="qt_debtor" />
+        </EntityType>
+        <EntityType Name="tb_debtor_desks">
+          <Key>
+            <PropertyRef Name="id_debtor" />
+            <PropertyRef Name="cd_desk" />
+            <PropertyRef Name="nr_desk" />
+          </Key>
+          <Property Type="Int32" Name="id_debtor" Nullable="false" />
+          <Property Type="String" Name="cd_desk" Nullable="false" MaxLength="3" FixedLength="true" Unicode="false" />
+          <Property Type="Byte" Name="nr_desk" Nullable="false" />
+          <Property Type="DateTime" Name="dt_desk" Nullable="false" Precision="0" />
+          <Property Type="Boolean" Name="fl_temporary" Nullable="false" />
+          <NavigationProperty Name="TB_DEBTOR" Relationship="DB_FMCModel.FK_tb_debtor_desks_tb_debtor" FromRole="tb_debtor_desks" ToRole="TB_DEBTOR" />
+        </EntityType>
+        <EntityType Name="tabela_tmp_BPM_PIF">
+          <Key>
+            <PropertyRef Name="id_debtor" />
+            <PropertyRef Name="id_agreement" />
+          </Key>
+          <Property Type="Int32" Name="id_debtor" Nullable="false" />
+          <Property Type="Int32" Name="id_agreement" Nullable="false" />
+          <Property Type="Decimal" Name="vl_divida" Precision="14" Scale="2" />
+          <Property Type="Decimal" Name="valor_pago" Precision="38" Scale="2" />
+        </EntityType>
+        <EntityType Name="tb_debtor_notices">
+          <Key>
+            <PropertyRef Name="id_debtor" />
+            <PropertyRef Name="cd_notice" />
+            <PropertyRef Name="nr_notice" />
+          </Key>
+          <Property Type="Int32" Name="id_debtor" Nullable="false" />
+          <Property Type="String" Name="cd_notice" Nullable="false" MaxLength="3" FixedLength="true" Unicode="false" />
+          <Property Type="Int32" Name="nr_notice" Nullable="false" />
+          <Property Type="DateTime" Name="dt_notice" Nullable="false" Precision="0" />
+          <Property Type="Boolean" Name="fl_temporary" Nullable="false" />
+          <NavigationProperty Name="TB_DEBTOR" Relationship="DB_FMCModel.FK_tb_debtor_notices_tb_debtor" FromRole="tb_debtor_notices" ToRole="TB_DEBTOR" />
+        </EntityType>
+        <EntityType Name="TB_REQUEST">
+          <Key>
+            <PropertyRef Name="id_request" />
+          </Key>
+          <Property Name="id_request" Type="Int64" Nullable="false" />
+          <Property Name="id_debtor" Type="Int32" Nullable="false" />
+          <Property Name="id_user_open" Type="Int16" Nullable="false" />
+          <Property Name="id_request_status" Type="Byte" Nullable="false" />
+          <Property Name="id_request_type" Type="Byte" Nullable="false" />
+          <Property Name="id_user_close" Type="Int16" />
+          <Property Name="dt_open" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="dt_close" Type="DateTime" Precision="0" />
+          <Property Name="dt_UpdateStatus" Type="DateTime" Precision="0" />
+          <NavigationProperty Name="TB_DEBTOR" Relationship="DB_FMCModel.FK_TB_REQUEST_tb_debtor" FromRole="TB_REQUEST" ToRole="TB_DEBTOR" />
+        </EntityType>
+        <EntityType Name="TB_DEBTOR">
+          <Key>
+            <PropertyRef Name="id_debtor" />
+          </Key>
+          <Property Name="id_debtor" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="cd_debtor" Type="String" MaxLength="25" FixedLength="true" Unicode="false" />
+          <Property Name="ds_name" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ds_address" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="ds_complement" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ds_city" Type="String" Nullable="false" MaxLength="30" FixedLength="false" Unicode="false" />
+          <Property Name="ds_uf" Type="String" Nullable="false" MaxLength="2" FixedLength="true" Unicode="false" />
+          <Property Name="ds_cep" Type="String" Nullable="false" MaxLength="8" FixedLength="true" Unicode="false" />
+          <Property Name="cd_packet" Type="String" MaxLength="6" FixedLength="false" Unicode="false" />
+          <Property Name="cd_document" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="cd_desk" Type="String" Nullable="false" MaxLength="3" FixedLength="true" Unicode="false" />
+          <Property Name="DT_BEGIN" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="dt_cancel" Type="DateTime" Precision="0" />
+          <Property Name="vl_main" Type="Decimal" Nullable="false" Precision="12" Scale="2" />
+          <Property Name="vl_balance" Type="Decimal" Nullable="false" Precision="12" Scale="2" />
+          <Property Name="vl_main_paid" Type="Decimal" Nullable="false" Precision="12" Scale="2" />
+          <Property Name="vl_main_remaining" Type="Decimal" Nullable="false" Precision="12" Scale="2" />
+          <Property Name="vl_paid" Type="Decimal" Nullable="false" Precision="12" Scale="2" />
+          <Property Name="qt_returned_check" Type="Int16" Nullable="false" />
+          <Property Name="dt_company_payment" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="ds_client" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="dt_update" Type="DateTime" Precision="0" />
+          <Property Name="NR_CPF" Type="String" MaxLength="30" FixedLength="false" Unicode="false" />
+          <Property Name="CD_STATUS" Type="String" MaxLength="3" FixedLength="true" Unicode="false" />
+          <Property Name="QT_CONTACT" Type="Int16" />
+          <Property Name="DS_EMAIL" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="id_program" Type="Int32" />
+          <Property Name="DT_RECALL" Type="DateTime" Precision="0" />
+          <Property Name="account_sent_gasco" Type="Byte" />
+          <Property Name="account_sent_gasco_date" Type="DateTime" Precision="3" />
+          <Property Name="DT_DEBTOR_INSERT" Type="DateTime" Precision="0" />
+          <Property Name="DS_EMAIL_DOIS" Type="String" MaxLength="80" FixedLength="false" Unicode="true" />
+          <Property Name="TRI_NUM_PREST" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="DS_EMAIL_TRES" Type="String" MaxLength="80" FixedLength="false" Unicode="false" />
+          <Property Name="DS_EMAIL_QUATRO" Type="String" MaxLength="80" FixedLength="false" Unicode="false" />
+          <Property Name="DT_AMEX_DATA_CORTE" Type="DateTime" Precision="0" />
+          <Property Name="vl_interest_rate" Type="Decimal" Precision="12" Scale="2" />
+          <NavigationProperty Name="tb_debtor_desks" Relationship="DB_FMCModel.FK_tb_debtor_desks_tb_debtor" FromRole="TB_DEBTOR" ToRole="tb_debtor_desks" />
+          <NavigationProperty Name="tb_debtor_notices" Relationship="DB_FMCModel.FK_tb_debtor_notices_tb_debtor" FromRole="TB_DEBTOR" ToRole="tb_debtor_notices" />
+          <NavigationProperty Name="TB_REQUEST" Relationship="DB_FMCModel.FK_TB_REQUEST_tb_debtor" FromRole="TB_DEBTOR" ToRole="TB_REQUEST" />
+          <NavigationProperty Name="tb_debtor_phone" Relationship="DB_FMCModel.FK_tb_phone_tb_debtor" FromRole="TB_DEBTOR" ToRole="tb_debtor_phone" />
+        </EntityType>
+        <Association Name="FK_tb_debtor_desks_tb_debtor">
+          <End Type="DB_FMCModel.TB_DEBTOR" Role="TB_DEBTOR" Multiplicity="1" />
+          <End Type="DB_FMCModel.tb_debtor_desks" Role="tb_debtor_desks" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TB_DEBTOR">
+              <PropertyRef Name="id_debtor" />
+            </Principal>
+            <Dependent Role="tb_debtor_desks">
+              <PropertyRef Name="id_debtor" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_tb_debtor_notices_tb_debtor">
+          <End Type="DB_FMCModel.TB_DEBTOR" Role="TB_DEBTOR" Multiplicity="1" />
+          <End Type="DB_FMCModel.tb_debtor_notices" Role="tb_debtor_notices" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TB_DEBTOR">
+              <PropertyRef Name="id_debtor" />
+            </Principal>
+            <Dependent Role="tb_debtor_notices">
+              <PropertyRef Name="id_debtor" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TB_REQUEST_tb_debtor">
+          <End Type="DB_FMCModel.TB_DEBTOR" Role="TB_DEBTOR" Multiplicity="1" />
+          <End Type="DB_FMCModel.TB_REQUEST" Role="TB_REQUEST" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TB_DEBTOR">
+              <PropertyRef Name="id_debtor" />
+            </Principal>
+            <Dependent Role="TB_REQUEST">
+              <PropertyRef Name="id_debtor" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="tb_debtor_phone">
+          <Key>
+            <PropertyRef Name="ID_INCREMENT" />
+          </Key>
+          <Property Name="id_phone" Type="Byte" Nullable="false" />
+          <Property Name="id_debtor" Type="Int32" Nullable="false" />
+          <Property Name="cd_phone" Type="String" Nullable="false" MaxLength="12" FixedLength="false" Unicode="false" />
+          <Property Name="ds_phone" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="id_phone_type" Type="Byte" Nullable="false" />
+          <Property Name="DT_INSERT" Type="DateTime" Precision="3" />
+          <Property Name="ID_INCREMENT" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <NavigationProperty Name="TB_DEBTOR" Relationship="DB_FMCModel.FK_tb_phone_tb_debtor" FromRole="tb_debtor_phone" ToRole="TB_DEBTOR" />
+        </EntityType>
+        <Association Name="FK_tb_phone_tb_debtor">
+          <End Type="DB_FMCModel.TB_DEBTOR" Role="TB_DEBTOR" Multiplicity="1" />
+          <End Type="DB_FMCModel.tb_debtor_phone" Role="tb_debtor_phone" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TB_DEBTOR">
+              <PropertyRef Name="id_debtor" />
+            </Principal>
+            <Dependent Role="tb_debtor_phone">
+              <PropertyRef Name="id_debtor" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2008/09/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="DB_FMCModelStoreContainer" CdmEntityContainer="DB_FMCEntities" >
+          <EntitySetMapping Name="TB_PROGRAM">
+            <EntityTypeMapping TypeName="DB_FMCModel.TB_PROGRAM">
+              <MappingFragment StoreEntitySet="TB_PROGRAM">
+                <ScalarProperty Name="Fl_Automation_Import" ColumnName="Fl_Automation_Import" />
+                <ScalarProperty Name="DISCONTO_PRINCIPAL_MONTANTE" ColumnName="DISCONTO_PRINCIPAL_MONTANTE" />
+                <ScalarProperty Name="CD_ACSP" ColumnName="CD_ACSP" />
+                <ScalarProperty Name="DS_MAIL_FROM" ColumnName="DS_MAIL_FROM" />
+                <ScalarProperty Name="cnpjcedente" ColumnName="cnpjcedente" />
+                <ScalarProperty Name="cnpjcessionario" ColumnName="cnpjcessionario" />
+                <ScalarProperty Name="cedente" ColumnName="cedente" />
+                <ScalarProperty Name="cessionario" ColumnName="cessionario" />
+                <ScalarProperty Name="CD_PHONE" ColumnName="CD_PHONE" />
+                <ScalarProperty Name="VL_MAX_PARCEL_WITH_DISCOUNT" ColumnName="VL_MAX_PARCEL_WITH_DISCOUNT" />
+                <ScalarProperty Name="DT_LAST_DEBTOR" ColumnName="DT_LAST_DEBTOR" />
+                <ScalarProperty Name="cd_last_debtor" ColumnName="cd_last_debtor" />
+                <ScalarProperty Name="vl_fee_company" ColumnName="vl_fee_company" />
+                <ScalarProperty Name="vl_tax" ColumnName="vl_tax" />
+                <ScalarProperty Name="cd_company_code" ColumnName="cd_company_code" />
+                <ScalarProperty Name="VL_COMMISSION" ColumnName="VL_COMMISSION" />
+                <ScalarProperty Name="cd_program_letter" ColumnName="cd_program_letter" />
+                <ScalarProperty Name="vl_max_discount" ColumnName="vl_max_discount" />
+                <ScalarProperty Name="vl_max_parcel" ColumnName="vl_max_parcel" />
+                <ScalarProperty Name="ds_program" ColumnName="ds_program" />
+                <ScalarProperty Name="id_company" ColumnName="id_company" />
+                <ScalarProperty Name="cd_program" ColumnName="cd_program" />
+                <ScalarProperty Name="id_program" ColumnName="id_program" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TB_PROGRAM_GROUP_X_PROGRAM">
+            <EntityTypeMapping TypeName="DB_FMCModel.TB_PROGRAM_GROUP_X_PROGRAM">
+              <MappingFragment StoreEntitySet="TB_PROGRAM_GROUP_X_PROGRAM">
+                <ScalarProperty Name="ID_PROGRAM_GROUP" ColumnName="ID_PROGRAM_GROUP" />
+                <ScalarProperty Name="id_program" ColumnName="id_program" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tb_debtor_comments">
+            <EntityTypeMapping TypeName="DB_FMCModel.tb_debtor_comments">
+              <MappingFragment StoreEntitySet="tb_debtor_comments">
+                <ScalarProperty Name="day_comment" ColumnName="day_comment" />
+                <ScalarProperty Name="month_comment" ColumnName="month_comment" />
+                <ScalarProperty Name="year_comment" ColumnName="year_comment" />
+                <ScalarProperty Name="fl_temporary" ColumnName="fl_temporary" />
+                <ScalarProperty Name="cd_user_system" ColumnName="cd_user_system" />
+                <ScalarProperty Name="ds_comment" ColumnName="ds_comment" />
+                <ScalarProperty Name="dt_comment" ColumnName="dt_comment" />
+                <ScalarProperty Name="nr_comment" ColumnName="nr_comment" />
+                <ScalarProperty Name="id_debtor" ColumnName="id_debtor" />
+                <ScalarProperty Name="Id_Debtor_Comments" ColumnName="Id_Debtor_Comments" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tb_desk_agenda">
+            <EntityTypeMapping TypeName="DB_FMCModel.tb_desk_agenda">
+              <MappingFragment StoreEntitySet="tb_desk_agenda">
+                <ScalarProperty Name="qt_debtor" ColumnName="qt_debtor" />
+                <ScalarProperty Name="dt_agenda" ColumnName="dt_agenda" />
+                <ScalarProperty Name="cd_desk" ColumnName="cd_desk" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tb_debtor_desks">
+            <EntityTypeMapping TypeName="DB_FMCModel.tb_debtor_desks">
+              <MappingFragment StoreEntitySet="tb_debtor_desks">
+                <ScalarProperty Name="fl_temporary" ColumnName="fl_temporary" />
+                <ScalarProperty Name="dt_desk" ColumnName="dt_desk" />
+                <ScalarProperty Name="nr_desk" ColumnName="nr_desk" />
+                <ScalarProperty Name="cd_desk" ColumnName="cd_desk" />
+                <ScalarProperty Name="id_debtor" ColumnName="id_debtor" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tabela_tmp_BPM_PIF">
+            <EntityTypeMapping TypeName="DB_FMCModel.tabela_tmp_BPM_PIF">
+              <MappingFragment StoreEntitySet="tabela_tmp_BPM_PIF">
+                <ScalarProperty Name="valor_pago" ColumnName="valor_pago" />
+                <ScalarProperty Name="vl_divida" ColumnName="vl_divida" />
+                <ScalarProperty Name="id_agreement" ColumnName="id_agreement" />
+                <ScalarProperty Name="id_debtor" ColumnName="id_debtor" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tb_debtor_notices">
+            <EntityTypeMapping TypeName="DB_FMCModel.tb_debtor_notices">
+              <MappingFragment StoreEntitySet="tb_debtor_notices">
+                <ScalarProperty Name="fl_temporary" ColumnName="fl_temporary" />
+                <ScalarProperty Name="dt_notice" ColumnName="dt_notice" />
+                <ScalarProperty Name="nr_notice" ColumnName="nr_notice" />
+                <ScalarProperty Name="cd_notice" ColumnName="cd_notice" />
+                <ScalarProperty Name="id_debtor" ColumnName="id_debtor" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <FunctionImportMapping FunctionImportName="InsertDebtorPhone" FunctionName="DB_FMCModel.Store.PrI_debtor_phone" />
+          <FunctionImportMapping FunctionImportName="InsertDeskAgendaDetail" FunctionName="DB_FMCModel.Store.PrI_desk_agenda_detail" />
+          <EntitySetMapping Name="TB_REQUEST">
+            <EntityTypeMapping TypeName="DB_FMCModel.TB_REQUEST">
+              <MappingFragment StoreEntitySet="TB_REQUEST">
+                <ScalarProperty Name="dt_UpdateStatus" ColumnName="dt_UpdateStatus" />
+                <ScalarProperty Name="dt_close" ColumnName="dt_close" />
+                <ScalarProperty Name="dt_open" ColumnName="dt_open" />
+                <ScalarProperty Name="id_user_close" ColumnName="id_user_close" />
+                <ScalarProperty Name="id_request_type" ColumnName="id_request_type" />
+                <ScalarProperty Name="id_request_status" ColumnName="id_request_status" />
+                <ScalarProperty Name="id_user_open" ColumnName="id_user_open" />
+                <ScalarProperty Name="id_debtor" ColumnName="id_debtor" />
+                <ScalarProperty Name="id_request" ColumnName="id_request" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TB_DEBTOR">
+            <EntityTypeMapping TypeName="DB_FMCModel.TB_DEBTOR">
+              <MappingFragment StoreEntitySet="TB_DEBTOR">
+                <ScalarProperty Name="vl_interest_rate" ColumnName="vl_interest_rate" />
+                <ScalarProperty Name="DT_AMEX_DATA_CORTE" ColumnName="DT_AMEX_DATA_CORTE" />
+                <ScalarProperty Name="DS_EMAIL_QUATRO" ColumnName="DS_EMAIL_QUATRO" />
+                <ScalarProperty Name="DS_EMAIL_TRES" ColumnName="DS_EMAIL_TRES" />
+                <ScalarProperty Name="TRI_NUM_PREST" ColumnName="TRI_NUM_PREST" />
+                <ScalarProperty Name="DS_EMAIL_DOIS" ColumnName="DS_EMAIL_DOIS" />
+                <ScalarProperty Name="DT_DEBTOR_INSERT" ColumnName="DT_DEBTOR_INSERT" />
+                <ScalarProperty Name="account_sent_gasco_date" ColumnName="account_sent_gasco_date" />
+                <ScalarProperty Name="account_sent_gasco" ColumnName="account_sent_gasco" />
+                <ScalarProperty Name="DT_RECALL" ColumnName="DT_RECALL" />
+                <ScalarProperty Name="id_program" ColumnName="id_program" />
+                <ScalarProperty Name="DS_EMAIL" ColumnName="DS_EMAIL" />
+                <ScalarProperty Name="QT_CONTACT" ColumnName="QT_CONTACT" />
+                <ScalarProperty Name="CD_STATUS" ColumnName="CD_STATUS" />
+                <ScalarProperty Name="NR_CPF" ColumnName="NR_CPF" />
+                <ScalarProperty Name="dt_update" ColumnName="dt_update" />
+                <ScalarProperty Name="ds_client" ColumnName="ds_client" />
+                <ScalarProperty Name="dt_company_payment" ColumnName="dt_company_payment" />
+                <ScalarProperty Name="qt_returned_check" ColumnName="qt_returned_check" />
+                <ScalarProperty Name="vl_paid" ColumnName="vl_paid" />
+                <ScalarProperty Name="vl_main_remaining" ColumnName="vl_main_remaining" />
+                <ScalarProperty Name="vl_main_paid" ColumnName="vl_main_paid" />
+                <ScalarProperty Name="vl_balance" ColumnName="vl_balance" />
+                <ScalarProperty Name="vl_main" ColumnName="vl_main" />
+                <ScalarProperty Name="dt_cancel" ColumnName="dt_cancel" />
+                <ScalarProperty Name="DT_BEGIN" ColumnName="DT_BEGIN" />
+                <ScalarProperty Name="cd_desk" ColumnName="cd_desk" />
+                <ScalarProperty Name="cd_document" ColumnName="cd_document" />
+                <ScalarProperty Name="cd_packet" ColumnName="cd_packet" />
+                <ScalarProperty Name="ds_cep" ColumnName="ds_cep" />
+                <ScalarProperty Name="ds_uf" ColumnName="ds_uf" />
+                <ScalarProperty Name="ds_city" ColumnName="ds_city" />
+                <ScalarProperty Name="ds_complement" ColumnName="ds_complement" />
+                <ScalarProperty Name="ds_address" ColumnName="ds_address" />
+                <ScalarProperty Name="ds_name" ColumnName="ds_name" />
+                <ScalarProperty Name="cd_debtor" ColumnName="cd_debtor" />
+                <ScalarProperty Name="id_debtor" ColumnName="id_debtor" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tb_debtor_phone">
+            <EntityTypeMapping TypeName="DB_FMCModel.tb_debtor_phone">
+              <MappingFragment StoreEntitySet="tb_debtor_phone">
+                <ScalarProperty Name="ID_INCREMENT" ColumnName="ID_INCREMENT" />
+                <ScalarProperty Name="DT_INSERT" ColumnName="DT_INSERT" />
+                <ScalarProperty Name="id_phone_type" ColumnName="id_phone_type" />
+                <ScalarProperty Name="ds_phone" ColumnName="ds_phone" />
+                <ScalarProperty Name="cd_phone" ColumnName="cd_phone" />
+                <ScalarProperty Name="id_debtor" ColumnName="id_debtor" />
+                <ScalarProperty Name="id_phone" ColumnName="id_phone" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2008/10/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="True" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="True" />
+        <DesignerProperty Name="UseLegacyProvider" Value="True" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams>
+      <Diagram Name="DB_FMC" ZoomLevel="75" >
+        <EntityTypeShape EntityType="DB_FMCModel.TB_PROGRAM" Width="1.5" PointX="8.75" PointY="0.75" Height="4.7149055989583388" />
+        <EntityTypeShape EntityType="DB_FMCModel.TB_PROGRAM_GROUP_X_PROGRAM" Width="3" PointX="10.75" PointY="0.75" Height="1.2636116536458335" />
+        <EntityTypeShape EntityType="DB_FMCModel.tb_debtor_comments" Width="1.5" PointX="5.75" PointY="10.75" Height="2.5783902994791674" />
+        <EntityTypeShape EntityType="DB_FMCModel.tb_desk_agenda" Width="1.5" PointX="7.75" PointY="8" Height="1.592306315104171" />
+        <EntityTypeShape EntityType="DB_FMCModel.tb_debtor_desks" Width="1.5" PointX="3" PointY="9.125" Height="1.9210009765625031" />
+        <EntityTypeShape EntityType="DB_FMCModel.tabela_tmp_BPM_PIF" Width="1.5" PointX="10.75" PointY="3.75" Height="1.5923063151041674" />
+        <EntityTypeShape EntityType="DB_FMCModel.tb_debtor_notices" Width="1.5" PointX="3" PointY="11.75" Height="1.9210009765625031" />
+        <EntityTypeShape EntityType="DB_FMCModel.TB_REQUEST" Width="1.5" PointX="3" PointY="18.375" />
+        <EntityTypeShape EntityType="DB_FMCModel.TB_DEBTOR" Width="1.5" PointX="0.75" PointY="11.25" />
+        <AssociationConnector Association="DB_FMCModel.FK_tb_debtor_desks_tb_debtor" />
+        <AssociationConnector Association="DB_FMCModel.FK_tb_debtor_notices_tb_debtor" />
+        <AssociationConnector Association="DB_FMCModel.FK_TB_REQUEST_tb_debtor" />
+        <EntityTypeShape EntityType="DB_FMCModel.tb_debtor_phone" Width="1.5" PointX="3" PointY="15" />
+        <AssociationConnector Association="DB_FMCModel.FK_tb_phone_tb_debtor" />
+      </Diagram>
+    </Diagrams>
+  </Designer>
+</edmx:Edmx>

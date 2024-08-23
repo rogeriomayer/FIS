@@ -1,0 +1,198 @@
+#consulta-cpf-finalizar {
+	width: 750px;
+
+	h2 {
+		color: @verde-topo;
+		font-size: 3.7em;
+		font-weight: 700;
+		line-height: 110%;
+		margin-bottom: 40px;
+	}//h2
+
+	.links {
+
+		a {
+			border: @verde-topo solid 1px;
+			height: 60px;
+			.d-inline-block;
+			.v-align-top;
+			color: @verde-topo;
+			.uppercase;
+			font-weight: 700;
+			font-size: 1.6em;
+			padding: 20px 0 0 20px;
+
+			&.baixar-pdf {
+				background: url(../images/consulta-cpf/finalizar/pdf.png) top 50% right 20px no-repeat; 
+				width: 252px;
+				margin-right: 10px;
+			}//baixar-pdf
+
+			&.copiar {
+				background: url(../images/consulta-cpf/finalizar/codigo-de-barras.png) top 50% right 20px no-repeat; 
+				width: 385px;
+			}//copiar
+
+		}//a
+
+	}//links
+
+	.box-form {
+		border: @verde-topo solid 1px;
+		height: 60px;
+		margin-top: 10px;
+		box-shadow: inset 0px 0px 8px 0px rgba(0,0,0,0.37);
+		padding: 0 0 0 25px;
+
+		label {
+			color: @verde-topo;
+			.uppercase;
+			font-weight: 700;
+			font-size: 1.6em;
+			.d-inline-block;
+			.v-align-top;
+			.open-sans;
+			padding-top: 20px;
+		}//label
+
+		.btn-enviar {
+			background: #006666;
+			height: 58px;
+			border: none;
+			color: #fff;
+			.open-sans;
+			font-size: 1.6em;
+			padding: 0 20px 0 20px;
+			cursor: pointer;
+			.uppercase;
+			font-weight: 700;
+			.f-right;
+		}//btn-enviar
+
+		input {
+			border: none;
+			width: 250px;
+			margin-left: 5px;
+			.d-inline-block;
+			.v-align-top;
+			.open-sans;
+			font-weight: 700;
+			font-size: 1.6em;
+			margin-top: 15px;
+			color: #9c9aa0;
+
+			&::placeholder {
+				color: #9c9aa0;
+			}//placeholder;
+
+		}//input
+
+	}//box-form
+
+	.btn-finalizar {
+		background: #006666;
+		width: 100%;
+		height: 60px;
+		.d-inline-block;
+		.v-align-top;
+		border: none;
+		color: #fff;
+		.open-sans;
+		text-align: left;
+		font-size: 1.6em;
+		padding-left: 23px;
+		cursor: pointer;
+		box-shadow: 3px 3px 10px 0 rgba(0,0,0,0.2);
+		.uppercase;
+		font-weight: 700;
+		margin-top: 30px;
+	}//btn-enviar
+
+}//consulta-cpf-finalizar
+
+@media screen and (max-width: 1050px) {
+
+	#consulta-cpf-finalizar {
+		width: 100%;
+		padding: 30px!important;
+
+		h2 {
+			color: @verde-topo;
+			font-size: 3em;
+			font-weight: 700;
+			line-height: 110%;
+			margin-bottom: 40px;
+		}//h2
+
+		.links {
+
+			a {
+				height: 60px;
+				font-size: 1.4em;
+				padding: 22px 0 0 20px;
+				width: 100%!important;
+				display: block;
+
+				&.baixar-pdf {
+					margin-bottom: 10px;
+					margin-right: 0;
+				}//baixar-pdf
+
+			}//a
+
+		}//links
+
+		.box-form {
+			border: @verde-topo solid 1px;
+			height: auto;
+			margin-top: 10px;
+			box-shadow: inset 0px 0px 8px 0px rgba(0,0,0,0.37);
+			padding: 20px;
+
+			label {
+				padding-top: 0;
+			}//label
+
+			.btn-enviar {
+				background: #006666;
+				margin-top: 20px;
+				width: 100%;
+				float: none;
+			}//btn-enviar
+
+			input {
+				border: none;
+				width: 100%;
+				margin-left: 0;
+				height: 30px;
+				&::placeholder {
+					color: #9c9aa0;
+				}//placeholder;
+
+			}//input
+
+		}//box-form
+
+		.btn-finalizar {
+			background: #006666;
+			width: 100%;
+			height: 60px;
+			.d-inline-block;
+			.v-align-top;
+			border: none;
+			color: #fff;
+			.open-sans;
+			text-align: left;
+			font-size: 1.6em;
+			padding-left: 23px;
+			cursor: pointer;
+			box-shadow: 3px 3px 10px 0 rgba(0,0,0,0.2);
+			.uppercase;
+			font-weight: 700;
+			margin-top: 30px;
+		}//btn-enviar
+
+	}//consulta-cpf-finalizar
+
+
+}//1050px

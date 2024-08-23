@@ -1,0 +1,57 @@
+﻿@model Ouvidoria
+@{
+    List<SelectListItem> listTipo = new List<SelectListItem>{
+        new SelectListItem() { Text = "Tipo*", Value = "" },
+        new SelectListItem() { Text = "Elogio", Value = "Elogio" },
+        new SelectListItem() { Text = "Sugestão", Value = "Sugestão" },
+        new SelectListItem() { Text = "Reclamação", Value = "Reclamação" },
+        new SelectListItem() { Text = "Críticas", Value = "Críticas" },
+        new SelectListItem() { Text = "Denúncia", Value = "Denúncia" }
+    };
+
+}
+<section id="pg-contato" class="scroll-secao ouvidoria-login">
+    <div class="container">
+        <h1>
+            Olá colaborador,<br />
+            envie sua mensagem para a ouvidoria<br />preenchendo os campos abaixo.
+        </h1>
+        <h2 style="line-height: 28px; margin-bottom: 20px">
+            A ouvidoria é um canal reservado para o registro de manifestações, reivindicações,
+            sugestões e elogios <br />referentes aos serviços oferecidos pela empresa.
+            É importante a utilização consciente deste canal, através  <br />de manifestações que
+            contenham mensagens precisas, bem formuladas e de caráter racional, honesto <br />e responsável,
+            fornecendo informações precisas, seguras e confiáveis, contribuindo para a melhoria dos <br />nossos serviços,
+            processos e clima organizacional.
+        </h2>
+        @using (Html.BeginForm("Index", "Ouvidoria", FormMethod.Post, new { @class = "form-contact" }))
+        {
+            @Html.TextBoxFor(model => model.Nome, null, new { placeholder = "Nome (Não obrigatório)" })
+            @Html.ValidationMessageFor(model => model.Nome)
+
+            @Html.TextBoxFor(model => model.Email, null, new { placeholder = "Email (Não obrigatório)" })
+            @Html.ValidationMessageFor(model => model.Email)
+
+            @Html.DropDownListFor(model => model.Tipo, listTipo)
+            @Html.ValidationMessageFor(model => model.Tipo)
+
+            @Html.TextAreaFor(model => model.Descricao, new { placeholder = "Mensagem*" })
+
+            @Html.ValidationMessageFor(model => model.Descricao)
+
+            <button type="submit" class="btn-contato">Enviar<span><img src="~/images/loading-button.gif"></span></button>
+            @if (ViewBag.Error != null)
+            {
+                <div class="message" style="display: block; color: red">
+                    @Html.Raw(ViewBag.Error)
+                </div>
+            }
+            @if (ViewBag.Success != null)
+            {
+                <div class="message" style="display: block; color: green">
+                    @Html.Raw(ViewBag.Success)
+                </div>
+            }
+        }
+    </div> <!-- container -->
+</section> <!-- pg contato -->

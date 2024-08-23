@@ -1,0 +1,95 @@
+@font-face {
+    font-family: 'Bradesco Sans Thin';
+    src: url("../fonts/bradescosans/bradescosans-thin.eot");
+    src: url("../fonts/bradescosans/bradescosans-thin.eot?#iefix") format('embedded-opentype'), url("../fonts/bradescosans/bradescosans-thin.woff2") format('woff2'), url("../fonts/bradescosans/bradescosans-thin.woff") format('woff'), url("../fonts/bradescosans/bradescosans-thin-web.ttf") format('truetype'), url("../fonts/bradescosans/bradescosans-thin.svg#wf") format('svg')
+}
+
+@font-face {
+    font-family: 'Bradesco Sans Thin Italic';
+    src: url("../fonts/bradescosans/bradescosans-thinitalic.eot");
+    src: url("../fonts/bradescosans/bradescosans-thinitalic.eot?#iefix") format('embedded-opentype'), url("../fonts/bradescosans/bradescosans-thinitalic.woff2") format('woff2'), url("../fonts/bradescosans/bradescosans-thinitalic.woff") format('woff'), url("../fonts/bradescosans/bradescosans-thinitalic-web.ttf") format('truetype'), url("../fonts/bradescosans/bradescosans-thinitalic.svg#wf") format('svg')
+}
+
+@font-face {
+    font-family: 'Bradesco Sans Light';
+    src: url("../fonts/bradescosans/bradescosans-light.eot");
+    src: url("../fonts/bradescosans/bradescosans-light.eot?#iefix") format('embedded-opentype'), url("../fonts/bradescosans/bradescosans-light.woff2") format('woff2'), url("../fonts/bradescosans/bradescosans-light.woff") format('woff'), url("../fonts/bradescosans/bradescosans-light-web.ttf") format('truetype'), url("../fonts/bradescosans/bradescosans-light.svg#wf") format('svg')
+}
+
+@font-face {
+    font-family: 'Bradesco Sans Light Italic';
+    src: url("../fonts/bradescosans/bradescosans-lightitalic.eot");
+    src: url("../fonts/bradescosans/bradescosans-lightitalic.eot?#iefix") format('embedded-opentype'), url("../fonts/bradescosans/bradescosans-lightitalic.woff2") format('woff2'), url("../fonts/bradescosans/bradescosans-lightitalic.woff") format('woff'), url("../fonts/bradescosans/bradescosans-lightitalic-web.ttf") format('truetype'), url("../fonts/bradescosans/bradescosans-lightitalic.svg#wf") format('svg')
+}
+
+@font-face {
+    font-family: 'Bradesco Sans Regular';
+    src: url("../fonts/bradescosans/bradescosans-regular.eot");
+    src: url("../fonts/bradescosans/bradescosans-regular.eot?#iefix") format('embedded-opentype'), url("../fonts/bradescosans/bradescosans-regular.woff2") format('woff2'), url("../fonts/bradescosans/bradescosans-regular.woff") format('woff'), url("../fonts/bradescosans/bradescosans-regular-web.ttf") format('truetype'), url("../fonts/bradescosans/bradescosans-regular.svg#wf") format('svg')
+}
+
+@font-face {
+    font-family: 'Bradesco Sans Regular Italic';
+    src: url("../fonts/bradescosans/bradescosans-regularitalic.eot");
+    src: url("../fonts/bradescosans/bradescosans-regularitalic.eot?#iefix") format('embedded-opentype'), url("../fonts/bradescosans/bradescosans-regularitalic.woff2") format('woff2'), url("../fonts/bradescosans/bradescosans-regularitalic.woff") format('woff'), url("../fonts/bradescosans/bradescosans-regularitalic-web.ttf") format('truetype'), url("../fonts/bradescosans/bradescosans-regularitalic.svg#wf") format('svg')
+}
+
+@font-face {
+    font-family: 'Bradesco Sans Medium';
+    src: url("../fonts/bradescosans/bradescosans-medium.eot");
+    src: url("../fonts/bradescosans/bradescosans-medium.eot?#iefix") format('embedded-opentype'), url("../fonts/bradescosans/bradescosans-medium.woff2") format('woff2'), url("../fonts/bradescosans/bradescosans-medium.woff") format('woff'), url("../fonts/bradescosans/bradescosans-medium-web.ttf") format('truetype'), url("../fonts/bradescosans/bradescosans-medium.svg#wf") format('svg')
+}
+
+@font-face {
+    font-family: 'Bradesco Sans Medium Italic';
+    src: url("../fonts/bradescosans/bradescosans-mediumitalic.eot");
+    src: url("../fonts/bradescosans/bradescosans-mediumitalic.eot?#iefix") format('embedded-opentype'), url("../fonts/bradescosans/bradescosans-mediumitalic.woff2") format('woff2'), url("../fonts/bradescosans/bradescosans-mediumitalic.woff") format('woff'), url("../fonts/bradescosans/bradescosans-mediumitalic-web.ttf") format('truetype'), url("../fonts/bradescosans/bradescosans-mediumitalic.svg#wf") format('svg')
+}
+
+@font-face {
+    font-family: 'Bradesco Sans Semibold';
+    src: url("../fonts/bradescosans/bradescosans-semibold.eot");
+    src: url("../fonts/bradescosans/bradescosans-semibold.eot?#iefix") format('embedded-opentype'), url("../fonts/bradescosans/bradescosans-semibold.woff2") format('woff2'), url("../fonts/bradescosans/bradescosans-semibold.woff") format('woff'), url("../fonts/bradescosans/bradescosans-semibold-web.ttf") format('truetype'), url("../fonts/bradescosans/bradescosans-semibold.svg#wf") format('svg')
+}
+
+@font-face {
+    font-family: 'Bradesco Sans Semibold Italic';
+    src: url("../fonts/bradescosans/bradescosans-semibolditalic.eot");
+    src: url("../fonts/bradescosans/bradescosans-semibolditalic.eot?#iefix") format('embedded-opentype'), url("../fonts/bradescosans/bradescosans-semibolditalic.woff2") format('woff2'), url("../fonts/bradescosans/bradescosans-semibolditalic.woff") format('woff'), url("../fonts/bradescosans/bradescosans-semibolditalic-web.ttf") format('truetype'), url("../fonts/bradescosans/bradescosans-semibolditalic.svg#wf") format('svg')
+}
+
+@font-face {
+    font-family: 'Bradesco Sans Bold';
+    src: url("../fonts/bradescosans/bradescosans-bold.eot");
+    src: url("../fonts/bradescosans/bradescosans-bold.eot?#iefix") format('embedded-opentype'), url("../fonts/bradescosans/bradescosans-bold.woff2") format('woff2'), url("../fonts/bradescosans/bradescosans-bold.woff") format('woff'), url("../fonts/bradescosans/bradescosans-bold-web.ttf") format('truetype'), url("../fonts/bradescosans/bradescosans-bold.svg#wf") format('svg')
+}
+
+/*@font-face {
+    font-family: 'Bradesco Sans Bold Italic';
+    src: url("../fonts/bradescosans/bradescosans-bolditalic.eot");
+    src: url("../fonts/bradescosans/bradescosans-bolditalic.eot?#iefix") format('embedded-opentype'), url("../fonts/bradescosans/bradescosans-bolditalic.woff2") format('woff2'), url("../fonts/bradescosans/bradescosans-bolditalic.woff") format('woff'), url("../fonts/bradescosans/bradescosans-bolditalic-web.ttf") format('truetype'), url("../fonts/bradescosans/bradescosans-bolditalic.svg#wf") format('svg')
+}
+
+@font-face {
+    font-family: 'Bradesco Sans XBold';
+    src: url("../fonts/bradescosans/bradescosans-xbold.eot");
+    src: url("../fonts/bradescosans/bradescosans-xbold.eot?#iefix") format('embedded-opentype'), url("../fonts/bradescosans/bradescosans-xbold.woff2") format('woff2'), url("../fonts/bradescosans/bradescosans-xbold.woff") format('woff'), url("../fonts/bradescosans/bradescosans-xbold-web.ttf") format('truetype'), url("../fonts/bradescosans/bradescosans-xbold.svg#wf") format('svg')
+}
+
+@font-face {
+    font-family: 'Bradesco Sans XBold Italic';
+    src: url("../fonts/bradescosans/bradescosans-xbolditalic.eot");
+    src: url("../fonts/bradescosans/bradescosans-xbolditalic.eot?#iefix") format('embedded-opentype'), url("../fonts/bradescosans/bradescosans-xbolditalic.woff2") format('woff2'), url("../fonts/bradescosans/bradescosans-xbolditalic.woff") format('woff'), url("../fonts/bradescosans/bradescosans-xbolditalic-web.ttf") format('truetype'), url("../fonts/bradescosans/bradescosans-xbolditalic.svg#wf") format('svg')
+}
+
+@font-face {
+    font-family: 'Bradesco Sans Condensed';
+    src: url("../fonts/bradescosans/bradescosans-condensed.eot");
+    src: url("../fonts/bradescosans/bradescosans-condensed.eot?#iefix") format('embedded-opentype'), url("../fonts/bradescosans/bradescosans-condensed.woff2") format('woff2'), url("../fonts/bradescosans/bradescosans-condensed.woff") format('woff'), url("../fonts/bradescosans/bradescosans-condensed-web.ttf") format('truetype'), url("../fonts/bradescosans/bradescosans-condensed.svg#wf") format('svg')
+}
+
+@font-face {
+    font-family: 'Bradesco Sans Condensed Bold';
+    src: url("../fonts/bradescosans/bradescosans-condensedbold.eot");
+    src: url("../fonts/bradescosans/bradescosans-condensedbold.eot?#iefix") format('embedded-opentype'), url("../fonts/bradescosans/bradescosans-condensedbold.woff2") format('woff2'), url("../fonts/bradescosans/bradescosans-condensedbold.woff") format('woff'), url("../fonts/bradescosans/bradescosans-condensedbold-web.ttf") format('truetype'), url("../fonts/bradescosans/bradescosans-condensedbold.svg#wf") format('svg')
+}*/

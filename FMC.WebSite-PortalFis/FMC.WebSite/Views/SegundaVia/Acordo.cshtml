@@ -1,0 +1,281 @@
+﻿@model IEnumerable<object>
+@{
+    ConsultaCpfCnpj _model = (ConsultaCpfCnpj)Model.ElementAt(0);
+    IList<FMC.WebSite.FIS.Utils.API.Acordo.AgreementPortal> listAgreementNacc = (IList<FMC.WebSite.FIS.Utils.API.Acordo.AgreementPortal>)Model.ElementAt(2);
+    AcordoSegundaVia acordoSegundaVia = (AcordoSegundaVia)Model.ElementAt(3);
+    BoletoEmail boletoEmail = (BoletoEmail)Model.ElementAt(7);
+    ICollection<FMC.WebSite.FIS.Utils.API.Ibi.CardAgreement> listAgreement = (IList<FMC.WebSite.FIS.Utils.API.Ibi.CardAgreement>)Model.ElementAt(9);
+}
+<link href="~/css/jquery-confirm.min.css" type="text/css" rel="stylesheet" asp-append-version="true" />
+<link href="~/fontawesome/css/all.css" rel="stylesheet">
+<section id="pg-consulta-cpf-resultados-nao-consta" class="scroll-secao imprime-acordo">
+    <section class="barra-resultado-cpf">
+        <div class="container">
+            @if (listAgreementNacc != null && listAgreementNacc.Count > 0)
+            {
+                @if (listAgreementNacc != null && listAgreementNacc.Count > 0)
+                {
+                    FMC.WebSite.FIS.Utils.API.Acordo.AgreementPortal acordoNacc = listAgreementNacc.FirstOrDefault();
+                    <p>Olá Sr(a). @acordoNacc.Nome, confira abaixo o acordo em andamento para este documento</p>
+                }
+                else
+                {
+                    <p>Olá Sr(a)., confira abaixo o acordo em andamento para este documento</p>
+                }
+            }
+            else
+            {
+                <p>Informações disponíveis para o documento</p>
+            }
+            <span class="cpf">@_model.CpfCnpj</span>
+        </div> <!-- container -->
+    </section> <!-- barra resultado cpf -->
+   
+    <div class="clearfix"></div>
+</section> <!-- consulta cpf # resultado - nao consta -->
+<div class="clearfix"></div>
+<script src="~/js/jquery-confirm.min.js"></script>
+@section Scripts {
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.btn-email').on('click', function (e) {
+            var form = $(this).parents('form');
+
+            e.preventDefault();
+            $.confirm({
+                theme: 'modern',
+                type: 'red',
+                columnClass: 'medium',
+                title: 'Envio de boleto por E-mail',
+
+                content: '' +
+                    '<form action="/segunda-via/gerar-boleto" method="post" class="formMail">' +
+                    '<div class="form-group"><div class="container">' +
+                    '<label>Preencha o email corretamente que receberá o boleto.</label>' +
+                    '<div class="row" style="padding-top:6px">' +
+                    '<div class="col">' +
+                    '<input type="text" placeholder="E-mail" class= "email form-control" required /> </div>' +
+                    '</div>' +
+                    '<div class="row" style="padding-top:6px">'+
+                    '<div class="col">'+
+                    '<input type="text" placeholder="Confirmar e-mail" class="email_again form-control" required /></div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div> ' +
+                    '</form>',
+                animation: 'scale',
+                closeAnimation: 'scale',
+                opacity: 0.5,
+                buttons: {
+                    formSubmit: {
+                        text: 'Enviar boleto por email',
+                        btnClass: 'btn-green',
+                        action: function () {
+                            var email = this.$content.find('.email').val();
+                            var email_again = this.$content.find('.email_again').val();
+
+                            if (!email || !email_again || email != email_again || !isEmail(email)) {
+
+                                $.alert({
+                                    theme: 'modern',
+                                    type: 'red',
+                                    columnClass: 'medium',
+                                    icon: 'fa fa-exclamation-triangle',
+                                    animation: 'scale',
+                                    closeAnimation: 'scale',
+                                    opacity: 0.5,
+                                    title: 'Dados inválidos',
+                                    content: 'Não foi possível continuar por um dos motivos abaixo: <br /><br />&bull; O email precisa ser idêntico nos dois campos<br />&bull; É necessário informar um email válido',
+                                    buttons: {
+                                        'confirm': {
+                                            text: 'Ok, entendi!',
+                                            btnClass: 'btn-red',
+                                            action: function () {
+                                                $('#load-page').fadeOut(300);
+                                                $('body').css("overflow", "");
+                                            }
+                                        }
+                                    }
+                                });
+                                return false;
+                            }
+                            $('body').css("overflow", "hidden");
+                            $('#load-page, #load-page .background-opacity').css({
+                                width: window.innerWidth,
+                                height: screen.height
+                            });
+                            $('#load-page').fadeIn(300);
+
+                            var boletoEmail = {
+                                Email: email,
+                                EmailAgain: email_again,
+                                Card: $(".card", form).val()
+                            };
+
+                            var url = '@Url.Action("Boleto-Email", "Segunda-Via")';
+                            $.ajax({
+                                type: "POST",
+                                url: url,
+                                dataType: 'json',
+                                crossDomain: true,
+                                data: boletoEmail,
+                                success: function (response) {
+                                    if (response == true) {
+                                        $.alert({
+                                            theme: 'modern',
+                                            type: 'green',
+                                            columnClass: 'medium',
+                                            icon: 'fa fa-check-double',
+                                            animation: 'scale',
+                                            closeAnimation: 'scale',
+                                            opacity: 0.5,
+                                            title: 'Boleto encaminhado!',
+                                            content: 'Você receberá o boleto no email <b>' + email + '</b> dentro de alguns minutos.',
+                                            buttons: {
+                                                'confirm': {
+                                                    text: 'Ok, entendi!',
+                                                    btnClass: 'btn-green',
+                                                    action: function () {
+                                                        $('#load-page').fadeOut(300);
+                                                        $('body').css("overflow", "");
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    } else {
+                                        $.alert({
+                                            theme: 'modern',
+                                            type: 'red',
+                                            columnClass: 'medium',
+                                            icon: 'fa fa-exclamation-triangle',
+                                            animation: 'scale',
+                                            closeAnimation: 'scale',
+                                            opacity: 0.5,
+                                            title: 'Boleto não enviado!',
+                                            content: 'Aconteceu algum problema ao enviar o boleto para o email <b>' + email + '</b>. Tente novamente dentro de alguns minutos.',
+                                            buttons: {
+                                                'confirm': {
+                                                    text: 'Ok, entendi!',
+                                                    btnClass: 'btn-red',
+                                                    action: function () {
+                                                        $('#load-page').fadeOut(300);
+                                                        $('body').css("overflow", "");
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    }
+                                },
+                                error: function () {
+                                    $.alert({
+                                        theme: 'modern',
+                                        type: 'red',
+                                        columnClass: 'medium',
+                                        icon: 'fa fa-exclamation-triangle',
+                                        animation: 'scale',
+                                        closeAnimation: 'scale',
+                                        opacity: 0.5,
+                                        title: 'Boleto não enviado!',
+                                        content: 'Aconteceu algum problema ao enviar o boleto para o email <b>' + email + '</b>. Tente novamente dentro de alguns minutos.',
+                                        buttons: {
+                                            'confirm': {
+                                                text: 'Ok, entendi!',
+                                                btnClass: 'btn-red',
+                                                action: function () {
+                                                    $('#load-page').fadeOut(300);
+                                                    $('body').css("overflow", "");
+                                                }
+                                            }
+                                        }
+                                    });
+                                }
+                            })
+
+
+                            //$('.formMail').submit();
+                        }
+                    },
+                    'cancel': {
+                        text: 'Cancelar',
+                        action: function () {
+                            $('#load-page').fadeOut(300);
+                            $('body').css("overflow", "");
+                            //$.alert('you clicked on <strong>cancel</strong>');
+                        }
+                    }
+                },
+                onContentReady: function () {
+                    // bind to events
+                    var jc = this;
+                    this.$content.find('form').on('submit', function (e) {
+                        // if the user submits the form by pressing enter in the field.
+                        e.preventDefault();
+                        jc.$$formSubmit.trigger('click'); // reference the button and click it
+                    });
+                }
+                //},
+
+            });
+        });
+
+        $('.imprimir').on('click', function (e) {
+            var form = $(this).parents('form');
+            e.preventDefault();
+            var ur86Detail = {NumeroCartao: $(".card", form).val()};
+            var url = '@Url.Action("Gerar-Boleto", "Segunda-Via")';
+            $.confirm({
+                theme: 'modern',
+                type: 'red',
+                columnClass: 'l',
+                title: 'Informação Importante',
+                content: function () {
+                    return $.ajax({
+                        url: url,
+                        dataType: 'text/html',
+                        method: 'post',
+                        data: ur86Detail
+                    });
+                },
+                contentLoaded: function (data, status, xhr) {
+                    this.setContentAppend(data.responseText);
+                },
+                icon: 'fa fa-barcode',
+                animation: 'scale',
+                closeAnimation: 'scale',
+                opacity: 0.5,
+                buttons: {
+                    'confirm': {
+                        text: 'Imprimir Boleto',
+                        btnClass: 'btn-green',
+                        action: function () {
+                            $('body').css("overflow", "hidden");
+                            $('#load-page, #load-page .background-opacity').css({
+                                width: window.innerWidth,
+                                height: screen.height
+                            });
+                            //$('#load-page').fadeIn(300);
+                            form.submit();
+                            $('#load-page').fadeOut(300);
+                            $('body').css("overflow", "");
+                    }
+                },
+                    'cancel': {
+                        text: 'Cancelar',
+                        action: function () {
+                            $('#load-page').fadeOut(300);
+                            $('body').css("overflow", "");
+                        //$.alert('you clicked on <strong>cancel</strong>');
+                    }
+                }
+                }
+            });
+        });
+
+        function isEmail(mail) {
+            var regex = /^([a-zA-Z0-9_.+-])+\@@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,6})+$/;
+            return regex.test(mail);
+        }
+    });
+
+</script>
+}

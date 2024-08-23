@@ -1,0 +1,37 @@
+﻿@model IEnumerable<object>
+@using Microsoft.AspNetCore.Http
+@{
+    ConsultaCpfCnpj _model = (ConsultaCpfCnpj)Model.ElementAt(0);
+}
+<section id="pg-consulta-cpf-resultados-nao-consta" class="scroll-secao">
+    <section class="barra-nova-consulta-cpf">
+        <div class="container">
+            <h1>Faça uma nova consulta</h1>
+            @using (Html.BeginForm("Index", "Home", FormMethod.Post, new { @class = "form-cpf" }))
+            {
+                @Html.TextBoxFor(model => _model.CpfCnpj, null, new { @class = "mask-cpf", placeholder = "Digite seu CPF ou CNPJ", maxlength = "18" })
+                @Html.ValidationMessageFor(model => _model.CpfCnpj)
+                <button type="submit" class="btn-nova-consulta">Consultar</button>
+            }
+        </div> <!-- container -->
+    </section> <!-- barra-nova-consulta-cpf -->
+    <section class="barra-resultado-cpf">
+        <div class="container">
+            <p>Nós não localizamos dívidas em aberto para este documento</p>
+            <span class="cpf">@_model.CpfCnpj</span>
+        </div> <!-- container -->
+    </section> <!-- barra resultado cpf -->
+    @Html.Partial("_Central")
+</section> <!-- consulta cpf # resultado - nao consta -->
+@section scripts{
+    <script type="text/javascript">
+        if (isMobile()) {
+            $('html, body').animate({ scrollTop: $('#pg-consulta-cpf-resultados-nao-consta .barra-resultado-cpf').position().top }, 'slow', 'swing');
+        }
+        function isMobile() {
+            return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+        }
+
+    </script>
+}
+

@@ -1,0 +1,146 @@
+﻿@model IEnumerable<object>
+@using Microsoft.AspNetCore.Http
+@{
+    ConsultaCpfCnpj _model = (ConsultaCpfCnpj)Model.ElementAt(0);
+    string digitavel = (string)Model.ElementAt(1);
+    IList<Product> listWsProduct = (List<Product>)Model.ElementAt(2);
+    BilletResponse boletoGerado = (BilletResponse)Model.ElementAt(3);
+    PersonResponse pessoa = (PersonResponse)Model.ElementAt(4);
+    string titulo = (string)Model.ElementAt(5);
+}
+<section id="pg-consulta-cpf-forma-de-pagamento" class="scroll-secao">
+    <section class="barra-nova-consulta-cpf" style="display:none">
+        <div class="container">
+            <h1>Faça uma nova consulta</h1>
+            @using (Html.BeginForm("Index", "Home", FormMethod.Post, new { @class = "form-cpf" }))
+            {
+                @Html.TextBoxFor(model => _model.CpfCnpj, null, new { @class = "mask-cpf", placeholder = "Digite seu CPF ou CNPJ", maxlength = "18" })
+                @Html.ValidationMessageFor(model => _model.CpfCnpj)
+                <button type="submit" class="btn-nova-consulta">Consultar</button>
+            }
+        </div>
+    </section>
+    <section id="consulta-cpf-lightbox" class="container">
+        <div class="content-lightbox padding-top-40" id="consulta-cpf-finalizar">
+            <div class="box-termos">
+                <h2>@titulo</h2>
+                <h2>@Html.Raw(digitavel)</h2>
+                <div class="links">
+                    <a href="@Url.Action("Imprimir", "Consulta-Documento")" class="imprimir baixar-pdf" target="_blank" class="baixar-pdf">Baixar Boleto PDF</a>
+                    <a href="" title="@digitavel" class="copiar linha-digitavel" data-value="@digitavel">Copiar linha digitável</a>
+                </div>
+                <div class="box-form" id="receberEmail">
+                    <label>Receber por e-mail</label>
+                    <input type="text" name="email" class="send-email" placeholder="exemplo@exemplo.com.br" />
+                    <button class="btn-enviar btn-email">Enviar</button>
+                    <div class='loading'><img src="~/images/loading.gif"></div>
+                    <div class='retorno'></div>
+                </div>
+                <div class="box-form" id="receberSMS">
+                    <label>Receber por sms</label>
+                    <input type="text" name="sms" class="mask-telefone number-phone" placeholder="(00) 0 0000 0000" />
+                    <button class="btn-enviar btn-sms">Enviar</button>
+                    <div class='loading'><img src="~/images/loading.gif"></div>
+                    <div class='retorno'></div>
+                </div>
+                <!--
+                <p style="font-size: 20px;padding: 80px 0 0;color: red; float:left">
+                @Html.Raw("Atenção! Este seu boleto <b>estará disponível para pagamento em até 48 horas</b>, assim que o registro do código de barras ser efetivado pelo banco.")
+
+                </p>
+                -->
+
+            </div> <!-- box termos -->
+            <div>
+                <form action="@Url.Action("Obrigado","Consulta-Documento")" class="finalizar-atendimento">
+                    <button class="btn-finalizar">Encerrar Atendimento</button>
+                </form>
+                @if (listWsProduct != null && listWsProduct.Count() > 1)
+                {
+                    <a href="@Url.Action("Index", "Consulta-Documento")" class="btn-negociar-outra-conta">Negociar outra conta</a>
+                }
+            </div>
+        </div>
+        <div class="clearfix"></div>
+    </section>
+</section>
+@section Scripts {
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#receberSMS .btn-sms").click(function (e) {
+            var celular = $('.number-phone').val();
+            var url = '@Url.Action("Envia-Sms", "Consulta-Documento")';
+                $.ajax({
+                    url: url,
+                    data: {'phone':celular},
+                    type:'POST',
+                    crossDomain: true,
+                    beforeSend: function () {
+                        $('#receberSMS .loading').fadeIn();
+                        $('#receberSMS .retorno').fadeOut();
+                    },
+                    success: function (json) {
+                        if (json) {
+                            $('#receberSMS .retorno').css("color", "darkgreen");
+                            $('#receberSMS .retorno').text("Ok. Você receberá a linha digitável no número informado.").fadeIn();
+
+                        } else {
+                            $('#receberSMS .retorno').css("color", "red");
+                            $('#receberSMS .retorno').text("Aconteceu algum erro durante o envio. Entre em contato com a nossa central.").fadeIn();
+
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        var err = eval("(" + xhr.responseText + ")");
+                        $('#receberSMS .loading').fadeOut();
+                        $('#receberSMS .retorno').css("color", "red");
+                        $('#receberSMS .retorno').text("Aconteceu algum erro durante o envio. Entre em contato com a nossa central.").fadeIn();
+                    },
+                    complete: function () {
+                        $('#receberSMS .loading').fadeOut();
+                    }
+                });
+            e.preventDefault();
+        });
+
+        $(".btn-email").click(function (e) {
+            var email = $('.send-email').val();
+            var url = '@Url.Action("Envia-Email", "Consulta-Documento")';
+                $.ajax({
+                    url: url,
+                    data: {'email':email},
+                    type:'POST',
+                    crossDomain: true,
+                    beforeSend: function () {
+                        $('#receberEmail .loading').fadeIn();
+                    },
+                    success: function (json) {
+                        if (json) {
+                            $('#receberEmail .retorno').css("color", "darkgreen");
+                            $('#receberEmail .retorno').text("Enviado. Você receberá o boleto no email informado.").fadeIn();
+                        } else {
+                            $('#receberEmail .retorno').css("color", "red");
+                            $('#receberEmail .retorno').text("Aconteceu algum erro durante o envio. Entre em contato com a nossa central.").fadeIn();
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        var err = eval("(" + xhr.responseText + ")");
+                        $('#receberEmail .retorno').css("color", "red");
+                        $('#receberEmail .loading').fadeOut();
+                        $('#receberEmail .retorno').text("Aconteceu algum erro durante o envio. Entre em contato com a nossa central.").fadeIn();
+                    },
+                    complete: function () {
+                        $('#receberEmail .loading').fadeOut();
+                    }
+                });
+            e.preventDefault();
+        });
+        if (isMobile()) {
+            $('html, body').animate({ scrollTop: $('#pg-consulta-cpf-forma-de-pagamento').position().top }, 'slow', 'swing');
+        }
+        function isMobile() {
+            return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+        }
+    });
+</script>
+}

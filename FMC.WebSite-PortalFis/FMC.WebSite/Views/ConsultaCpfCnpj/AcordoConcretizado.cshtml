@@ -1,0 +1,86 @@
+﻿@model IEnumerable<object>
+@{
+    ConsultaCpfCnpj _model = (ConsultaCpfCnpj)Model.ElementAt(0);
+    PersonResponse pessoa = (PersonResponse)Model.ElementAt(1);
+    CardResponse conta = (CardResponse)Model.ElementAt(2);
+    ICollection<Agreement> listAgreement = (ICollection<Agreement>)Model.ElementAt(3);
+}
+<section id="pg-consulta-cpf-obrigado" class="scroll-secao">
+
+    <section class="barra-nova-consulta-cpf">
+
+        <div class="container">
+
+            <h1>Faça uma nova consulta</h1>
+            @using (Html.BeginForm("Index", "Home", FormMethod.Post, new { @class = "form-cpf" }))
+            {
+                @Html.TextBoxFor(model => _model.CpfCnpj, null, new { @class = "mask-cpf", placeholder = "Digite seu CPF ou CNPJ", maxlength = "18" })
+                @Html.ValidationMessageFor(model => _model.CpfCnpj)
+                <button type="submit" class="btn-nova-consulta">Consultar</button>
+            }
+
+        </div> <!-- container -->
+    </section> <!-- barra-nova-consulta-cpf -->
+
+    <div class="obrigado container">
+
+        @if (0 == 0)
+        {
+            Agreement agreement = null;
+            if (listAgreement != null)
+            {
+                agreement = listAgreement.OrderByDescending(p => p.IdAgreement).FirstOrDefault();
+                <h2>Atenção!</h2>
+                <p>Já existe um acordo em andamento para este cartão. Confira os dados abaixo:</p>
+                <p style="color: #000; line-height: 26px">
+                    <b>Data da Negociação:</b> @agreement.DtInsert.ToString("dd/MM/yyyy")<br />
+
+                    @if (agreement.NrParcel > 0)
+                    {
+                        decimal total = agreement.VlParcel * agreement.NrParcel;
+                        <text>
+                            <b>Valor Total:</b> @total.ToString("C2")<br />
+                        </text>
+                    }
+                    else
+                    {
+                        decimal total = agreement.VlEntrace;
+                    }
+
+                    <b>Quantidade de Parcelas:</b> @agreement.NrParcel<br />
+                    <b>Valor de Parcela(s):</b> @agreement.VlParcel.ToString("C2")<br />
+                    <b>Primeiro Vencimento:</b> @agreement.DtFirstParcel?.ToString("dd/MM/yyyy")<br />
+                </p>
+                <p>Qualquer dúvida, entre em contato com nosso atendimento.</p>
+            }
+            else
+            {
+                <h2>Atenção!</h2>
+                <p>Já existe um acordo em andamento para este cartão. Qualquer dúvida, entre em contato com nosso atendimento.</p>
+            }
+
+
+        }
+        else
+        {
+            <h2>Atenção!</h2>
+            <p>Já existe um acordo em andamento para este cartão. Qualquer dúvida, entre em contato com nosso atendimento.</p>
+        }
+
+
+
+        <a href="@Url.Action("Index","Home")">Negociar outras dívidas</a>
+
+    </div> <!-- obrigado -->
+</section> <!-- pg consulta cpf # obrigado -->
+@section scripts{
+<script type="text/javascript">
+
+    if (isMobile()) {
+        $('html, body').animate({ scrollTop: $('#pg-consulta-cpf-obrigado').position().top }, 'slow', 'swing');
+    }
+    function isMobile() {
+        return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+    }
+</script>
+}

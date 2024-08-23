@@ -1,0 +1,104 @@
+#rodape {
+	background: #036868;
+	padding: 35px 0 35px 0;
+
+	.container {
+		max-width: 1220px;
+	}//container
+
+	.navegacao-rodape {
+		.f-left;
+
+		ul {
+			.d-inline-block;
+			.v-align-top;
+			margin-right: 40px;
+
+			li {
+				font-weight: 400;
+				font-size: 1.4em;
+				margin-bottom: 5px;
+
+				&.destaque {
+					font-weight: 700;
+					margin-bottom: 12px;
+				}//destaque
+
+				a {
+					color: #fff;
+					text-decoration: none;
+
+					&:hover {
+						text-decoration: underline;
+					}//hover
+
+				}//a
+
+			}//li
+
+			&:last-of-type {
+				margin-right: 0;
+			}//last-of-type
+
+		}//ul
+
+	}//navegacao-rodape
+
+	.logo-rodape {
+		.f-right;
+		margin-top: 10px;
+
+		p {
+			font-weight: 400;
+			font-size: 1.2em;
+			color: #fff;
+			margin-top: 25px;
+		}//p
+
+	}//logo-rodape
+
+}//rodape
+
+@media screen and (max-width: 1050px) {
+
+	#rodape {
+		padding: 35px 0 35px 40px;
+
+		.navegacao-rodape {
+			width: 100%;
+
+			ul {
+				width: 100%;
+				margin-right: 0;
+				margin-bottom: 20px;
+
+				li {
+					font-size: 1.6em;
+					margin-bottom: 10px;
+
+					&.destaque {
+						margin-bottom: 20px;
+					}//destaque
+
+				}//li
+
+			}//ul
+
+		}//navegacao-rodape
+
+		.logo-rodape {
+			width: 100%;
+			margin-top: 30px;
+
+			p {
+				font-weight: 400;
+				font-size: 1.2em;
+				color: #fff;
+				margin-top: 25px;
+			}//p
+
+		}//logo-rodape
+
+	}//rodape
+
+}//1050px

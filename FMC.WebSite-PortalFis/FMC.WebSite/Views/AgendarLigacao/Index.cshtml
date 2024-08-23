@@ -1,0 +1,81 @@
+﻿@model AgendarLigacao
+@{
+    List<SelectListItem> items = new List<SelectListItem>();
+    items.Add(new SelectListItem() { Text = "Período da manhã", Value = "Período da manhã" });
+    items.Add(new SelectListItem() { Text = "Período da tarde", Value = "Período da tarde" });
+}
+<section id="pg-agendar-ligacao" class="scroll-secao">
+    <div class="container">
+        <h1>Agendar ligação</h1>
+        <h2>Basta preencher o formulário abaixo e responderemos em breve.</h2>
+        @using (Html.BeginForm("Agendar", "Agendar-Ligacao", FormMethod.Post, new { @class = "form-agendar" }))
+        {
+
+            @Html.TextBoxFor(model => model.Nome, null, new { @class = "nome", placeholder = "Seu nome" })
+            @Html.ValidationMessageFor(model => model.Nome)
+
+            @Html.TextBoxFor(model => model.Telefone, null, new {@class="mask-telefone", placeholder = "Melhor telefone para contato" })
+            @Html.ValidationMessageFor(model => model.Telefone)
+            @Html.TextBoxFor(model => model.CpfCnpjCliente, null, new { @class = "mask-cpf", placeholder = "Confirme seu CPF/CNPJ" })
+            @Html.ValidationMessageFor(model => model.CpfCnpjCliente)
+            @Html.DropDownListFor(model => model.Periodo, items, new { @name = "tipo" })
+            @Html.ValidationMessageFor(model => model.Periodo)
+            <button type="submit" class="btn-agendar-ligacao">Enviar<span><img src="~/images/loading-button.gif"></span></button>
+            <div class="message">Agendado com sucesso</div>
+        }
+    </div> <!-- container -->
+</section> <!-- pg agendar ligacao -->
+@section Scripts {
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            $('form.form-agendar').submit(function (e) {
+                //if (entrada) {
+                if ($(this).valid()) {
+                    var url = '@Url.Action("Agendar", "Agendar-Ligacao")';
+
+                    $.ajax({
+                        url: url,
+                        data: getAgendar(),
+                        dataType: 'json',
+                        type: 'POST',
+                        beforeSend: function () {
+                            $('#pg-agendar-ligacao .btn-agendar-ligacao span').fadeIn();
+                        },
+                        success: function (r) {
+                            if (r) {
+                                $('#pg-agendar-ligacao .btn-agendar-ligacao span').fadeOut();
+                                $('#pg-agendar-ligacao .message').text("Ligação agendada com sucesso!").css('color', '#198c34');
+                                $('#pg-agendar-ligacao .message').fadeIn();
+                            } else {
+                                $('#pg-agendar-ligacao .btn-agendar-ligacao span').fadeOut();
+                                $('#pg-agendar-ligacao .message').text("Não foi possível agendar sua ligação, tente novamente.").css('color', 'red');
+                                $('#pg-agendar-ligacao .message').fadeIn();
+                            }
+
+                        },
+                        error: function (xhr, status, error) {
+                            var err = eval("(" + xhr.responseText + ")");
+                            console.log(err.Message);
+                            $('#pg-agendar-ligacao .btn-agendar-ligacao span').fadeOut();
+                            $('#pg-agendar-ligacao .message').text("Não foi possível agendar sua ligação, tente novamente.").css('color', 'red');
+                            $('#pg-agendar-ligacao .message').fadeIn();
+                        },
+                        complete: function () {
+                            $('#pg-agendar-ligacao .btn-agendar-ligacao span').fadeOut();
+                        }
+                    });
+                }
+                e.preventDefault();
+            });
+            function getAgendar(){
+                var nome = $("#Nome").val();
+                var cpfCnpj = $("#CpfCnpjCliente").val();
+                var telefone = $("#Telefone").val()                
+                var periodo = $("#Periodo").val();
+                return { CpfCnpjCliente: cpfCnpj, Nome: nome, Telefone: telefone, Periodo: periodo }
+            }
+
+        });
+    </script>
+}

@@ -1,0 +1,55 @@
+﻿@model IEnumerable<object>
+@{
+    ConsultaCpfCnpj _model = (ConsultaCpfCnpj)Model.ElementAt(0);
+    ValidationAccess _validation = (ValidationAccess)Model.ElementAt(1);
+    ICollection<string> _nomes = (ICollection<string>)Model.ElementAt(2);
+}
+<section id="pg-autenticar" class="scroll-secao">
+    <div class="container">
+        <div class="box">
+            <h2>Valide seu acesso!</h2>
+            <p>Clique no nome que corresponda ao seu primeiro nome. </p>
+            @using (Html.BeginForm("Validacao", "ConsultaCpfCnpj", FormMethod.Post, new { @class = "form-cpf" }))
+            {
+                <div class="nomes">
+                    @Html.HiddenFor(p => _validation.Nome, new { @class = "valid-name" })
+
+                    @foreach (string nome in _nomes)
+                    {
+                        <button type="button" value="@nome" class="set-name">@nome</button>
+                    }
+
+                </div>
+                @if (ViewBag.Message != null)
+                {
+                    <div class="msg">@ViewBag.Message</div>
+                }
+                @Html.HiddenFor(model => _validation.GoogleCaptchaToken, new { @class = "GoogleCaptchaToken" })
+                @*<div class="button"><button type="submit" class="btn">Validar</button></div>*@
+
+            }
+        </div>
+    </div> <!-- obrigado -->
+
+</section> <!-- pg consulta cpf # obrigado -->
+@section Scripts{
+<script>
+    $(document).ready(function () {
+        $('.set-name').on('click', function () {
+            $('.valid-name').val($(this).val());
+            $(this).addClass('selected');
+            form = $(this).parents('form');
+            form.submit();
+        });
+    });
+</script>
+<script src="https://www.google.com/recaptcha/api.js?render=@ViewBag.publicKey"></script>
+<script>
+    grecaptcha.ready(function () {
+        grecaptcha.execute('@ViewBag.publicKey', { action: 'homepage' }).then(function (token) {
+            $(".GoogleCaptchaToken").val(token);
+        });
+    });
+
+</script>
+}

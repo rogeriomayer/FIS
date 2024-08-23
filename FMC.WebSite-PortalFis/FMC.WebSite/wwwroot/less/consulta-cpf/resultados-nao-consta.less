@@ -1,0 +1,229 @@
+#pg-consulta-cpf-resultados-nao-consta {
+
+	.container {
+		max-width: 1200px;
+	}//container
+
+	.central-de-cobranca {
+		padding: 30px 0 50px 0;
+
+		h1 {
+			color: @verde-topo;
+			font-size: 4em;
+			font-weight: 700;
+			line-height: 110%;
+			margin-bottom: 50px;
+		}//h1
+
+		ul {
+			text-align: left;
+		
+			li {
+				background: #E6E8E8 url(../images/consulta-cpf/resultados-nao-consta/telefone.png) top 50% left 30px no-repeat;
+				width: 380px;
+				height: 75px;
+				margin: 0 10px 10px 0;
+				.d-inline-block;
+				.v-align-top;
+				text-align: center;
+				border-radius: 50px;
+				padding-top: 30px;
+				.relative;
+				cursor: pointer;
+				.transition;
+
+				h2 {
+					color: @verde-topo;
+					font-size: 1.6em;
+					font-weight: 300;
+					.uppercase;
+					line-height: 120%;
+				}//h2
+
+				small {
+					color: @verde-topo;
+					font-size: 1.2em;
+					font-weight: 300;
+				}//small
+
+				&.double {
+					padding-top: 20px;
+				}//double
+
+				span {
+					background: url(../images/consulta-cpf/resultados-nao-consta/seta.png);
+					width: 20px;
+					height: 12px;
+					display: block;
+					.absolute;
+					top: 50%;
+					right: 30px;
+					transform: translateY(-50%);
+				}//span-seta
+
+				.telefones {
+					background: transparent;
+					border: #e5e5e5 solid 1px;
+					border-radius: 35px;
+					width: 100%;
+					.absolute;
+					top: 0;
+					left: 0;
+					z-index: 999;
+					display: none;
+					.transition;
+
+					p {
+						background: #fff;
+						margin-top: 75px;
+						padding: 40px 0 40px 0;
+						color: @verde-topo;
+						font-size: 3em;
+						font-weight: 700;
+						text-align: center;
+						border-radius: 0 0 35px 35px;
+					}//p
+
+				}//telefones
+
+				&:hover {
+					background: @verde-topo url(../images/consulta-cpf/resultados-nao-consta/telefone-hover.png) top 50% left 30px no-repeat;
+					
+					h2 {
+						color: #fff;
+						font-weight: 700;
+					}//h2
+
+					small {
+						color: #fff;
+					}//small
+
+					span {
+						background: url(../images/consulta-cpf/resultados-nao-consta/seta-hover.png);
+					}//span-seta
+
+					@media screen and (min-width: 1060px) and (max-width: 3000px) {
+
+						.telefones {
+							display: block;
+						}//telefones
+
+					}//1060px
+
+				}//hover
+
+			}//li
+
+		}//ul
+
+	}//central-de-cobranca
+
+}//pg-consulta-cpf-resultados-nao-consta
+
+@media screen and (max-width: 1050px) {
+
+	#pg-consulta-cpf-resultados-nao-consta {
+
+		.central-de-cobranca {
+			padding: 30px 20px 50px 20px;
+
+			h1 {
+				font-size: 3em;
+				margin-bottom: 40px;
+
+				br {
+					display: none;
+				}//br
+
+			}//h1
+
+			ul {
+				text-align: left;
+			
+				li {
+					background: #E6E8E8 url(../images/consulta-cpf/resultados-nao-consta/telefone-mobile.png) top 50% left 20px no-repeat;
+					width: 100%;
+					margin: 0 0 10px 0;
+
+					h2 {
+						font-size: 1.3em;
+					}//h2
+
+					span {
+						right: 20px;
+					}//span-seta
+
+					.telefones {
+						background: transparent;
+						border: #e5e5e5 solid 1px;
+						border-radius: 35px;
+						width: 100%;
+						.absolute;
+						top: 0;
+						left: 0;
+						z-index: 999;
+						display: none;
+						.transition;
+
+						p {
+							background: #fff;
+							margin-top: 75px;
+							padding: 40px 0 40px 0;
+							color: @verde-topo;
+							font-size: 3em;
+							font-weight: 700;
+							text-align: center;
+							border-radius: 0 0 35px 35px;
+						}//p
+
+					}//telefones
+
+					&:hover {
+						background: #e6e8e8 url(../images/consulta-cpf/resultados-nao-consta/telefone-mobile.png) top 50% left 20px no-repeat;
+						
+						h2 {
+							color: @verde-topo;
+							font-weight: 300;
+						}//h2
+
+						small {
+							color: @verde-topo;
+						}//small
+
+						span {
+							background: url(../images/consulta-cpf/resultados-nao-consta/seta.png);
+						}//span-seta
+
+					}//hover
+
+					&.active {
+						background: @verde-topo url(../images/consulta-cpf/resultados-nao-consta/telefone-mobile-hover.png) top 50% left 20px no-repeat;
+						
+						h2 {
+							color: #fff;
+							font-weight: 700;
+						}//h2
+
+						small {
+							color: #fff;
+						}//small
+
+						span {
+							background: url(../images/consulta-cpf/resultados-nao-consta/seta-hover.png);
+						}//span-seta
+
+						.telefones {
+							display: block;
+						}//telefones
+
+					}//active
+
+				}//li
+
+			}//ul
+
+		}//central-de-cobranca
+
+	}//pg-consulta-cpf-resultados-nao-consta
+
+}//1050px

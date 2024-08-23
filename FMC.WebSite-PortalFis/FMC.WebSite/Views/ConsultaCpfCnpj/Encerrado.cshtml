@@ -1,0 +1,51 @@
+﻿@model IEnumerable<object>
+@{
+    ConsultaCpfCnpj _model = (ConsultaCpfCnpj)Model.ElementAt(0);
+    IList<string> message = (IList<string>)ViewData["Message"];
+}
+<section id="pg-consulta-cpf-obrigado" class="scroll-secao">
+
+    <section class="barra-nova-consulta-cpf">
+
+        <div class="container">
+
+            <h1>Faça uma nova consulta</h1>
+            @using (Html.BeginForm("Index", "Home", FormMethod.Post, new { @class = "form-cpf" }))
+            {
+                @Html.TextBoxFor(model => _model.CpfCnpj, null, new { @class = "mask-cpf", placeholder = "Digite seu CPF ou CNPJ", maxlength = "18" })
+                @Html.ValidationMessageFor(model => _model.CpfCnpj)
+                <button type="submit" class="btn-nova-consulta">Consultar</button>
+            }
+
+        </div>
+
+    </section>
+    <div class="obrigado container">
+        <h2>Desculpe!</h2>
+        @if (message == null || message.Count == 0)
+        {
+            <p>
+                <br /><br />
+                Neste momento nosso sistema encontra-se indisponível para negociação! <br />
+                Por gentileza tente mais tarde.<br /><br />
+                Agradecemos sua compreensão!
+            </p>
+            <p></p>
+        }
+        else
+        {
+            <p>
+                @foreach (string msg in message)
+                {
+                    @Html.Raw(msg)  <br />
+                    ;
+                }
+
+            </p>
+            <p></p>
+        }
+        @Html.Partial("_Central")
+
+    </div> <!-- obrigado -->
+
+</section> <!-- pg consulta cpf # obrigado -->

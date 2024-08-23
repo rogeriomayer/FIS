@@ -1,0 +1,116 @@
+﻿@model Contato
+@{
+    List<SelectListItem> items = new List<SelectListItem>();
+    items.Add(new SelectListItem() { Text = "Dúvidas e Sugestões", Value = "1" });
+    items.Add(new SelectListItem() { Text = "Comercial", Value = "2" });
+    items.Add(new SelectListItem() { Text = "Recrutamento e Seleção", Value = "3" });
+}
+<section id="pg-contato" class="scroll-secao">
+    <div class="container">
+        <h1>
+            Estamos à disposição para tirar suas <br>
+            dúvidas e receber sugestões.
+        </h1>
+        <h2>Basta preencher o formulário abaixo e responderemos em breve.</h2>
+        @using (Html.BeginForm("Fale-Conosco", "Contato", FormMethod.Post, new { @class = "form-contact" }))
+        {
+            @Html.TextBoxFor(model => model.Nome, null, new { @name = "nome", placeholder = "Nome" })
+            @Html.ValidationMessageFor(model => model.Nome)
+
+            @Html.TextBoxFor(model => model.Email, null, new { @name = "email", placeholder = "E-mail" })
+            @Html.ValidationMessageFor(model => model.Email)
+
+            @Html.TextBoxFor(model => model.Telefone, null, new { @class = "mask-telefone telefone-preferencial", @name = "telefone-preferencial", placeholder = "Telefone preferencial" })
+            @Html.ValidationMessageFor(model => model.Telefone)
+
+            @Html.TextBoxFor(model => model.TelefoneSecundario, null, new { @class = "mask-telefone telefone-secundario", @name = "telefone-secundario", placeholder = "Telefone secundário" })
+            @Html.ValidationMessageFor(model => model.TelefoneSecundario)
+
+            @Html.DropDownListFor(model => model.Tipo, items, new { @name = "tipo" })
+            @Html.ValidationMessageFor(model => model.Tipo)
+
+            @Html.TextBoxFor(model => model.CPF, null, new { @name = "cpf", placeholder = "CPF/CNPJ*", @class = "hide" })
+            @Html.ValidationMessageFor(model => model.CPF)
+
+            @Html.TextAreaFor(model => model.Mensagem, new { @name = "mensagem" })
+            @Html.ValidationMessageFor(model => model.Mensagem)
+
+            <button type="submit" class="btn-contato">Enviar<span><img src="~/images/loading-button.gif"></span></button>
+            <div class="message"></div>
+        }
+    </div> <!-- container -->
+</section> <!-- pg contato -->
+@section Scripts {
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#Tipo').change(function (e) {
+                if (
+                    $(this).val() == "4" ||
+                    $(this).val() == "5" ||
+                    $(this).val() == "6" ||
+                    $(this).val() == "7" ||
+                    $(this).val() == "8" ||
+                    $(this).val() == "9"
+                ) {
+                    $('#CPF').removeClass('hide');
+                } else {
+                    $('#CPF').addClass('hide');
+                }
+            });
+            $('form.form-contact').submit(function (e) {
+                //if (entrada) {
+                if ($(this).valid()) {
+                    var url = '@Url.Action("Fale-Conosco", "Contato")';
+
+                    $.ajax({
+                        url: url,
+                        data: getContato(),
+                        dataType: 'json',
+                        type: 'POST',
+                        beforeSend: function () {
+                            $('#pg-contato .btn-contato span').fadeIn();
+                        },
+                        success: function (r) {
+                            console.log(r)
+                            if (r) {
+                                $('#pg-contato .btn-contato span').fadeOut();
+                                $('#pg-contato .message').text("Email enviado com sucesso!").css('color', '#198c34');
+                                $('#pg-contato .message').fadeIn();
+                                $('form.form-contact input').val('');
+                            } else {
+                                $('#pg-contato .btn-contato span').fadeOut();
+                                $('#pg-contato .message').text("Não foi possível enviar seu email, tente novamente."+ r).css('color', 'red');
+                                $('#pg-contato .message').fadeIn();
+                            }
+
+
+                        },
+                        error: function (xhr, status, error) {
+                            var err = eval("(" + xhr.responseText + ")");
+                            console.log(err.Message);
+                            console.log(error);
+                            $('#pg-contato .btn-contato span').fadeOut();
+                            $('#pg-contato .message').text("Não foi possível enviar seu email, tente novamente.").css('color', 'red');
+                            $('#pg-contato .message').fadeIn();
+                        },
+                        complete: function () {
+                            $('#pg-contato .btn-contato span').fadeOut();
+                        }
+                    });
+                }
+                e.preventDefault();
+            });
+            function getContato(){
+                var nome = $("#Nome").val();
+                var email = $("#Email").val();
+                var telefone = $("#Telefone").val();
+                var telefoneSecundario = $("#TelefoneSecundario").val();
+                var tipo = $("#Tipo").val();
+                var cpf = $("#CPF").val();
+                var mensagem = $("#Mensagem").val();
+                return { Nome: nome, Email: email, Telefone: telefone, TelefoneSecundario: telefoneSecundario, Tipo: tipo, Mensagem: mensagem, CPF: cpf }
+            }
+
+        });
+    </script>
+}

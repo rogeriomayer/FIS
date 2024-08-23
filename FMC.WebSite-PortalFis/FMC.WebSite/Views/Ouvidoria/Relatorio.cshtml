@@ -1,0 +1,88 @@
+﻿@model IEnumerable<object>
+@{
+    ICollection<FMC.WebSite.FIS.Utils.API.Ibi.Ouvidoria> wsOuvidoria = (ICollection<FMC.WebSite.FIS.Utils.API.Ibi.Ouvidoria>)Model.ElementAt(0);
+};
+<section id="pg-contato" class="scroll-secao ouvidoria-login ouvidoria-relatorio">
+    <div class="container">
+        <h1>Relatório da Ouvidoria</h1>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Nome</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Categoria</th>
+                    <th scope="col">Data</th>
+                    <th scope="col" class="text-right position-relative"><div class='loading'></div> Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var ouv in wsOuvidoria)
+                {
+                    string _class = "";
+                    string _nome = string.IsNullOrEmpty(ouv.Nome) ? "-" : ouv.Nome;
+                    string _email = string.IsNullOrEmpty(ouv.Email) ? "-" : ouv.Email;
+                    if (ouv.Status == 1) { _class = "table-info"; } //Visualizado
+                    else if (ouv.Status == 2) { _class = "table-warning"; } //Análise
+                    else if (ouv.Status == 3) { _class = "bg-warning"; } // Importante
+                    else if (ouv.Status == 4) { _class = "table-success"; } // Fechado
+
+                    <tr class="@_class">
+                        <th scope="row">@ouv.IdOuvidoria</th>
+                        <td>@_nome</td>
+                        <td>@_email</td>
+                        <td>@ouv.Tipo</td>
+                        <td>@ouv.DtInsert.ToString("dd/MM/yyyy HH:ss")</td>
+                        <td class="text-right">
+                            <a href="@Url.Action("Detalhar")/@ouv.IdOuvidoria" class="click-visualizar" title="Visualizar"><img src="~/open-iconic/svg/eye.svg" alt="Visualizar"></a>&nbsp;&nbsp;&nbsp;
+                            <a href="" class="click-status" data-value="2" data-id="@ouv.IdOuvidoria" title="Colocar em Análise"><img src="~/open-iconic/svg/pin.svg" alt="Colocar em Análise"></a>&nbsp;&nbsp;&nbsp;
+                            <a href="" class="click-status" data-value="3" data-id="@ouv.IdOuvidoria" title="Marcar como Importante"><img src="~/open-iconic/svg/warning.svg" alt="Marcar como Importante"></a>&nbsp;&nbsp;&nbsp;
+                            <a href="" class="click-status" data-value="4" data-id="@ouv.IdOuvidoria" title="Finalizado"><img src="~/open-iconic/svg/check.svg" alt="Finalizado"></a>
+                            <span class="oi oi-warning" title="icon name" aria-hidden="true"></span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div> <!-- container -->
+</section>
+@section scripts{
+    <script type="text/javascript">
+        $(".click-status").on('click',function (e) {
+            var url = '@Url.Action("Atualizar-Status", "Ouvidoria")';
+            var value = $(this).data('value');
+            var element = $(this);
+            $.ajax({
+                url: url,
+                data: { 'idStatus': value, 'idOuvidoria': $(this).data('id') },
+                type:'POST',
+                crossDomain: true,
+                beforeSend: function () {
+                    $('.table .loading').fadeIn();
+                },
+                success: function (json) {
+                    //console.log($(element.attr('class'));
+                    if (json) {
+                        if (value == '2') {
+                            element.closest('tr').attr('class','').addClass('table-warning');
+                        }
+                        else if (value == '3') {
+                            element.closest('tr').attr('class', '').addClass('bg-warning');
+                        }
+                        if (value == '4') {
+                            element.closest('tr').attr('class', '').addClass('table-success');
+                        }
+                    }
+                },
+                error: function (xhr, status, error) {
+                    var err = eval("(" + xhr.responseText + ")");
+                    $('.table .loading').fadeOut();
+                },
+                complete: function () {
+                    $('.table .loading').fadeOut();
+                }
+            });
+            e.preventDefault();
+        });
+    </script>
+}
