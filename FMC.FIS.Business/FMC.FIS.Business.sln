@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31912.275
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FMC.FIS.Business", "FMC.FIS.Business.csproj", "{171813AB-839C-4E6B-ACF1-0A23C3587F8C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{171813AB-839C-4E6B-ACF1-0A23C3587F8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{171813AB-839C-4E6B-ACF1-0A23C3587F8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{171813AB-839C-4E6B-ACF1-0A23C3587F8C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{171813AB-839C-4E6B-ACF1-0A23C3587F8C}.Debug|x86.Build.0 = Debug|Any CPU
+		{171813AB-839C-4E6B-ACF1-0A23C3587F8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{171813AB-839C-4E6B-ACF1-0A23C3587F8C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{171813AB-839C-4E6B-ACF1-0A23C3587F8C}.Release|x86.ActiveCfg = Release|Any CPU
+		{171813AB-839C-4E6B-ACF1-0A23C3587F8C}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FA24DBE7-47E1-42BE-B32C-C0937A31D232}
+	EndGlobalSection
+EndGlobal
