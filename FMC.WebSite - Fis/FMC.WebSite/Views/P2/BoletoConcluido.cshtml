@@ -1,0 +1,162 @@
+﻿@model IEnumerable<object>
+@using Microsoft.AspNetCore.Http
+@{
+    FMC.Fis.Models.BilletResponse billetResponse = (FMC.Fis.Models.BilletResponse)Model.ElementAt(0);
+    Layout = "_Admin";
+}
+<div class="g-hidden-sm-down g-bg-gray-light-v8 g-pa-20">
+    <ul class="u-list-inline g-color-gray-dark-v6">
+
+        <li class="list-inline-item g-mr-10">
+            <a class="u-link-v5 g-color-gray-dark-v6 g-color-secondary--hover g-valign-middle" href="#!">Dashboard</a>
+            <i class="hs-admin-angle-right g-font-size-12 g-color-gray-light-v6 g-valign-middle g-ml-10"></i>
+        </li>
+
+        <li class="list-inline-item g-mr-10">
+            <a class="u-link-v5 g-color-gray-dark-v6 g-color-secondary--hover g-valign-middle" href="#!"> P2</a>
+            <i class="hs-admin-angle-right g-font-size-12 g-color-gray-light-v6 g-valign-middle g-ml-10"></i>
+        </li>
+        <li class="list-inline-item">
+            <span class="g-valign-middle">Boleto Concluído</span>
+        </li>
+    </ul>
+</div>
+
+<div class="g-pa-20">
+
+    <h1 class="g-font-weight-300 g-font-size-28 g-color-black g-mb-28">Boleto Concluído</h1>
+
+    <div class="row">
+
+        @if (ViewBag.Message != null)
+        {
+            <div class="col-md-12">
+                <div class="noty_bar noty_type__error noty_theme__unify--v1 noty_close_with_click noty_close_with_button g-mb-25">
+                    <div class="noty_body">
+                        <div class="g-mr-20">
+                            <div class="noty_body__icon">
+                                <i class="hs-admin-alert"></i>
+                            </div>
+                        </div>
+
+                        <div>@Html.Raw(ViewBag.Message)</div>
+                    </div>
+
+                    <div class="noty_close_button">×</div>
+                </div>
+            </div>
+        }
+
+        <div class="col-md-12">
+            <div class="g-brd-around g-brd-gray-light-v7 g-rounded-4 g-pa-15 g-pa-20--md g-mb-30">
+                <h3 class="d-flex align-self-center text-uppercase g-font-size-12 g-font-size-default--md g-color-black g-mb-20">Informações sobre Boleto</h3>
+
+                <div class="row">
+                    @if (billetResponse != null)
+                    {
+                        <div class="col-md-12">
+                            <p class="g-font-weight-300 g-color-gray-dark-v6 mb-15">Seu boleto foi gerado com sucesso.</p>
+                            <p class="g-font-weight-300 g-color-gray-dark-v6 mb-0">
+                                @if (billetResponse != null && billetResponse.Registered)
+                                {
+                                    <text>
+                                        Lembramos que ele <em class="g-font-style-normal g-font-weight-700 g-color-green"> já está disponível</em> para pagamento e o cliente pode efetuar o pagamento imediatamente.
+                                    </text>
+                                }
+                                else
+                                {
+                                    <text>
+                                        Lembramos que ele <em class="g-font-style-normal g-font-weight-700 g-color-primary"> só estará disponível para pagamento após 24 horas</em>, assim que o registro do código de barras ser efetivado pelo banco.
+                                    </text>
+                                }
+                                <br />
+                            </p>
+                            <p class="g-font-weight-300 g-color-gray-dark-v6 mt-15">Clique no botão abaixo para efetuar o download do boleto.</p>
+                        </div>
+                        <div class="media g-mt-10">
+                            <div class="media-body align-self-center text-right">
+                                @using (Html.BeginForm("imprimir-boleto", "p2", FormMethod.Post, new { target = "_blank", style = "float:left; margin-right: 5px" }))
+                                {
+                                    <button type="submit" class="btn btn-xl u-btn-secondary g-font-size-default g-ml-10">Download do Boleto</button>
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="col-md-12">
+                            <p class="g-font-weight-300 g-color-gray-dark-v6 mb-15">Boleto não encontrado.</p>
+
+                        </div>
+                    }
+                </div>
+            </div>
+
+        </div>
+
+
+    </div>
+</div>
+@section Scripts {
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('.noty_close_button').click(function () {
+                $('.noty_bar').hide();
+            });
+            $('input.money').mask('#.##0,00', { reverse: true });
+            $("input.mask-cep").mask("00.000-000");
+            $("input.mask-card").mask("0000 0000 0000 0000");
+            $('input.cpf').mask('000.000.000-00');
+            $('.busca-cep').click(function () {
+                var cep = $('.mask-cep').val().replace(/[^0-9]/, '');
+                if (cep) {
+                    var url = '@Url.Action("ConsultaCep", "P1")?cep=' + cep;
+                    $.ajax({
+                        url: url,
+                        dataType: 'json',
+                        crossDomain: true,
+                        contentType: "application/json",
+                        beforeSend: function () {
+                            $('.ceploading').fadeIn();
+                        },
+                        success: function (json) {
+                            if (json != null) {
+                                console.log(json);
+                                if (json.hasOwnProperty('logradouro')) {
+                                    $("input.address").val(json.logradouro);
+                                    $("input.district").val(json.bairro);
+                                    $("input.city").val(json.localidade);
+                                    $(".uf").val(json.uf).change();
+
+                                    if (json.logradouro.length>0)
+                                    $('.g-pos-abs', $("input.address").closest('.g-pos-rel')).removeClass('opacity-0');
+                                    if (json.bairro.length > 0)
+                                        $('.g-pos-abs', $("input.district").closest('.g-pos-rel')).removeClass('opacity-0');
+                                    if (json.localidade.length > 0)
+                                        $('.g-pos-abs', $("input.city").closest('.g-pos-rel')).removeClass('opacity-0');
+
+                                } else {
+                                    $('.ceploading').fadeOut();
+                                }
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            var err = eval("(" + xhr.responseText + ")");
+                            $('.ceploading').fadeOut();
+                        },
+                        complete: function () {
+                            $('.ceploading').fadeOut();
+                        }
+                    });
+                }
+            });
+            $('#form-submit input').on('change', function (e) {
+                if ($(this).val().length > 0) {
+                    $('.g-pos-abs', $(this).closest('.g-pos-rel')).removeClass('opacity-0');
+                } else {
+                    $('.g-pos-abs', $(this).closest('.g-pos-rel')).addClass('opacity-0');
+                }
+            });
+        });
+    </script>
+}

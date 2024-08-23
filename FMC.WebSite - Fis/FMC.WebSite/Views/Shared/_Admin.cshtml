@@ -1,0 +1,530 @@
+﻿@using Microsoft.AspNetCore.Http
+@{
+    string portal = Context.Session.GetString("portal");
+    var buckt = Context.Session.GetString("buckt");
+
+    string obj = Context.Session.GetString(Context.Session.Id + "_produto");
+    string navigation = Context.Session.GetString(Context.Session.Id + "_WebSiteNavigation");
+    string origem = Context.Session.GetString("portal");
+
+    //var cache = FMC.Fis.Utils.CacheSession();
+    //var teste = FMC.Fis.Controllers.HomeController._contextAccessor.HttpContext;
+    string NmUser = Context.Session.GetString("NmUser_" + Context.Session.Id);
+    //_contextAccessor.HttpContext.Session.SetString("NmUser_" + _contextAccessor.HttpContext.Session.Id, userLogin.DsName);
+
+    int digit = -1;
+    if (obj != null && navigation != null)
+    {
+
+
+    }
+
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="cleartype" content="on">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Misael Pereira">
+    <meta name="theme-color" content="#006666">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>FMC - Financial Management Control</title>
+    <link rel="shortcut icon" href="~/favicon.ico" />
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans%3A400%2C300%2C500%2C600%2C700%7CPlayfair+Display%7CRoboto%7CRaleway%7CSpectral%7CRubik">
+
+    <!-- CSS Global Compulsory -->
+    <link rel="stylesheet" href="~/assets/vendor/bootstrap/bootstrap.min.css">
+    <!-- CSS Global Icons -->
+    <link rel="stylesheet" href="~/assets/vendor/icon-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="~/assets/vendor/icon-line/css/simple-line-icons.css">
+    <link rel="stylesheet" href="~/assets/vendor/icon-etlinefont/style.css">
+    <link rel="stylesheet" href="~/assets/vendor/icon-line-pro/style.css">
+    <link rel="stylesheet" href="~/assets/vendor/icon-hs/style.css">
+
+    <link rel="stylesheet" href="~/assets/vendor/hs-admin-icons/hs-admin-icons.css">
+
+    <link rel="stylesheet" href="~/assets/vendor/animate.css">
+    <link rel="stylesheet" href="~/assets/vendor/malihu-scrollbar/jquery.mCustomScrollbar.min.css">
+
+    <link rel="stylesheet" href="~/assets/vendor/flatpickr/dist/css/flatpickr.min.css">
+    <link rel="stylesheet" href="~/assets/vendor/bootstrap-select/css/bootstrap-select.min.css">
+
+    <link rel="stylesheet" href="~/assets/vendor/chartist-js/chartist.min.css">
+    <link rel="stylesheet" href="~/assets/vendor/chartist-js-tooltip/chartist-plugin-tooltip.css">
+    <link rel="stylesheet" href="~/assets/vendor/fancybox/jquery.fancybox.min.css">
+
+    <link rel="stylesheet" href="~/assets/vendor/hamburgers/hamburgers.min.css">
+    <link rel="stylesheet" href="~/assets/vendor/noty/lib/noty.css">
+    <!-- CSS Unify -->
+    <link rel="stylesheet" href="~/assets/css/unify-admin.css">
+
+    <!-- CSS Customization -->
+    <link rel="stylesheet" href="~/assets/css/custom.css">
+
+
+    <link rel="stylesheet" href="~/assets/vendor/pace/themes/red/pace-theme-flash.css">
+    <script src="~/assets/vendor/pace/pace.min.js"></script>
+</head>
+<body class="has-fixed-sidebar">
+    <!-- Header -->
+    <header id="js-header" class="u-header u-header--sticky-top">
+        <div class="u-header__section u-header__section--admin-dark g-min-height-65">
+            <nav class="navbar no-gutters g-pa-0">
+                <div class="col-auto d-flex flex-nowrap u-header-logo-toggler g-py-12">
+                    <a href="@Url.Action("Index","Home")" class="navbar-brand d-flex align-self-center g-hidden-xs-down g-line-height-1 py-0 g-mt-5">
+                        <img src="~/images/topo/logo.png" alt="" title="" class="u-header-logo" />
+                    </a>
+                    <!-- Sidebar Toggler -->
+                    <a class="js-side-nav u-header__nav-toggler d-flex align-self-center ml-auto" href="#!" data-hssm-class="u-side-nav--mini u-sidebar-navigation-v1--mini" data-hssm-body-class="u-side-nav-mini" data-hssm-is-close-all-except-this="true" data-hssm-target="#sideNav">
+                        <i class="hs-admin-align-left"></i>
+                    </a>
+                    <!-- End Sidebar Toggler -->
+                </div>
+
+                <!-- Top User -->
+                <div class="col-auto d-flex g-py-12 g-pl-40--lg ml-auto">
+
+                    <!-- Top User -->
+                    <div class="col-auto d-flex g-pt-5 g-pt-0--sm g-pl-10 g-pl-20--sm">
+                        <div class="g-pos-rel g-px-10--lg">
+                            <a id="profileMenuInvoker" class="d-block" href="#!" aria-controls="profileMenu" aria-haspopup="true" aria-expanded="false" data-dropdown-event="click" data-dropdown-target="#profileMenu" data-dropdown-type="css-animation" data-dropdown-duration="300"
+                               data-dropdown-animation-in="fadeIn" data-dropdown-animation-out="fadeOut">
+                                <span class="g-pos-rel">
+                                    <span class="u-badge-v2--xs u-badge--top-right g-hidden-sm-up g-bg-secondary g-mr-5"></span>
+                                    <img class="g-width-30 g-width-40--md g-height-30 g-height-40--md rounded-circle g-mr-10--sm" src="../assets/img-temp/130x130/img1.jpg" alt="Image description">
+                                </span>
+                                <span class="g-pos-rel g-top-2">
+                                    <span class="g-hidden-sm-down">@NmUser</span>
+                                    <i class="hs-admin-angle-down g-pos-rel g-top-2 g-ml-10"></i>
+                                </span>
+                            </a>
+
+                            <!-- Top User Menu -->
+                            <ul id="profileMenu" class="g-pos-abs g-left-0 g-width-100x--lg g-nowrap g-font-size-14 g-py-20 g-mt-17 rounded" aria-labelledby="profileMenuInvoker">
+                                <li class="mb-0">
+                                    <a class="media g-color-primary--hover g-py-5 g-px-20" href="@Url.Action("Sair","Home")">
+                                        <span class="d-flex align-self-center g-mr-12">
+                                            <i class="hs-admin-shift-right"></i>
+                                        </span>
+                                        <span class="media-body align-self-center">Sair</span>
+                                    </a>
+                                </li>
+                            </ul>
+                            <!-- End Top User Menu -->
+                        </div>
+                    </div>
+                    <!-- End Top User -->
+                </div>
+                <!-- End Top User -->
+            </nav>
+
+        </div>
+    </header>
+    <!-- End Header -->
+    <main class="container-fluid px-0 g-pt-65">
+        <div class="row no-gutters g-pos-rel g-overflow-x-hidden">
+            <!-- Sidebar Nav -->
+            <div id="sideNav" class="col-auto u-sidebar-navigation-v1 u-sidebar-navigation--dark">
+                <ul id="sideNavMenu" class="u-sidebar-navigation-v1-menu u-side-nav--top-level-menu g-min-height-100vh mb-0">
+                    <!-- Dashboards -->
+                    <li class="u-sidebar-navigation-v1-menu-item u-side-nav--top-level-menu-item">
+                        <a class="media u-side-nav--top-level-menu-link u-side-nav--hide-on-hidden g-px-15 g-py-12 @if (ViewContext.RouteData.Values["action"].ToString() == "Index") {@Html.Raw("active")}" href="@Url.Action("Index","Home")">
+                            <span class="d-flex align-self-center g-pos-rel g-font-size-18 g-mr-18">
+                                <i class="hs-admin-server"></i>
+                            </span>
+                            <span class="media-body align-self-center">Dashboard</span>
+                        </a>
+                    </li>
+                    <!-- End Dashboards -->
+                    <!--Bradescard - P1 e P2-->
+                    <li class="u-sidebar-navigation-v1-menu-item u-side-nav--has-sub-menu u-side-nav--top-level-menu-item u-side-nav-opened
+                        @if (ViewContext.RouteData.Values["controller"].ToString() == "P1" || ViewContext.RouteData.Values["controller"].ToString() == "P2" || ViewContext.RouteData.Values["controller"].ToString() == "CNAB") {
+                            @Html.Raw("u-side-nav-opened has-active")
+                        }
+                        ">
+                        <a class="media u-side-nav--top-level-menu-link u-side-nav--hide-on-hidden g-px-15 g-py-12" href="#!" data-hssm-target="#subMenu2">
+                            <span class="d-flex align-self-center g-pos-rel g-font-size-18 g-mr-18">
+                                <i class="hs-admin-layout-list-thumb"></i>
+                            </span>
+                            <span class="media-body align-self-center">Bradescard</span>
+                            <span class="d-flex align-self-center u-side-nav--control-icon">
+                                @if (ViewContext.RouteData.Values["controller"].ToString() == "P1" || ViewContext.RouteData.Values["controller"].ToString() == "P2" || ViewContext.RouteData.Values["controller"].ToString() == "CNAB")
+                                {
+                                <i class="hs-admin-angle-down"></i>
+                                }
+                                else
+                                {
+                                <i class="hs-admin-angle-right"></i>
+                                }
+
+
+                            </span>
+                            <span class="u-side-nav--has-sub-menu__indicator"></span>
+                        </a>
+
+                        <ul id="subMenu2" class="u-sidebar-navigation-v1-menu u-side-nav--second-level-menu mb-0" @if (ViewContext.RouteData.Values["controller"].ToString() == "P1" || ViewContext.RouteData.Values["controller"].ToString() == "P2" || ViewContext.RouteData.Values["controller"].ToString() == "CNAB") { @Html.Raw("style='display:block'") }>
+                            <!-- CPF Pesquisado -->
+                            @*<li class="u-sidebar-navigation-v1-menu-item u-side-nav--second-level-menu-item">
+            <a class="media u-side-nav--second-level-menu-link g-px-15 g-py-12 @if (ViewContext.RouteData.Values["action"].ToString() == "CPF" && ViewContext.RouteData.Values["controller"].ToString() == "Relatorio" ) {
+                @Html.Raw("active")
+            }" href="@Url.Action("Cpf","Relatorio")">
+                <span class="d-flex align-self-center g-mr-15 g-mt-minus-1">
+                    <i class="hs-admin-id-badge"></i>
+                </span>
+                <span class="media-body align-self-center">CPF Pesquisado</span>
+            </a>
+        </li>*@
+                            <!-- End CPF Pesquisado -->
+                            <!--P1-->
+                            <li class="u-sidebar-navigation-v1-menu-item u-side-nav--has-sub-menu u-side-nav--second-level-menu-item @if (ViewContext.RouteData.Values["controller"].ToString() == "P1") {
+                            @Html.Raw("u-side-nav-opened has-active") }">
+                                <a class="media u-side-nav--second-level-menu-link g-px-15 g-py-12" href="#!" data-hssm-target="#subMenu5">
+
+                                    <span class="d-flex align-self-center g-pos-rel g-font-size-18 g-mr-18">
+                                        <i class="hs-admin-view-grid"></i>
+                                    </span>
+                                    <span class="media-body align-self-center">P1</span>
+                                    <span class="d-flex align-self-center u-side-nav--control-icon">
+                                        @if (ViewContext.RouteData.Values["controller"].ToString() == "P1")
+                                        {
+                                            <i class="hs-admin-angle-down"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="hs-admin-angle-right"></i>
+                                        }
+                                    </span>
+                                    <span class="u-side-nav--has-sub-menu__indicator"></span>
+                                </a>
+
+                                <ul id="subMenu5" class="u-sidebar-navigation-v1-menu u-side-nav--third-level-menu mb-0" @if (ViewContext.RouteData.Values["controller"].ToString() == "P1") { @Html.Raw("style='display:block'") }>
+
+                                    <li class="u-sidebar-navigation-v1-menu-item u-side-nav--second-level-menu-item">
+                                        <a class="media u-side-nav--second-level-menu-link g-px-15 g-py-12 @if ((ViewContext.RouteData.Values["action"].ToString() == "GerarBoleto" || ViewContext.RouteData.Values["action"].ToString() == "BoletoConcluido") && ViewContext.RouteData.Values["controller"].ToString() == "P1" ) {
+                                    @Html.Raw("active")
+                                }" href="@Url.Action("BuscarCliente","P1")">
+                                            @*@Url.Action("Simulacao","Relatorio")*@
+                                            <span class="d-flex align-self-center g-mr-15 g-mt-minus-1">
+                                                <i class="hs-admin-credit-card"></i>
+                                            </span>
+                                            <span class="media-body align-self-center">Gerar Boleto</span>
+                                        </a>
+                                    </li>
+
+                                    @*<li class="u-sidebar-navigation-v1-menu-item u-side-nav--second-level-menu-item">
+                        <a class="media u-side-nav--second-level-menu-link g-px-15 g-py-12 @if (ViewContext.RouteData.Values["action"].ToString() == "Acordo" && ViewContext.RouteData.Values["controller"].ToString() == "Relatorio" ) {
+                    @Html.Raw("active")
+                }" href="#">
+                            <span class="d-flex align-self-center g-mr-15 g-mt-minus-1">
+                                <i class="hs-admin-bar-chart"></i>
+                            </span>
+                            <span class="media-body align-self-center">Boletos Gerados</span>
+                        </a>
+                    </li>*@
+                                </ul>
+                            </li>
+                            <!--End P1-->
+                            <!--P2-->
+                            <li class="u-sidebar-navigation-v1-menu-item u-side-nav--has-sub-menu u-side-nav--second-level-menu-item @if (ViewContext.RouteData.Values["controller"].ToString() == "P2") {
+                            @Html.Raw("u-side-nav-opened has-active")
+                        }">
+                                <a class="media u-side-nav--second-level-menu-link g-px-15 g-py-12" href="#!" data-hssm-target="#subMenu6">
+
+                                    <span class="d-flex align-self-center g-pos-rel g-font-size-18 g-mr-18">
+                                        <i class="hs-admin-view-list-alt"></i>
+                                    </span>
+                                    <span class="media-body align-self-center">P2</span>
+                                    <span class="d-flex align-self-center u-side-nav--control-icon">
+                                        @if (ViewContext.RouteData.Values["controller"].ToString() == "P2")
+                                        {
+                                            <i class="hs-admin-angle-down"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="hs-admin-angle-right"></i>
+                                        }
+                                    </span>
+                                    <span class="u-side-nav--has-sub-menu__indicator"></span>
+                                </a>
+
+                                <ul id="subMenu6" class="u-sidebar-navigation-v1-menu u-side-nav--third-level-menu mb-0" @if (ViewContext.RouteData.Values["controller"].ToString() == "P2") { @Html.Raw("style='display:block'") }>
+
+                                    <li class="u-sidebar-navigation-v1-menu-item u-side-nav--second-level-menu-item">
+                                        <a class="media u-side-nav--second-level-menu-link g-px-15 g-py-12 @if (ViewContext.RouteData.Values["controller"].ToString() == "P2" && (ViewContext.RouteData.Values["action"].ToString() == "BuscarCliente" || ViewContext.RouteData.Values["action"].ToString() == "GerarBoleto"  || ViewContext.RouteData.Values["action"].ToString() == "BoletoConcluido" )) {
+                                    @Html.Raw("active")
+                                }" href="@Url.Action("GerarBoleto","P2")">
+                                            <span class="d-flex align-self-center g-mr-15 g-mt-minus-1">
+                                                <i class="hs-admin-credit-card"></i>
+                                            </span>
+                                            <span class="media-body align-self-center">Gerar Boleto</span>
+                                        </a>
+                                    </li>
+                                </ul>
+
+                            </li>
+                            <!-- End Acordo/Promessa P2-->
+
+                            <!--CNAB-->
+                            <li class="u-sidebar-navigation-v1-menu-item u-side-nav--has-sub-menu u-side-nav--second-level-menu-item @if (ViewContext.RouteData.Values["controller"].ToString() == "CNAB") {
+                            @Html.Raw("u-side-nav-opened has-active")
+                        }">
+                                <a class="media u-side-nav--second-level-menu-link g-px-15 g-py-12" href="#!" data-hssm-target="#subMenu7">
+
+                                    <span class="d-flex align-self-center g-pos-rel g-font-size-18 g-mr-18">
+                                        <i class="hs-admin-cloud"></i>
+                                    </span>
+                                    <span class="media-body align-self-center">CNAB</span>
+                                    <span class="d-flex align-self-center u-side-nav--control-icon">
+                                        @if (ViewContext.RouteData.Values["controller"].ToString() == "CNAB")
+                                        {
+                                            <i class="hs-admin-angle-down"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="hs-admin-angle-right"></i>
+                                        }
+                                    </span>
+                                    <span class="u-side-nav--has-sub-menu__indicator"></span>
+                                </a>
+
+                                <ul id="subMenu7" class="u-sidebar-navigation-v1-menu u-side-nav--third-level-menu mb-0" @if (ViewContext.RouteData.Values["controller"].ToString() == "CNAB") { @Html.Raw("style='display:block'") }>
+
+                                    <li class="u-sidebar-navigation-v1-menu-item u-side-nav--second-level-menu-item">
+                                        <a class="media u-side-nav--second-level-menu-link g-px-15 g-py-12 @if (ViewContext.RouteData.Values["controller"].ToString() == "CNAB" && (ViewContext.RouteData.Values["action"].ToString() == "DownloadCNAB" )) {
+                                    @Html.Raw("active")
+                                }" href="@Url.Action("DownloadCNAB","CNAB")">
+                                            <span class="d-flex align-self-center g-mr-15 g-mt-minus-1">
+                                                <i class="hs-admin-cloud-down"></i>
+                                            </span>
+                                            <span class="media-body align-self-center">Download Remessa</span>
+                                        </a>
+                                    </li>
+                                    <li class="u-sidebar-navigation-v1-menu-item u-side-nav--second-level-menu-item">
+                                        <a class="media u-side-nav--second-level-menu-link g-px-15 g-py-12 @if (ViewContext.RouteData.Values["controller"].ToString() == "CNAB" && (ViewContext.RouteData.Values["action"].ToString() == "UploadCNAB" )) {
+                                    @Html.Raw("active")
+                                }" href="@Url.Action("UploadCNAB","CNAB")">
+                                            <span class="d-flex align-self-center g-mr-15 g-mt-minus-1">
+                                                <i class="hs-admin-cloud-up"></i>
+                                            </span>
+                                            <span class="media-body align-self-center">Upload Retorno</span>
+                                        </a>
+                                    </li>
+
+                                   
+                                </ul>
+
+                            </li>
+                            <!-- END CNAB -->
+
+
+
+
+
+                        </ul>
+                        <!-- End Relatórios: Submenu-1 -->
+                    </li>
+                    <!-- End Relatórios -->
+                
+                    <li class="u-sidebar-navigation-v1-menu-item u-side-nav--top-level-menu-item">
+                        <a class="media u-side-nav--top-level-menu-link u-side-nav--hide-on-hidden g-px-15 g-py-12 @if (ViewContext.RouteData.Values["action"].ToString() == "AlterarSenha") {@Html.Raw("active")}" href="@Url.Action("AlterarSenha","Home")">
+                            <span class="d-flex align-self-center g-pos-rel g-font-size-18 g-mr-18">
+                                <i class="icon-lock"></i>
+                            </span>
+                            <span class="media-body align-self-center">Alterar Senha</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- End Sidebar Nav -->
+
+
+            <div class="col g-ml-45 g-ml-0--lg g-pb-65--md renderContent">
+                <!--Content-->
+                @RenderBody()
+                <!--Content-->
+                <!-- Footer -->
+                <footer id="footer" class="u-footer--bottom-sticky g-bg-white g-color-gray-dark-v6 g-brd-top g-brd-gray-light-v7 g-pa-20">
+                    <div class="row align-items-center">
+                        <!-- Footer Nav -->
+                        <div class="col-md-4 g-mb-10 g-mb-0--md">
+                            <ul class="list-inline text-center text-md-left mb-0">
+                                @*<li class="list-inline-item">
+                                        <a class="g-color-gray-dark-v6 g-color-secondary--hover" href="http://fmcbrasil.com.br/contato" target="_blank">Suporte</a>
+                                    </li>
+                                    <li class="list-inline-item">
+                                        <span class="g-color-gray-dark-v6">|</span>
+                                    </li>*@
+                                <li class="list-inline-item">
+                                    <a class="g-color-gray-dark-v6 g-color-secondary--hover" href="http://fmcbrasil.com.br/contato" target="_blank">Contato</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <!-- End Footer Nav -->
+                        <!-- Footer Socials -->
+                        <div class="col-md-4 g-mb-10 g-mb-0--md">
+                            <ul class="list-inline g-font-size-16 text-center mb-0" style="display: none">
+                                <li class="list-inline-item g-mx-10">
+                                    <a href="#!" class="g-color-facebook g-color-secondary--hover">
+                                        <i class="fa fa-facebook-square"></i>
+                                    </a>
+                                </li>
+                                <li class="list-inline-item g-mx-10">
+                                    <a href="#!" class="g-color-google-plus g-color-secondary--hover">
+                                        <i class="fa fa-google-plus"></i>
+                                    </a>
+                                </li>
+                                <li class="list-inline-item g-mx-10">
+                                    <a href="#!" class="g-color-black g-color-secondary--hover">
+                                        <i class="fa fa-github"></i>
+                                    </a>
+                                </li>
+                                <li class="list-inline-item g-mx-10">
+                                    <a href="#!" class="g-color-twitter g-color-secondary--hover">
+                                        <i class="fa fa-twitter"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <!-- End Footer Socials -->
+                        <!-- Footer Copyrights -->
+                        <div class="col-md-4 text-center text-md-right">
+                            <small class="d-block g-font-size-default">&copy; 2020 FMC Brasil. Todos Direitos Reservados.</small>
+                        </div>
+                        <!-- End Footer Copyrights -->
+                    </div>
+                </footer>
+                <!-- End Footer -->
+            </div>
+        </div>
+    </main>
+
+    <!-- JS Global Compulsory -->
+    <script src="~/assets/vendor/jquery/jquery.min.js"></script>
+    <script src="~/assets/vendor/jquery-migrate/jquery-migrate.min.js"></script>
+    <script src="~/assets/vendor/popper.js/popper.min.js"></script>
+    <script src="~/assets/vendor/bootstrap/bootstrap.min.js"></script>
+    <script src="~/assets/vendor/cookiejs/jquery.cookie.js"></script>
+
+    <!-- jQuery UI Core -->
+    <script src="~/assets/vendor/jquery-ui/ui/widget.js"></script>
+    <script src="~/assets/vendor/jquery-ui/ui/version.js"></script>
+    <script src="~/assets/vendor/jquery-ui/ui/keycode.js"></script>
+    <script src="~/assets/vendor/jquery-ui/ui/position.js"></script>
+    <script src="~/assets/vendor/jquery-ui/ui/unique-id.js"></script>
+    <script src="~/assets/vendor/jquery-ui/ui/safe-active-element.js"></script>
+
+    <!-- jQuery UI Helpers -->
+    <script src="~/assets/vendor/jquery-ui/ui/widgets/menu.js"></script>
+    <script src="~/assets/vendor/jquery-ui/ui/widgets/mouse.js"></script>
+
+    <!-- jQuery UI Widgets -->
+    <script src="~/assets/vendor/jquery-ui/ui/widgets/datepicker.js"></script>
+
+    <!-- JS Plugins Init. -->
+    <script src="~/assets/vendor/appear.js"></script>
+    <script src="~/assets/vendor/bootstrap-select/js/bootstrap-select.min.js"></script>
+    <script src="~/assets/vendor/flatpickr/dist/js/flatpickr.min.js"></script>
+    <script src="~/assets/vendor/malihu-scrollbar/jquery.mCustomScrollbar.concat.min.js"></script>
+    <script src="~/assets/vendor/chartist-js/chartist.min.js"></script>
+    <script src="~/assets/vendor/chartist-js-tooltip/chartist-plugin-tooltip.js"></script>
+    <script src="~/assets/vendor/fancybox/jquery.fancybox.min.js"></script>
+    <script src="~/assets/vendor/noty/lib/noty.min.js"></script>
+
+    <!-- JS Unify -->
+    <script src="~/assets/js/hs.core.js"></script>
+    <script src="~/assets/js/components/hs.side-nav.js"></script>
+    <script src="~/assets/js/helpers/hs.hamburgers.js"></script>
+    <script src="~/assets/js/components/hs.range-datepicker.js"></script>
+    <script src="~/assets/js/components/hs.datepicker.js"></script>
+    <script src="~/assets/js/components/hs.dropdown.js"></script>
+    <script src="~/assets/js/components/hs.scrollbar.js"></script>
+    <script src="~/assets/js/components/hs.area-chart.js"></script>
+    <script src="~/assets/js/components/hs.donut-chart.js"></script>
+    <script src="~/assets/js/components/hs.bar-chart.js"></script>
+    <script src="~/assets/js/helpers/hs.focus-state.js"></script>
+    <script src="~/assets/js/components/hs.popup.js"></script>
+
+    <!-- JS Custom -->
+    <script src="~/js/jquery.mask.js" type="text/javascript"></script>
+    <script src="~/assets/js/custom.js"></script>
+
+    <script>
+        $(document).on('ready', function () {
+            // initialization of custom select
+            $('.js-select').selectpicker();
+
+            // initialization of hamburger
+            $.HSCore.helpers.HSHamburgers.init('.hamburger');
+
+            // initialization of charts
+            $.HSCore.components.HSAreaChart.init('.js-area-chart');
+            $.HSCore.components.HSDonutChart.init('.js-donut-chart');
+            $.HSCore.components.HSBarChart.init('.js-bar-chart');
+
+            // initialization of sidebar navigation component
+            $.HSCore.components.HSSideNav.init('.js-side-nav', {
+                afterOpen: function () {
+                    setTimeout(function () {
+                        $.HSCore.components.HSAreaChart.init('.js-area-chart');
+                        $.HSCore.components.HSDonutChart.init('.js-donut-chart');
+                        $.HSCore.components.HSBarChart.init('.js-bar-chart');
+                    }, 400);
+                },
+                afterClose: function () {
+                    setTimeout(function () {
+                        $.HSCore.components.HSAreaChart.init('.js-area-chart');
+                        $.HSCore.components.HSDonutChart.init('.js-donut-chart');
+                        $.HSCore.components.HSBarChart.init('.js-bar-chart');
+                    }, 400);
+                }
+            });
+
+            // initialization of range datepicker
+            $.HSCore.components.HSRangeDatepicker.init('#rangeDatepicker, #rangeDatepicker2, #rangeDatepicker3');
+
+            // initialization of datepicker
+            $.HSCore.components.HSDatepicker.init('#datepicker', {
+                dayNamesMin: [
+                    'SU',
+                    'MO',
+                    'TU',
+                    'WE',
+                    'TH',
+                    'FR',
+                    'SA'
+                ]
+            });
+
+            // initialization of HSDropdown component
+            $.HSCore.components.HSDropdown.init($('[data-dropdown-target]'), { dropdownHideOnScroll: false });
+
+            // initialization of custom scrollbar
+            $.HSCore.components.HSScrollBar.init($('.js-custom-scroll'));
+
+            // initialization of popups
+            $.HSCore.components.HSPopup.init('.js-fancybox', {
+                btnTpl: {
+                    smallBtn: '<button data-fancybox-close class="btn g-pos-abs g-top-25 g-right-30 g-line-height-1 g-bg-transparent g-font-size-16 g-color-gray-light-v3 g-brd-none p-0" title=""><i class="hs-admin-close"></i></button>'
+                }
+            });
+        });
+    </script>
+
+    @RenderSection("Scripts", required: false)
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2CJKR4ZPND"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-2CJKR4ZPND');
+    </script>
+</body>
+</html>

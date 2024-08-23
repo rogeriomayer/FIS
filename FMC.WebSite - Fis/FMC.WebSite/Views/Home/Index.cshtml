@@ -1,0 +1,26 @@
+﻿@model IEnumerable<object>
+@using Microsoft.AspNetCore.Http
+@{
+    //ICollection<FMC.Fis.Utils.API.Ibi.WebSiteNavigation> listWebSiteNavigation = (ICollection<FMC.Fis.Utils.API.Ibi.WebSiteNavigation>)Model.ElementAt(0);
+    //ICollection<FMC.Fis.Utils.API.Ibi.WebSiteSimulate> listWebSiteSimulate = (ICollection<FMC.Fis.Utils.API.Ibi.WebSiteSimulate>)Model.ElementAt(1);
+    //ICollection<FMC.Fis.Utils.API.Ibi.WebSiteAgreement> listWebSiteAgreement = (ICollection<FMC.Fis.Utils.API.Ibi.WebSiteAgreement>)Model.ElementAt(2);
+
+    //var groupNavigation = null;// listWebSiteNavigation.AsParallel().GroupBy(p => p.DtInsert.Date).Select(p => new { Value = p.Count(), Day = (DateTime)p.Key }).OrderByDescending(p => p.Day).ToList();
+    //ICollection<FMC.Fis.Utils.API.Ibi.WebSiteNavigation> groupNavigation = new System.Collections.ObjectModel.Collection<FMC.Fis.Utils.API.Ibi.WebSiteNavigation>();// listWebSiteNavigation.AsParallel().GroupBy(p => p.DtInsert.Date).Select(p => new { Value = p.Count(), Day = (DateTime)p.Key }).OrderByDescending(p => p.Day).ToList();
+    //int wsNavigationYesterday = 0; // listWebSiteNavigation.AsParallel().Where(p => p.DtInsert >= DateTime.Today.AddDays(-1) && p.DtInsert <= DateTime.Now.AddDays(-1)).ToList().Count();
+
+    //var groupSimulate = listWebSiteSimulate.AsParallel().Where(p => p.DtInsert >= DateTime.Today).GroupBy(p => p.DtInsert.Date).Select(p => new { Value = p.Count(), Day = (DateTime)p.Key }).OrderByDescending(p => p.Day).ToList();
+    //var wsSimulateYesterday = 0;// listWebSiteSimulate.AsParallel().Where(p => p.DtInsert >= DateTime.Today.AddDays(-1) && p.DtInsert <= DateTime.Now.AddDays(-1)).ToList().Count();
+
+    //var groupAgreement = listWebSiteAgreement.AsParallel().Where(p => p.DtInsert >= DateTime.Today).GroupBy(p => p.DtInsert.Date).Select(p => new { Value = p.Count(), Day = (DateTime)p.Key }).OrderByDescending(p => p.Day).ToList();
+    //var wsAgreementYesterday = 0;// listWebSiteAgreement.AsParallel().Where(p => p.DtInsert >= DateTime.Today.AddDays(-1) && p.DtInsert <= DateTime.Now.AddDays(-1)).ToList().Count();
+
+    //var groupSumAgreement = listWebSiteAgreement.Where(p => p.DtInsert >= DateTime.Today).GroupBy(p => p.DtInsert.Date).Select(p => new { Value = p.Sum(x => x.VlEntrace + (x.NrParcel * x.VlParcel)), Day = (DateTime)p.Key }).OrderByDescending(p => p.Day).ToList();
+    //var wsAgreementSumYesterday = 0;// listWebSiteAgreement.AsParallel().Where(p => p.DtInsert >= DateTime.Today.AddDays(-1) && p.DtInsert <= DateTime.Now.AddDays(-1)).ToList().Sum(p => p.VlEntrace + (p.NrParcel * p.VlParcel));
+
+    //var graphNavigation = listWebSiteNavigation.AsParallel().Where(p => p.DtInsert >= DateTime.Now.AddHours(-24)).GroupBy(p => new { Date = p.DtInsert.Date, Hour = p.DtInsert.Hour }).Select(p => new { Date = p.Key.Date, Hour = p.Key.Hour, Value = p.Count() }).ToList();
+    //var graphSimulate = listWebSiteSimulate.AsParallel().Where(p => p.DtInsert >= DateTime.Now.AddHours(-24)).GroupBy(p => new { Date = p.DtInsert.Date, Hour = p.DtInsert.Hour }).Select(p => new { Date = p.Key.Date, Hour = p.Key.Hour, Value = p.Count() }).ToList();
+    DateTime ontem = DateTime.Now.AddHours(-24);
+    DateTime hoje = DateTime.Now;
+    Layout = "_Admin";
+}

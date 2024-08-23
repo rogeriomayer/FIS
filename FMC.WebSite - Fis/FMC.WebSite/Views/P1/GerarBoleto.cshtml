@@ -1,0 +1,326 @@
+﻿@model IEnumerable<object>
+@using Microsoft.AspNetCore.Http
+@{
+    FMC.Fis.Models.BilletRequest billetRequest = (FMC.Fis.Models.BilletRequest)Model.ElementAt(0);
+    FMC.Fis.Models.CardP1Response cardP1Response = (FMC.Fis.Models.CardP1Response)Model.ElementAt(1);
+
+    string dtDue = (string.IsNullOrEmpty(billetRequest.Date)) ? DateTime.Today.ToString("yyyy-MM-dd") : billetRequest.Date;
+    decimal balance = decimal.Zero;
+
+    Layout = "_Admin";
+}
+<div class="g-hidden-sm-down g-bg-gray-light-v8 g-pa-20">
+    <ul class="u-list-inline g-color-gray-dark-v6">
+
+        <li class="list-inline-item g-mr-10">
+            <a class="u-link-v5 g-color-gray-dark-v6 g-color-secondary--hover g-valign-middle" href="#!">Dashboard</a>
+            <i class="hs-admin-angle-right g-font-size-12 g-color-gray-light-v6 g-valign-middle g-ml-10"></i>
+        </li>
+
+        <li class="list-inline-item g-mr-10">
+            <a class="u-link-v5 g-color-gray-dark-v6 g-color-secondary--hover g-valign-middle" href="#!"> P1</a>
+            <i class="hs-admin-angle-right g-font-size-12 g-color-gray-light-v6 g-valign-middle g-ml-10"></i>
+        </li>
+
+
+        <li class="list-inline-item">
+            <span class="g-valign-middle">Gerar Boleto</span>
+        </li>
+    </ul>
+</div>
+
+<form id="form-submit" novalidate asp-action="GerarBoleto">
+    <div class="g-pa-20">
+
+        <h1 class="g-font-weight-300 g-font-size-28 g-color-black g-mb-28">Gerar Boleto</h1>
+
+        <div class="row">
+            @if (ViewBag.Message != null)
+            {
+                <div class="col-md-12">
+                    <div class="noty_bar noty_type__error noty_theme__unify--v1 noty_close_with_click noty_close_with_button g-mb-25">
+                        <div class="noty_body">
+                            <div class="g-mr-20">
+                                <div class="noty_body__icon">
+                                    <i class="hs-admin-alert"></i>
+                                </div>
+                            </div>
+
+                            <div>@Html.Raw(ViewBag.Message)</div>
+                        </div>
+
+                        <div class="noty_close_button">×</div>
+                    </div>
+                </div>
+            }
+            <!-- Dados da Conta -->
+            <div class="col-md-12">
+                <div class="g-brd-around g-brd-gray-light-v7 g-rounded-4 g-pa-15 g-pa-20--md g-mb-30">
+                    <h3 class="d-flex align-self-center text-uppercase g-font-size-12 g-font-size-default--md g-color-black g-mb-20">Informações da Conta</h3>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="g-mb-5">Cartão</label>
+                                <p class="g-font-size-15 g-font-weight-600">
+                                    @if (cardP1Response.DadosCartao != null && cardP1Response.DadosCartao.Cartao != null)
+                                    {
+                                        string card = cardP1Response.DadosCartao.Cartao.nrCartao;
+                                        <text>@card</text>
+                                        <input asp-for="@billetRequest.Account" value="@cardP1Response.DadosCartao.Cartao.tkCartao" type="text" placeholder="" hidden='hidden'>
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="g-mb-5" asp-for="@billetRequest.Logo">Produto</label>
+                                <p class="g-font-size-15 g-font-weight-600">
+                                    @cardP1Response.DadosCartao.descCartao
+                                </p>
+                                <input asp-for="@billetRequest.Logo" value="@cardP1Response.DadosCartao.logoCartao" type="text" placeholder="" hidden='hidden'>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="g-mb-5" asp-for="@billetRequest.Date">Data de Vencimento</label>
+
+                                <div class="g-pos-rel">
+
+                                    <input asp-for="@billetRequest.Date" value="@dtDue" class="form-control g-brd-gray-light-v7 g-brd-gray-light-v3--focus g-rounded-4 g-px-14 g-py-10" type="date">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="g-mb-5" asp-for="@billetRequest.Value">Valor</label>
+
+                                <div class="g-pos-rel">
+                                    <span class="g-pos-abs g-top-0 g-right-0 d-block g-width-40 h-100 opacity-0 g-opacity-1--success">
+                                        <i class="hs-admin-check g-absolute-centered g-font-size-default g-color-secondary"></i>
+                                    </span>
+                                    <input asp-for="@billetRequest.Value" value="@balance.ToString("#.0,##;(#.0,#)")" class="form-control form-control-md g-brd-gray-light-v7 g-brd-gray-light-v3--focus g-rounded-4 g-px-14 g-py-10 money" type="text" placeholder="" data->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End Dados da Conta -->
+            <!-- Dados do Boleto -->
+            <div class="col-md-12">
+                <div class="g-brd-around g-brd-gray-light-v7 g-rounded-4 g-pa-15 g-pa-20--md g-mb-30">
+                    <h3 class="d-flex align-self-center text-uppercase g-font-size-12 g-font-size-default--md g-color-black g-mb-20">Informações do Cliente</h3>
+                    <div class="row g-mb-10">
+                        <div class="col-md-9">
+                            <div class="form-group">
+                                <label class="g-mb-5" asp-for="@billetRequest.Name">Nome</label>
+                                <p class="g-font-size-15 g-font-weight-600">
+                                    @cardP1Response.DadosCliente.nmCliente
+                                    <input asp-for="@billetRequest.Name" value="@cardP1Response.DadosCliente.nmCliente" type="text" placeholder="" hidden='hidden'>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="g-mb-5" asp-for="@billetRequest.CPF">CPF</label>
+                                <p class="g-font-size-15 g-font-weight-600">
+                                    @Convert.ToUInt64(@cardP1Response.DadosCliente.nrDocCliente).ToString(@"000\.000\.000\-00")
+                                    <input asp-for="@billetRequest.CPF" value="@cardP1Response.DadosCliente.nrDocCliente" type="text" placeholder="" hidden='hidden'>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-mb-10">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="g-mb-5" asp-for="@billetRequest.CEP">CEP</label>
+                                <div class="g-pos-rel" style="position:relative ">
+                                    <span class="ceploading"><i class="hs-admin-reload fa-refresh g-font-size-16 g-color-black fa-spin g-absolute-centered"></i></span>
+                                    <button class="btn u-input-btn--v1 g-width-40 g-bg-primary g-rounded-right-4 busca-cep" type="button">
+                                        <i class="hs-admin-search g-absolute-centered g-font-size-16 g-color-white"></i>
+                                    </button>
+                                    <input asp-for="@billetRequest.CEP" value="@Convert.ToUInt64(cardP1Response.DadosCliente.nrCep).ToString(@"00\.000\-000")" class="form-control form-control-md g-brd-gray-light-v7 g-brd-gray-light-v3 g-rounded-4 g-px-14 g-py-10 mask-cep" type="text" placeholder="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="form-group">
+                                <label class="g-mb-5" asp-for="@billetRequest.Address">Endereço</label>
+                                <div class="g-pos-rel">
+                                    <span class="g-pos-abs g-top-0 g-right-0 d-block g-width-40 h-100 opacity-0 g-opacity-1--success">
+                                        <i class="hs-admin-check g-absolute-centered g-font-size-default g-color-secondary"></i>
+                                    </span>
+                                    <input asp-for="@billetRequest.Address" value="@cardP1Response.DadosCliente.nmLogradouro" class="form-control form-control-md g-brd-gray-light-v7 g-brd-gray-light-v3--focus g-rounded-4 g-px-14 g-py-10 address" type="text" placeholder="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="g-mb-5" asp-for="@billetRequest.Number">Número</label>
+                                <div class="g-pos-rel">
+                                    <span class="g-pos-abs g-top-0 g-right-0 d-block g-width-40 h-100 opacity-0 g-opacity-1--success">
+                                        <i class="hs-admin-check g-absolute-centered g-font-size-default g-color-secondary"></i>
+                                    </span>
+                                    <input asp-for="@billetRequest.Number" value="@cardP1Response.DadosCliente.nrLogradouro" class="form-control form-control-md g-brd-gray-light-v7 g-brd-gray-light-v3--focus g-rounded-4 g-px-14 g-py-10" type="text" placeholder="">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-mb-10">
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="g-mb-5" asp-for="@billetRequest.Complement">Complemento</label>
+                                <div class="g-pos-rel">
+                                    <span class="g-pos-abs g-top-0 g-right-0 d-block g-width-40 h-100 opacity-0 g-opacity-1--success">
+                                        <i class="hs-admin-check g-absolute-centered g-font-size-default g-color-secondary"></i>
+                                    </span>
+                                    <input asp-for="@billetRequest.Complement" value="@cardP1Response.DadosCliente.nmCompleLogradouro" class="form-control form-control-md g-brd-gray-light-v7 g-brd-gray-light-v3--focus g-rounded-4 g-px-14 g-py-10" type="text" placeholder="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="g-mb-5" asp-for="@billetRequest.District">Bairro</label>
+                                <div class="g-pos-rel">
+                                    <span class="g-pos-abs g-top-0 g-right-0 d-block g-width-40 h-100 opacity-0 g-opacity-1--success">
+                                        <i class="hs-admin-check g-absolute-centered g-font-size-default g-color-secondary"></i>
+                                    </span>
+                                    <input asp-for="@billetRequest.District" value="@cardP1Response.DadosCliente.nmBairro" class="form-control form-control-md g-brd-gray-light-v7 g-brd-gray-light-v3--focus g-rounded-4 g-px-14 g-py-10 district" type="text" placeholder="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="g-mb-5" asp-for="@billetRequest.City">Cidade</label>
+                                <div class="g-pos-rel">
+                                    <span class="g-pos-abs g-top-0 g-right-0 d-block g-width-40 h-100 opacity-0 g-opacity-1--success">
+                                        <i class="hs-admin-check g-absolute-centered g-font-size-default g-color-secondary"></i>
+                                    </span>
+                                    <input asp-for="@billetRequest.City" value="@cardP1Response.DadosCliente.nmCidade" class="form-control form-control-md g-brd-gray-light-v7 g-brd-gray-light-v3--focus g-rounded-4 g-px-14 g-py-10 city" type="text" placeholder="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="g-mb-4">Estado</label>
+                                <div class="form-group u-select--v3 g-pos-rel g-brd-gray-light-v7 g-rounded-4 mb-0">
+                                    <select class="js-select u-select--v3-select u-sibling w-100 uf" required="required" title="UF" style="display: none;" asp-for="@billetRequest.UF">
+                                        <option value="AC" selected="@(cardP1Response.DadosCliente.nmUF == "AC" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>AC</span></span>'>AC</option>
+                                        <option value="AL" selected="@(cardP1Response.DadosCliente.nmUF == "AL" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>AL</span></span>'>AL</option>
+                                        <option value="AP" selected="@(cardP1Response.DadosCliente.nmUF == "AP" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>AP</span></span>'>AP</option>
+                                        <option value="AM" selected="@(cardP1Response.DadosCliente.nmUF == "AM" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>AM</span></span>'>AM</option>
+                                        <option value="BA" selected="@(cardP1Response.DadosCliente.nmUF == "BA" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>BA</span></span>'>BA</option>
+                                        <option value="CE" selected="@(cardP1Response.DadosCliente.nmUF == "CE" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>CE</span></span>'>CE</option>
+                                        <option value="DF" selected="@(cardP1Response.DadosCliente.nmUF == "DF" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>DF</span></span>'>DF</option>
+                                        <option value="ES" selected="@(cardP1Response.DadosCliente.nmUF == "ES" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>ES</span></span>'>ES</option>
+                                        <option value="GO" selected="@(cardP1Response.DadosCliente.nmUF == "GO" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>GO</span></span>'>GO</option>
+                                        <option value="MA" selected="@(cardP1Response.DadosCliente.nmUF == "MA" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>MA</span></span>'>MA</option>
+                                        <option value="MT" selected="@(cardP1Response.DadosCliente.nmUF == "MT" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>MT</span></span>'>MT</option>
+                                        <option value="MS" selected="@(cardP1Response.DadosCliente.nmUF == "MS" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>MS</span></span>'>MS</option>
+                                        <option value="MG" selected="@(cardP1Response.DadosCliente.nmUF == "MG" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>MG</span></span>'>MG</option>
+                                        <option value="PA" selected="@(cardP1Response.DadosCliente.nmUF == "PA" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>PA</span></span>'>PA</option>
+                                        <option value="PB" selected="@(cardP1Response.DadosCliente.nmUF == "PB" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>PB</span></span>'>PB</option>
+                                        <option value="PR" selected="@(cardP1Response.DadosCliente.nmUF == "PR" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>PR</span></span>'>PR</option>
+                                        <option value="PE" selected="@(cardP1Response.DadosCliente.nmUF == "PE" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>PE</span></span>'>PE</option>
+                                        <option value="PI" selected="@(cardP1Response.DadosCliente.nmUF == "PI" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>PI</span></span>'>PI</option>
+                                        <option value="RJ" selected="@(cardP1Response.DadosCliente.nmUF == "RJ" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>RJ</span></span>'>RJ</option>
+                                        <option value="RN" selected="@(cardP1Response.DadosCliente.nmUF == "RN" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>RN</span></span>'>RN</option>
+                                        <option value="RS" selected="@(cardP1Response.DadosCliente.nmUF == "RS" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>RS</span></span>'>RS</option>
+                                        <option value="RO" selected="@(cardP1Response.DadosCliente.nmUF == "RO" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>RO</span></span>'>RO</option>
+                                        <option value="RR" selected="@(cardP1Response.DadosCliente.nmUF == "RR" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>RR</span></span>'>RR</option>
+                                        <option value="SC" selected="@(cardP1Response.DadosCliente.nmUF == "SC" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>SC</span></span>'>SC</option>
+                                        <option value="SP" selected="@(cardP1Response.DadosCliente.nmUF == "SP" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>SP</span></span>'>SP</option>
+                                        <option value="SE" selected="@(cardP1Response.DadosCliente.nmUF == "SE" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>SE</span></span>'>SE</option>
+                                        <option value="TO" selected="@(cardP1Response.DadosCliente.nmUF == "TO" ? "selected" : null)" data-content='<span class="d-flex align-items-center w-100"><span>TO</span></span>'>TO</option>
+                                    </select>
+
+                                    <div class="d-flex align-items-center g-absolute-centered--y g-right-0 g-color-gray-light-v6 g-color-lightblue-v9--sibling-opened g-mr-15">
+                                        <i class="hs-admin-angle-down"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End Dados do Boleto -->
+        </div>
+        <div class="media">
+            <div class="media-body align-self-center text-right">
+                <button class="btn btn-xl u-btn-primary g-width-160--md g-font-size-default g-ml-10">Gerar Boleto</button>
+            </div>
+        </div>
+    </div>
+</form>
+@section Scripts {
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.noty_close_button').click(function () {
+            $('.noty_bar').hide();
+        });
+        $('input.money').mask('#.##0,00', { reverse: true });
+        $("input.mask-cep").mask("00.000-000");
+        $("input.mask-card").mask("0000 0000 0000 0000");
+        $('input.cpf').mask('000.000.000-00');
+        $('.busca-cep').click(function () {
+            var cep = $('.mask-cep').val().replace(/[^0-9]/, '');
+            if (cep) {
+                var url = '@Url.Action("ConsultaCep", "P1")?cep=' + cep;
+                $.ajax({
+                    url: url,
+                    dataType: 'json',
+                    crossDomain: true,
+                    contentType: "application/json",
+                    beforeSend: function () {
+                        $('.ceploading').fadeIn();
+                    },
+                    success: function (json) {
+                        if (json != null) {
+                            console.log(json);
+                            if (json.hasOwnProperty('logradouro')) {
+                                $("input.address").val(json.logradouro);
+                                $("input.district").val(json.bairro);
+                                $("input.city").val(json.localidade);
+                                $(".uf").val(json.uf).change();
+
+                                if (json.logradouro.length > 0)
+                                    $('.g-pos-abs', $("input.address").closest('.g-pos-rel')).removeClass('opacity-0');
+                                else
+                                    $('.g-pos-abs', $("input.address").closest('.g-pos-rel')).addClass('opacity-0')
+
+                                if (json.bairro.length > 0)
+                                    $('.g-pos-abs', $("input.district").closest('.g-pos-rel')).removeClass('opacity-0');
+                                else
+                                    $('.g-pos-abs', $("input.district").closest('.g-pos-rel')).addClass('opacity-0');
+
+                                if (json.localidade.length > 0)
+                                    $('.g-pos-abs', $("input.city").closest('.g-pos-rel')).removeClass('opacity-0');
+                                else
+                                    $('.g-pos-abs', $("input.city").closest('.g-pos-rel')).addClass('opacity-0');
+
+                            } else {
+                                $('.ceploading').fadeOut();
+                            }
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        var err = eval("(" + xhr.responseText + ")");
+                        $('.ceploading').fadeOut();
+                    },
+                    complete: function () {
+                        $('.ceploading').fadeOut();
+                    }
+                });
+            }
+        });
+        $('#form-submit input').on('change', function (e) {
+            if ($(this).val().length > 0) {
+                $('.g-pos-abs', $(this).closest('.g-pos-rel')).removeClass('opacity-0');
+            } else {
+                $('.g-pos-abs', $(this).closest('.g-pos-rel')).addClass('opacity-0');
+            }
+        });
+    });
+</script>
+}

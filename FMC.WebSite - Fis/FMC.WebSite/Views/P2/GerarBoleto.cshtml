@@ -1,0 +1,315 @@
+﻿@model IEnumerable<object>
+@using Microsoft.AspNetCore.Http
+@{
+    FMC.Fis.Models.BilletRequest billetRequest = (FMC.Fis.Models.BilletRequest)Model.ElementAt(0);
+    Layout = "_Admin";
+}
+<div class="g-hidden-sm-down g-bg-gray-light-v8 g-pa-20">
+    <ul class="u-list-inline g-color-gray-dark-v6">
+
+        <li class="list-inline-item g-mr-10">
+            <a class="u-link-v5 g-color-gray-dark-v6 g-color-secondary--hover g-valign-middle" href="#!">Dashboard</a>
+            <i class="hs-admin-angle-right g-font-size-12 g-color-gray-light-v6 g-valign-middle g-ml-10"></i>
+        </li>
+
+        <li class="list-inline-item g-mr-10">
+            <a class="u-link-v5 g-color-gray-dark-v6 g-color-secondary--hover g-valign-middle" href="#!"> P2</a>
+            <i class="hs-admin-angle-right g-font-size-12 g-color-gray-light-v6 g-valign-middle g-ml-10"></i>
+        </li>
+
+
+        <li class="list-inline-item">
+            <span class="g-valign-middle">Gerar Boleto</span>
+        </li>
+    </ul>
+</div>
+
+<form id="form-submit" novalidate asp-action="GerarBoleto">
+    <div class="g-pa-20">
+
+        <h1 class="g-font-weight-300 g-font-size-28 g-color-black g-mb-28">Gerar Boleto</h1>
+
+        <div class="row">
+            @if (ViewBag.Message != null)
+            {
+                <div class="col-md-12">
+                    <div class="noty_bar noty_type__error noty_theme__unify--v1 noty_close_with_click noty_close_with_button g-mb-25">
+                        <div class="noty_body">
+                            <div class="g-mr-20">
+                                <div class="noty_body__icon">
+                                    <i class="hs-admin-alert"></i>
+                                </div>
+                            </div>
+
+                            <div>@Html.Raw(ViewBag.Message)</div>
+                        </div>
+
+                        <div class="noty_close_button">×</div>
+                    </div>
+                </div>
+            }
+            <!-- Dados da Conta -->
+            <div class="col-md-12">
+                <div class="g-brd-around g-brd-gray-light-v7 g-rounded-4 g-pa-15 g-pa-20--md g-mb-30">
+                    <h3 class="d-flex align-self-center text-uppercase g-font-size-12 g-font-size-default--md g-color-black g-mb-20">Informações da Conta</h3>
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label class="g-mb-5">Conta</label>
+                                <div class="g-pos-rel">
+                                    <span class="g-pos-abs g-top-0 g-right-0 d-block g-width-40 h-100 opacity-0 g-opacity-1--success">
+                                        <i class="hs-admin-check g-absolute-centered g-font-size-default g-color-secondary"></i>
+                                    </span>
+                                    <input asp-for="@billetRequest.Account" class="form-control form-control-md g-brd-gray-light-v7 g-brd-gray-light-v3--focus g-rounded-4 g-px-14 g-py-10 mask-account" type="text" placeholder="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label class="g-mb-5" asp-for="@billetRequest.Date">Data de Vencimento</label>
+
+                                <div class="g-pos-rel">
+
+                                    <input asp-for="@billetRequest.Date" class="form-control g-brd-gray-light-v7 g-brd-gray-light-v3--focus g-rounded-4 g-px-14 g-py-10" type="date">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="g-mb-5" asp-for="@billetRequest.Value">Valor</label>
+
+                                <div class="g-pos-rel">
+                                    <span class="g-pos-abs g-top-0 g-right-0 d-block g-width-40 h-100 opacity-0 g-opacity-1--success">
+                                        <i class="hs-admin-check g-absolute-centered g-font-size-default g-color-secondary"></i>
+                                    </span>
+                                    <input asp-for="@billetRequest.Value" class="form-control form-control-md g-brd-gray-light-v7 g-brd-gray-light-v3--focus g-rounded-4 g-px-14 g-py-10 money" type="text" placeholder="">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End Dados da Conta -->
+            <!-- Dados do Boleto -->
+            <div class="col-md-12">
+                <div class="g-brd-around g-brd-gray-light-v7 g-rounded-4 g-pa-15 g-pa-20--md g-mb-30">
+                    <h3 class="d-flex align-self-center text-uppercase g-font-size-12 g-font-size-default--md g-color-black g-mb-20">Informações do Cliente</h3>
+                    <div class="row g-mb-10">
+                        <div class="col-md-9">
+                            <div class="form-group">
+                                <label class="g-mb-5" asp-for="@billetRequest.Name">Nome</label>
+                                <div class="g-pos-rel">
+                                    <span class="g-pos-abs g-top-0 g-right-0 d-block g-width-40 h-100 opacity-0 g-opacity-1--success">
+                                        <i class="hs-admin-check g-absolute-centered g-font-size-default g-color-secondary"></i>
+                                    </span>
+                                    <input asp-for="@billetRequest.Name" class="form-control form-control-md g-brd-gray-light-v7 g-brd-gray-light-v3--focus g-rounded-4 g-px-14 g-py-10" type="text" placeholder="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="g-mb-5" asp-for="@billetRequest.CPF">CPF</label>
+                                <div class="g-pos-rel">
+                                    <span class="g-pos-abs g-top-0 g-right-0 d-block g-width-40 h-100 opacity-0 g-opacity-1--success">
+                                        <i class="hs-admin-check g-absolute-centered g-font-size-default g-color-secondary"></i>
+                                    </span>
+                                    <input asp-for="@billetRequest.CPF" class="form-control form-control-md g-brd-gray-light-v7 g-brd-gray-light-v3--focus g-rounded-4 g-px-14 g-py-10 cpf" type="text" placeholder="">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-mb-10">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="g-mb-5" asp-for="@billetRequest.CEP">CEP</label>
+                                <div class="g-pos-rel" style="position:relative ">
+                                    <span class="ceploading"><i class="hs-admin-reload fa-refresh g-font-size-16 g-color-black fa-spin g-absolute-centered"></i></span>
+                                    <button class="btn u-input-btn--v1 g-width-40 g-bg-primary g-rounded-right-4 busca-cep" type="button">
+                                        <i class="hs-admin-search g-absolute-centered g-font-size-16 g-color-white"></i>
+                                    </button>
+                                    <input asp-for="@billetRequest.CEP" class="form-control form-control-md g-brd-gray-light-v7 g-brd-gray-light-v3 g-rounded-4 g-px-14 g-py-10 mask-cep" type="text" placeholder="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="form-group">
+                                <label class="g-mb-5" asp-for="@billetRequest.Address">Endereço</label>
+                                <div class="g-pos-rel">
+                                    <span class="g-pos-abs g-top-0 g-right-0 d-block g-width-40 h-100 opacity-0 g-opacity-1--success">
+                                        <i class="hs-admin-check g-absolute-centered g-font-size-default g-color-secondary"></i>
+                                    </span>
+                                    <input asp-for="@billetRequest.Address" class="form-control form-control-md g-brd-gray-light-v7 g-brd-gray-light-v3--focus g-rounded-4 g-px-14 g-py-10 address" type="text" placeholder="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="g-mb-5" asp-for="@billetRequest.Number">Número</label>
+                                <div class="g-pos-rel">
+                                    <span class="g-pos-abs g-top-0 g-right-0 d-block g-width-40 h-100 opacity-0 g-opacity-1--success">
+                                        <i class="hs-admin-check g-absolute-centered g-font-size-default g-color-secondary"></i>
+                                    </span>
+                                    <input asp-for="@billetRequest.Number" class="form-control form-control-md g-brd-gray-light-v7 g-brd-gray-light-v3--focus g-rounded-4 g-px-14 g-py-10" type="text" placeholder="">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-mb-10">
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="g-mb-5" asp-for="@billetRequest.Complement">Complemento</label>
+                                <div class="g-pos-rel">
+                                    <span class="g-pos-abs g-top-0 g-right-0 d-block g-width-40 h-100 opacity-0 g-opacity-1--success">
+                                        <i class="hs-admin-check g-absolute-centered g-font-size-default g-color-secondary"></i>
+                                    </span>
+                                    <input asp-for="@billetRequest.Complement" class="form-control form-control-md g-brd-gray-light-v7 g-brd-gray-light-v3--focus g-rounded-4 g-px-14 g-py-10" type="text" placeholder="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="g-mb-5" asp-for="@billetRequest.District">Bairro</label>
+                                <div class="g-pos-rel">
+                                    <span class="g-pos-abs g-top-0 g-right-0 d-block g-width-40 h-100 opacity-0 g-opacity-1--success">
+                                        <i class="hs-admin-check g-absolute-centered g-font-size-default g-color-secondary"></i>
+                                    </span>
+                                    <input asp-for="@billetRequest.District" class="form-control form-control-md g-brd-gray-light-v7 g-brd-gray-light-v3--focus g-rounded-4 g-px-14 g-py-10 district" type="text" placeholder="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="g-mb-5" asp-for="@billetRequest.City">Cidade</label>
+                                <div class="g-pos-rel">
+                                    <span class="g-pos-abs g-top-0 g-right-0 d-block g-width-40 h-100 opacity-0 g-opacity-1--success">
+                                        <i class="hs-admin-check g-absolute-centered g-font-size-default g-color-secondary"></i>
+                                    </span>
+                                    <input asp-for="@billetRequest.City" class="form-control form-control-md g-brd-gray-light-v7 g-brd-gray-light-v3--focus g-rounded-4 g-px-14 g-py-10 city" type="text" placeholder="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="g-mb-4">Estado</label>
+                                <div class="form-group u-select--v3 g-pos-rel g-brd-gray-light-v7 g-rounded-4 mb-0">
+                                    <select class="js-select u-select--v3-select u-sibling w-100 uf" required="required" title="UF" style="display: none;" asp-for="@billetRequest.UF">
+                                        <option value="AC" data-content='<span class="d-flex align-items-center w-100"><span>Acre</span></span>'>Acre</option>
+                                        <option value="AL" data-content='<span class="d-flex align-items-center w-100"><span>Alagoas</span></span>'>Alagoas</option>
+                                        <option value="AP" data-content='<span class="d-flex align-items-center w-100"><span>Amapá</span></span>'>Amapá</option>
+                                        <option value="AM" data-content='<span class="d-flex align-items-center w-100"><span>Amazonas</span></span>'>Amazonas</option>
+                                        <option value="BA" data-content='<span class="d-flex align-items-center w-100"><span>Bahia</span></span>'>Bahia</option>
+                                        <option value="CE" data-content='<span class="d-flex align-items-center w-100"><span>Ceará</span></span>'>Ceará</option>
+                                        <option value="DF" data-content='<span class="d-flex align-items-center w-100"><span>Distrito Federal</span></span>'>Distrito Federal</option>
+                                        <option value="ES" data-content='<span class="d-flex align-items-center w-100"><span>Espírito Santo</span></span>'>Espírito Santo</option>
+                                        <option value="GO" data-content='<span class="d-flex align-items-center w-100"><span>Goiás</span></span>'>Goiás</option>
+                                        <option value="MA" data-content='<span class="d-flex align-items-center w-100"><span>Maranhão</span></span>'>Maranhão</option>
+                                        <option value="MT" data-content='<span class="d-flex align-items-center w-100"><span>Mato Grosso</span></span>'>Mato Grosso</option>
+                                        <option value="MS" data-content='<span class="d-flex align-items-center w-100"><span>Mato Grosso do Sul</span></span>'>Mato Grosso do Sul</option>
+                                        <option value="MG" data-content='<span class="d-flex align-items-center w-100"><span>Minas Gerais</span></span>'>Minas Gerais</option>
+                                        <option value="PA" data-content='<span class="d-flex align-items-center w-100"><span>Pará</span></span>'>Pará</option>
+                                        <option value="PB" data-content='<span class="d-flex align-items-center w-100"><span>Paraíba</span></span>'>Paraíba</option>
+                                        <option value="PR" data-content='<span class="d-flex align-items-center w-100"><span>Paraná</span></span>'>Paraná</option>
+                                        <option value="PE" data-content='<span class="d-flex align-items-center w-100"><span>Pernambuco</span></span>'>Pernambuco</option>
+                                        <option value="PI" data-content='<span class="d-flex align-items-center w-100"><span>Piauí</span></span>'>Piauí</option>
+                                        <option value="RJ" data-content='<span class="d-flex align-items-center w-100"><span>Rio de Janeiro</span></span>'>Rio de Janeiro</option>
+                                        <option value="RN" data-content='<span class="d-flex align-items-center w-100"><span>Rio Grande do Norte</span></span>'>Rio Grande do Norte</option>
+                                        <option value="RS" data-content='<span class="d-flex align-items-center w-100"><span>Rio Grande do Sul</span></span>'>Rio Grande do Sul</option>
+                                        <option value="RO" data-content='<span class="d-flex align-items-center w-100"><span>Rondônia</span></span>'>Rondônia</option>
+                                        <option value="RR" data-content='<span class="d-flex align-items-center w-100"><span>Roraima</span></span>'>Roraima</option>
+                                        <option value="SC" data-content='<span class="d-flex align-items-center w-100"><span>Santa Catarina</span></span>'>Santa Catarina</option>
+                                        <option value="SP" data-content='<span class="d-flex align-items-center w-100"><span>São Paulo</span></span>'>São Paulo</option>
+                                        <option value="SE" data-content='<span class="d-flex align-items-center w-100"><span>Sergipe</span></span>'>Sergipe</option>
+                                        <option value="TO" data-content='<span class="d-flex align-items-center w-100"><span>Tocantins</span></span>'>Tocantins</option>
+                                    </select>
+
+                                    <div class="d-flex align-items-center g-absolute-centered--y g-right-0 g-color-gray-light-v6 g-color-lightblue-v9--sibling-opened g-mr-15">
+                                        <i class="hs-admin-angle-down"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End Dados do Boleto -->
+        </div>
+        <div class="media">
+            <div class="media-body align-self-center text-right">
+                <button class="btn btn-xl u-btn-primary g-width-160--md g-font-size-default g-ml-10">Gerar Boleto</button>
+            </div>
+        </div>
+    </div>
+</form>
+@section Scripts {
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('.noty_close_button').click(function () {
+                $('.noty_bar').hide();
+            });
+            $('input.money').mask('#.##0,00', { reverse: true });
+            $("input.mask-cep").mask("00.000-000");
+            $("input.mask-card").mask("0000 0000 0000 0000");
+            $("input.mask-account").mask("000 0000 00000 0000 000");
+            $('input.cpf').mask('000.000.000-00');
+            $('.busca-cep').click(function () {
+                var cep = $('.mask-cep').val().replace(/[^0-9]/, '');
+                if (cep) {
+                    var url = '@Url.Action("ConsultaCep", "P1")?cep=' + cep;
+                    $.ajax({
+                        url: url,
+                        dataType: 'json',
+                        crossDomain: true,
+                        contentType: "application/json",
+                        beforeSend: function () {
+                            $('.ceploading').fadeIn();
+                        },
+                        success: function (json) {
+                            if (json != null) {
+                                console.log(json);
+                                if (json.hasOwnProperty('logradouro')) {
+                                    $("input.address").val(json.logradouro);
+                                    $("input.district").val(json.bairro);
+                                    $("input.city").val(json.localidade);
+                                    $(".uf").val(json.uf).change();
+
+                                    if (json.logradouro.length > 0)
+                                        $('.g-pos-abs', $("input.address").closest('.g-pos-rel')).removeClass('opacity-0');
+                                    else
+                                        $('.g-pos-abs', $("input.address").closest('.g-pos-rel')).addClass('opacity-0')
+
+                                    if (json.bairro.length > 0)
+                                        $('.g-pos-abs', $("input.district").closest('.g-pos-rel')).removeClass('opacity-0');
+                                    else
+                                        $('.g-pos-abs', $("input.district").closest('.g-pos-rel')).addClass('opacity-0');
+
+                                    if (json.localidade.length > 0)
+                                        $('.g-pos-abs', $("input.city").closest('.g-pos-rel')).removeClass('opacity-0');
+                                    else
+                                        $('.g-pos-abs', $("input.city").closest('.g-pos-rel')).addClass('opacity-0');
+
+                                } else {
+                                    $('.ceploading').fadeOut();
+                                }
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            var err = eval("(" + xhr.responseText + ")");
+                            $('.ceploading').fadeOut();
+                        },
+                        complete: function () {
+                            $('.ceploading').fadeOut();
+                        }
+                    });
+                }
+            });
+            $('#form-submit input').on('change', function (e) {
+                if ($(this).val().length > 0) {
+                    $('.g-pos-abs', $(this).closest('.g-pos-rel')).removeClass('opacity-0');
+                } else {
+                    $('.g-pos-abs', $(this).closest('.g-pos-rel')).addClass('opacity-0');
+                }
+            });
+        });
+    </script>
+}

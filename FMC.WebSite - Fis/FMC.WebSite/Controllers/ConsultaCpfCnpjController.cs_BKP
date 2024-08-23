@@ -1,0 +1,2246 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using FMC.Fis.Models;
+using FMC.Fis.Utils;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.AspNetCore.Http;
+using FMC.Fis.Controllers.Class;
+using System.IO;
+using FMC.Fis.Utils.API.Ibi;
+using FMC.Fis.Utils.API.Nacc;
+
+namespace FMC.Fis.Controllers
+{
+    [Route("Consulta-Documento")]
+    public class ConsultaCpfCnpjController : Controller
+    {
+        private readonly IMemoryCache _cache;
+        private readonly IHttpContextAccessor _contextAccessor;
+        private readonly string _key;
+        private CacheSession cache;
+        private HttpContextAccessor context;
+
+        //Lista de status de Acordo ativo NACC
+        readonly IList<string> listaAcordoNacc = new List<string> { "0", "4", "5", "9", "13" };
+        readonly IList<string> listStatacorIbi = new List<string> { "1", "2", "5", "9", "K", "I", "F", "G" };
+
+        public ConsultaCpfCnpjController(IMemoryCache _cache, IHttpContextAccessor _contextAccessor)
+        {
+            this._cache = _cache;
+            this._contextAccessor = _contextAccessor;
+            if (_contextAccessor.HttpContext.Session.GetString("_sID") != _contextAccessor.HttpContext.Session.Id)
+            {
+                _contextAccessor.HttpContext.Session.SetString("_sID", _contextAccessor.HttpContext.Session.Id);
+                _key = _contextAccessor.HttpContext.Session.Id;
+                cache = new CacheSession(_contextAccessor, _key);
+
+            }
+            else
+            {
+                _key = _contextAccessor.HttpContext.Session.GetString("_sID");
+                cache = new CacheSession(_contextAccessor, _key);
+            }
+            //if (_contextAccessor.HttpContext.Request == null ||
+            //    _contextAccessor.HttpContext.Request.Cookies == null ||
+            //    _contextAccessor.HttpContext.Request.Cookies.Where(p => p.Key == "NETSESSID")?.FirstOrDefault().Value == null ||
+            //    _contextAccessor.HttpContext.Request.Cookies.Where(p => p.Key == "NETSESSID")?.FirstOrDefault().Value != _key)
+            //{
+            //    _contextAccessor.HttpContext.Response.Cookies.Append("NETSESSID", _key);
+            //}
+        }
+
+        public ActionResult Index()
+        {
+            try
+            {
+                cache.Remove(new List<string> {
+                        "simulaParcelamento" ,
+                        "parcelamento",
+                        "billet",
+                        "boleto",
+                        "MessageEnderecoUpdate",
+                        "MessageSuccess",
+                        "WebSiteAgreement",
+                        "WebSiteSimulate",
+                        "idAcordo"
+            });
+                ConsultaCpfCnpj model = cache.Get<ConsultaCpfCnpj>("model");
+                if (string.IsNullOrEmpty(_contextAccessor.HttpContext.Session.GetString("_sID")) || model == null || string.IsNullOrEmpty(model.CpfCnpj))
+                {
+                    return RedirectToAction("Index", "NegociarAgora");
+                }
+
+                string cpfCnpj = Regex.Replace(model.CpfCnpj, @"[^\d]", "");
+
+                List<Logo> logomarca = new List<Logo>();
+                List<NaccLogomarca> naccLogomarca = new List<NaccLogomarca>();
+
+                //Itens para LOG
+                IList<WebSiteProduct> listWsProduct = new List<WebSiteProduct>();
+                WebSiteNavigation wsNavigation = cache.Get<WebSiteNavigation>("WebSiteNavigation");
+                Utils.API.Nacc.Pessoa naccPessoa = null;
+                try
+                {
+                    if(AppSettings.EnableNacc)
+                        naccPessoa = HttpHelper.GET<Utils.API.Nacc.Pessoa>(Utils.API.Nacc.Uri.GetPessoa(cpfCnpj, "C"));
+                }
+                catch { };
+                if (naccPessoa != null)
+                {
+                    string lastCarteira = "";
+                    IList<string> status = new List<string>() { "CAN", "CUN", "HFP", "HFA", "PAY", "PIF", "SIF", "NOA", "NAC", "CAP", "IMP" };
+                    naccPessoa.Debtor = naccPessoa.Debtor.Where(p => !status.Contains(p.Status)).OrderBy(p => p.Carteira).ToList();
+                    foreach (var debtor in naccPessoa.Debtor)
+                    {
+                        string logo = debtor.LogoCarteira.Split('/').LastOrDefault();
+                        //if (debtor.Carteira == "ENO")
+
+                        //    logo = "simplic.png";
+                        //else if (debtor.Carteira == "PEP")
+                        //    logo = "pepsico.png";
+                        //else if (debtor.Carteira == "MTL")
+                        //    logo = "multiloja.png";
+                        //else if (debtor.Carteira == "MIT")
+                        //    logo = "fmc.png";
+                        //else if (debtor.Carteira == "DRC")
+                        //{
+
+                        //    if (debtor.Produto.ToUpper().Contains("AMEX"))
+                        //    {
+                        //        logo =  "card-amex.png";
+                        //    }
+                        //    else if (debtor.Produto.ToUpper().Contains("MC") || debtor.Produto.ToUpper().Contains("MASTER"))
+                        //    {
+                        //        logo = "card-bradesco-master.png";
+                        //    }
+                        //    else if (debtor.Produto.ToUpper().Contains("ELO"))
+                        //    {
+                        //        logo = "card-bradesco-elo.png";
+                        //    }
+                        //    else if (debtor.Produto.ToUpper().Contains("VISA"))
+                        //    {
+                        //        logo = "card-bradesco-visa.png";
+                        //    }
+                        //    else
+                        //    {
+                        //        logo = "cartao.png";
+                        //    }
+                        //}
+                        naccLogomarca.Add(new NaccLogomarca() { Carteira = debtor.Carteira, IdDebtor = debtor.IdDebtor, Logomarca = logo });
+
+                        #region Log Product NACC
+
+                        decimal vlFull = debtor.ValorPrincipal;
+                        decimal vlMinimum = 0;
+                        int age = debtor.DiasAtraso;
+                        string dsProduct = "";
+                        if (debtor.Carteira == "ENO")
+                        {
+                            _contextAccessor.HttpContext.Session.SetString("portal", "simplic");
+                            List<string> contract = debtor.Contrato.Split('/').ToList();
+                            dsProduct = contract[0];
+                        }
+                        else if (debtor.Carteira == "CDJ")
+                        {
+                            _contextAccessor.HttpContext.Session.SetString("portal", "credjet");
+                            List<string> contract = debtor.Contrato.Split('/').ToList();
+                            dsProduct = contract[0];
+                        }
+                        else if (debtor.Carteira == "MMN")
+                        {
+                            _contextAccessor.HttpContext.Session.SetString("portal", "moneyman");
+                            List<string> contract = debtor.Contrato.Split('-').ToList();
+                            dsProduct = contract[0];
+                        }
+                        else
+                        {
+                            dsProduct = debtor.IdDebtor.ToString();
+                        }
+                        var product = new WebSiteProduct()
+                        {
+                            IdWebSiteNavigation = wsNavigation.IdWebSiteNavigation,
+                            IdSystem = 2,
+                            Age = age,
+                            DsProduct = dsProduct,
+                            VlFull = vlFull,
+                            VlMinimum = vlMinimum,
+                            DtInsert = DateTime.Now
+                        };
+                        if (
+                            lastCarteira != "ENO" && lastCarteira != "MMN" && lastCarteira != "CDJ"
+                            //(lastCarteira == "PEP" && debtor.Carteira == "PEP") || 
+                            //(lastCarteira == "DRC" && debtor.Carteira == "DRC") || 
+                            //lastCarteira != debtor.Carteira
+                            )
+                        {
+                            //var wsProduct = ibiClient.SetWebSiteProductAsync(product).Result;//.GetAwaiter().GetResult();
+                            var wsProduct = HttpHelper.POST<WebSiteProduct>(Utils.API.Ibi.Uri.SetWebSiteProduct(), product);
+                            listWsProduct.Add(wsProduct);
+                        }
+                        #endregion Log Product NACC
+
+                        lastCarteira = debtor.Carteira;
+                    }
+                }
+
+                cache.AddCache("naccLogo", naccLogomarca);
+                cache.AddCache("naccPessoa", naccPessoa);
+
+                UR84 ibiUr84 = null;
+
+                if (cpfCnpj.Count() == 11)
+                {
+                    ibiUr84 = new UR84();
+                    ibiUr84 = HttpHelper.GET<UR84>(Utils.API.Ibi.Uri.GetUR84(cpfCnpj));
+
+                    if (ibiUr84.Detail.Count > 0)
+                    {
+                        Parallel.ForEach(ibiUr84.Detail, (UR84.UR84Detail card) =>
+                        {
+                            var lgm = HttpHelper.GET<Logo>(Utils.API.Ibi.Uri.GetDscProduct(card.ORGCMS, card.LOGOCMS));
+
+                            logomarca.Add(lgm);
+
+                            #region Log Product IBI
+                            var product = new WebSiteProduct()
+                            {
+                                IdWebSiteNavigation = wsNavigation.IdWebSiteNavigation,
+                                IdSystem = 1,
+                                Age = Convert.ToInt32(card.DiasAtraso),
+                                DsProduct = card.NumeroCartao?.Trim(),
+                                VlFull = card.SaldoDevedorAtraso,
+                                VlMinimum = card.PagamentoMinimo,
+                                DtInsert = DateTime.Now
+                            };
+                            var wsProduct = HttpHelper.POST<WebSiteProduct>(Utils.API.Ibi.Uri.SetWebSiteProduct(), product);
+                            listWsProduct.Add(wsProduct);
+                            #endregion Log Product IBI
+
+                        });
+                    }
+                    cache.AddCache("ibiLogo", logomarca);
+                    cache.AddCache("ibiUr84", ibiUr84);
+                }
+                cache.AddCache("WebSiteProduct", listWsProduct.ToList());
+
+                if ((ibiUr84 != null && ibiUr84.Detail != null && ibiUr84.Detail.Count > 0) || (naccPessoa != null && naccPessoa.Debtor != null && naccPessoa.Debtor.Count > 0))
+                {
+                    IList<object> data = new List<object> { model, ibiUr84.Detail, naccPessoa != null ? naccPessoa.Debtor : null, new Debtor(), new UR84.UR84Detail(), logomarca, naccLogomarca };
+                    return View(data);
+                }
+                else
+                {
+                    return RedirectToAction("NadaConsta", "ConsultaCpfCnpj");
+                }
+            }
+            catch (Exception e)
+            {
+                return View();
+            }
+        }
+
+        [HttpPost]
+        public ActionResult Index(ConsultaCpfCnpj dados)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    cache.AddCache("model", dados);
+                    return RedirectToAction("Index");
+                }
+                catch
+                {
+                    return View();
+                }
+            }
+            else
+            {
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        [Route("Confirmacao-De-Endereco")]
+        public IActionResult ConfirmacaoDeEndereco()
+        {
+            try
+            {
+                bool enderecoAtualizado = cache.Get<bool>("EnderecoAtualizado");
+                if (enderecoAtualizado)
+                    RedirectToAction("Finalizar");
+                Produto _produto = cache.Get<Produto>("produto");
+
+                if (string.IsNullOrEmpty(_contextAccessor.HttpContext.Session.GetString("_sID")) || _produto == null)
+                    return RedirectToAction("Index", "NegociarAgora");
+
+                //long idDebtor = cache.Get<long>("naccCard");
+                //string NrCartao = cache.Get<string>("ibiCard");
+                //cache.AddCache("produto", new Produto() { CodProduto = idDebtor.ToString(), NomeProduto = "NACC" });
+
+                List<string> MessageEnderecoUpdate = cache.Get<List<string>>("MessageEnderecoUpdate");
+                List<string> MessageSuccess = cache.Get<List<string>>("MessageSuccess");
+
+                if (MessageEnderecoUpdate != null)
+                {
+                    ViewBag.MessageEnderecoUpdate = MessageEnderecoUpdate;
+                    cache.Remove("MessageEnderecoUpdate");
+                }
+                if (MessageSuccess != null)
+                {
+                    ViewBag.MessageSuccess = MessageSuccess;
+                    cache.Remove("MessageSuccess");
+                }
+                ConsultaCpfCnpj model = cache.Get<ConsultaCpfCnpj>("model");
+                //NaccService.Pessoa naccPessoa = cache.Get<NaccService.Pessoa>("naccPessoa");
+                Utils.API.Nacc.Pessoa naccPessoa = null;
+                if (AppSettings.EnableNacc)
+                    naccPessoa = cache.Get<Utils.API.Nacc.Pessoa>("naccPessoa");
+
+                //IbiService.UR80 ibiUr80 = new IbiService.UR80();
+                UR80 ibiUr80 = new UR80();
+
+                Models.Endereco endereco = new Models.Endereco();
+
+                if (_produto.NomeProduto == "NACC" && !string.IsNullOrEmpty(_produto.CodProduto))
+                {
+                    //Adicionar idDebtor para recuperar produto posteriormente
+                    Utils.API.Nacc.Endereco naccEnd = naccPessoa.Endereco.FirstOrDefault();
+
+                    endereco.Rua = naccEnd.Logradouro;
+                    endereco.Numero = naccEnd.Numero;
+                    endereco.Bairro = naccEnd.Bairro;
+                    endereco.Cep = naccEnd.CEP;
+                    endereco.Complemento = naccEnd.Complemento;
+                    endereco.Cidade = naccEnd.Cidade;
+                    endereco.Estado = naccEnd.UF;
+
+                    if (naccPessoa.Telefone.Count > 0)
+                    {
+                        endereco.NaccTelefones = new List<string>();
+                        foreach (string tel in naccPessoa.Telefone)
+                            endereco.NaccTelefones.Add(tel);
+                    }
+                }
+                else if (_produto.NomeProduto == "IBI" && !string.IsNullOrEmpty(_produto.CodProduto))
+                {
+                    string cpf = (model.CpfCnpj).Replace(".", "").Replace("-", "");
+
+                    var pessoa = HttpHelper.GET<Utils.API.Ibi.Pessoa>(Utils.API.Ibi.Uri.GetPerson(cpf));
+                    if (pessoa == null || string.IsNullOrEmpty(pessoa.Cpf))
+                    {
+                        UR80 getUr80 = cache.Get<UR80>("ibiUr80");
+                        Utils.API.Ibi.Pessoa person = new Utils.API.Ibi.Pessoa
+                        {
+                            IdPessoa = 0,
+                            Cpf = cpf,
+                            Nome = getUr80.NomeCompletoCliente
+
+                        };
+                        var post = HttpHelper.POST<long>(Utils.API.Ibi.Uri.SetDataPerson(), person);
+                        pessoa = HttpHelper.GET<Utils.API.Ibi.Pessoa>(Utils.API.Ibi.Uri.GetPerson(model.CpfCnpj));
+                    }
+                    if (pessoa != null)
+                    {
+                        Utils.API.Ibi.Endereco end = pessoa.Endereco;
+                        if (end != null)
+                        {
+                            endereco.Rua = end.Logradouro;
+                            endereco.Numero = end.Numero;
+                            endereco.Bairro = end.Bairro;
+                            endereco.Cep = end.Cep;
+                            endereco.Complemento = end.Complemento;
+                            endereco.Cidade = end.Cidade;
+                            endereco.Estado = end.Estado;
+                        }
+                        IList<Utils.API.Ibi.Telefone> phones = pessoa.Telefone;
+                        endereco.Telefones = pessoa.Telefone;
+                        cache.AddCache("pessoa", pessoa);
+                    }
+                }
+                else
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+                EnderecoUpdate endUpdate = cache.Get<EnderecoUpdate>("EnderecoUpdate");
+                IList<object> data = new List<object> { model, endereco, cache.Get<Produto>("produto"), endUpdate };
+                return View(data);
+            }
+            catch (Exception e)
+            {
+                return RedirectToAction("Index", "NegociarAgora");
+            }
+        }
+
+        //[HttpPost]
+        //[Route("Confirmacao-De-Endereco")]
+        //public IActionResult ConfirmacaoDeEndereco(string accept)
+        //{
+        //    try
+        //    {
+        //        //Se for IBI, encerra operação
+        //        Produto _produto = cache.Get<Produto>("produto");
+        //        if (_produto.NomeProduto == "IBI")
+        //            if (!VerifyOperation.ValidOperation())
+        //                return RedirectToAction("Encerrado", "ConsultaCpfCnpj");
+
+        //        #region LOG AGREEMENT ACCEPT
+        //        //IbiService.URAClient client = new IbiService.URAClient();
+        //        //IbiService.WebSiteAgreement wsAgreement = cache.Get<IbiService.WebSiteAgreement>("WebSiteAgreement");
+        //        WebSiteAgreement wsAgreement = cache.Get<WebSiteAgreement>("WebSiteAgreement");
+
+        //        try
+        //        {
+        //            wsAgreement.FlAccept = true;
+        //            //var agreement = client.SetWebSiteAgreementAsync(wsAgreement).Result;
+        //            var agreement = HttpHelper.POST<WebSiteAgreement>(Utils.API.Ibi.Uri.SetWebSiteAgreement(), wsAgreement);
+        //            cache.AddCache("WebSiteAgreement", agreement);
+        //        }
+        //        catch
+        //        {
+
+        //        }
+
+        //        #endregion LOG AGREEMENT ACCEPT
+
+        //        return RedirectToAction("ConfirmacaoDeEndereco");
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        return RedirectToAction("Index", "NegociarAgora");
+        //    }
+        //}
+
+        [HttpPost]
+        [Route("Atualiza-Endereco")]
+        public IActionResult AtualizaEndereco(Models.Endereco endereco)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(_contextAccessor.HttpContext.Session.GetString("_sID")))
+                    return RedirectToAction("Index", "NegociarAgora");
+
+                //Recuperar Objetos do Cache
+                Produto _produto = cache.Get<Produto>("produto");
+                List<string> messageSuccess = new List<string>();
+                //IbiService.URAClient client = new IbiService.URAClient();
+                //Atualiza endereços
+                if (_produto.NomeProduto == "IBI")
+                {
+
+                    //Se for IBI, encerra operação
+                    if (!VerifyOperation.ValidOperation())
+                        return RedirectToAction("Encerrado", "ConsultaCpfCnpj");
+
+                    //IbiService.Pessoa pessoa = cache.Get<IbiService.Pessoa>("pessoa");
+                    Utils.API.Ibi.Pessoa pessoa = cache.Get<Utils.API.Ibi.Pessoa>("pessoa");
+
+                    if (pessoa != null)
+                    {
+                        if (pessoa.Endereco.IdEndereco > 0)
+                        {
+                            pessoa.Endereco.Cep = (string.IsNullOrEmpty(endereco.Cep)) ? "" : Regex.Replace(endereco.Cep, @"\D", "");
+                            pessoa.Endereco.Logradouro = string.IsNullOrEmpty(endereco.Rua) ? "" : endereco.Rua;
+                            pessoa.Endereco.Numero = string.IsNullOrEmpty(endereco.Numero) ? "" : endereco.Numero;
+                            pessoa.Endereco.Complemento = string.IsNullOrEmpty(endereco.Complemento) ? "" : endereco.Complemento;
+                            pessoa.Endereco.Bairro = string.IsNullOrEmpty(endereco.Bairro) ? "" : endereco.Bairro;
+                            pessoa.Endereco.Cidade = string.IsNullOrEmpty(endereco.Cidade) ? "" : endereco.Cidade;
+                            pessoa.Endereco.Estado = string.IsNullOrEmpty(endereco.Estado) ? "" : endereco.Estado;
+                        }
+                        else
+                        {
+                            pessoa.Endereco = new Utils.API.Ibi.Endereco
+                            {
+                                Logradouro = endereco.Rua,
+                                Numero = endereco.Numero,
+                                Complemento = endereco.Complemento,
+                                Bairro = endereco.Bairro,
+                                Cidade = endereco.Cidade,
+                                Estado = endereco.Estado,
+                                Cep = Regex.Replace(endereco.Cep, @"\D", "")
+                            };
+                        }
+                    }
+                    //long idAccount = client.SetDataPersonAsync(pessoa).Result;
+                    long idAccount = HttpHelper.POST<long>(Utils.API.Ibi.Uri.SetDataPerson(), pessoa);
+                    if (idAccount > 0)
+                        messageSuccess.Add("Endereço atualizado com sucesso!");
+
+                    /* Adicionar Id Produto no Cache */
+                    _produto.IdAccount = idAccount;
+                    cache.AddCache("produto", _produto);
+
+                    EnderecoUpdate endUpdate = cache.Get<EnderecoUpdate>("EnderecoUpdate");
+                    if (endUpdate == null)
+                        endUpdate = new EnderecoUpdate() { Endereco = true };
+                    else
+                        endUpdate.Endereco = true;
+
+                    cache.AddCache("MessageSuccess", messageSuccess);
+                    cache.AddCache("EnderecoUpdate", endUpdate);
+                }
+                else if (_produto.NomeProduto == "NACC")
+                {
+                    //NaccService.Pessoa pessoa = cache.Get<NaccService.Pessoa>("naccPessoa");
+                    //NaccService.Endereco end = pessoa.Endereco.FirstOrDefault();
+
+                    Utils.API.Nacc.Pessoa pessoa = cache.Get<Utils.API.Nacc.Pessoa>("naccPessoa");
+                    Utils.API.Nacc.Endereco end = pessoa.Endereco.FirstOrDefault();
+
+                    end.CEP = (string.IsNullOrEmpty(endereco.Cep)) ? "" : Regex.Replace(endereco.Cep, @"\D", "");
+                    end.Logradouro = string.IsNullOrEmpty(endereco.Rua) ? "" : endereco.Rua;
+                    end.Numero = string.IsNullOrEmpty(endereco.Numero) ? "" : endereco.Numero;
+                    end.Complemento = string.IsNullOrEmpty(endereco.Complemento) ? "" : endereco.Complemento;
+                    end.Bairro = string.IsNullOrEmpty(endereco.Bairro) ? "" : endereco.Bairro;
+                    end.Cidade = string.IsNullOrEmpty(endereco.Cidade) ? "" : endereco.Cidade;
+                    end.UF = string.IsNullOrEmpty(endereco.Estado) ? "" : endereco.Estado;
+
+                    //NaccService.Pessoa pessoaUpdate = SystemExtension.DeepCopy(cache.Get<NaccService.Pessoa>("naccPessoa"));
+                    Utils.API.Nacc.Pessoa pessoaUpdate = SystemExtension.DeepCopy(cache.Get<Utils.API.Nacc.Pessoa>("naccPessoa"));
+                    pessoaUpdate.Telefone = new List<string>();
+
+                    //NaccService.DebtorServiceClient DebtorService = new NaccService.DebtorServiceClient();
+                    //bool update = DebtorService.AtualizaDadosCadastraisAsync(pessoaUpdate).Result;
+                    bool update = HttpHelper.POST<bool>(Utils.API.Nacc.Uri.AtualizaDadosCadastrais(), pessoaUpdate);
+
+                    if (update)
+                        messageSuccess.Add("Endereço atualizado com sucesso!");
+
+                    EnderecoUpdate endUpdate = cache.Get<EnderecoUpdate>("EnderecoUpdate");
+                    if (endUpdate == null)
+                        endUpdate = new EnderecoUpdate() { Endereco = true };
+                    else
+                        endUpdate.Endereco = true;
+
+                    cache.AddCache("MessageSuccess", messageSuccess);
+                    cache.AddCache("EnderecoUpdate", endUpdate);
+                }
+
+                #region Log Atualizou Endereço
+                //IbiService.WebSiteAddress wsAddress = cache.Get<IbiService.WebSiteAddress>("WebSiteAddress");
+                WebSiteAddress wsAddress = cache.Get<WebSiteAddress>("WebSiteAddress");
+                //if (wsAddress == null)
+                //{
+                //    IbiService.WebSiteNavigation wsNavigation = cache.Get<IbiService.WebSiteNavigation>("WebSiteNavigation");
+                //    IbiService.WebSiteAddress address = new IbiService.WebSiteAddress { DtInsert = DateTime.Now, FlUpdateAddress = true, FlContinue = false, IdWebSiteNavigation = wsNavigation.IdWebSiteNavigation };
+                //    var _wsAddress = client.SetWebSiteAddressAsync(address).Result;
+                //    cache.AddCache("WebSiteAddress", _wsAddress);
+                //}
+                if (wsAddress == null)
+                {
+                    WebSiteNavigation wsNavigation = cache.Get<WebSiteNavigation>("WebSiteNavigation");
+                    WebSiteAddress address = new WebSiteAddress { DtInsert = DateTime.Now, FlUpdateAddress = true, FlContinue = false, IdWebSiteNavigation = wsNavigation.IdWebSiteNavigation };
+                    //var _wsAddress = client.SetWebSiteAddressAsync(address).Result;
+                    var _wsAddress = HttpHelper.POST<WebSiteAddress>(Utils.API.Ibi.Uri.SetWebSiteAddress(), address);
+                    cache.AddCache("WebSiteAddress", _wsAddress);
+                }
+                //IbiService.UraClient
+                #endregion
+
+                return RedirectToAction("ConfirmacaoDeEndereco");
+            }
+            catch (Exception e)
+            {
+                return RedirectToAction("Index", "NegociarAgora");
+            }
+        }
+
+        [Route("Endereco-Atualizado")]
+        public IActionResult EnderecoAtualizado()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(_contextAccessor.HttpContext.Session.GetString("_sID")))
+                    return RedirectToAction("Index", "NegociarAgora");
+
+                EnderecoUpdate endUpdate = cache.Get<EnderecoUpdate>("EnderecoUpdate");
+                //IbiService.Pessoa pessoa = cache.Get<IbiService.Pessoa>("pessoa");
+                //NaccService.Pessoa naccPessoa = cache.Get<NaccService.Pessoa>("naccPessoa");
+                Utils.API.Ibi.Pessoa pessoa = cache.Get<Utils.API.Ibi.Pessoa>("pessoa");
+                Utils.API.Nacc.Pessoa naccPessoa = cache.Get<Utils.API.Nacc.Pessoa>("naccPessoa");
+                Produto _produto = cache.Get<Produto>("produto");
+                List<string> messageError = new List<string>();
+                if (endUpdate == null)
+                {
+                    messageError.Add("Para continuar, é necessário atualizar seu endereço.");
+                    messageError.Add("É necessário possuir pelo menos um telefone para contato.");
+                }
+                if (endUpdate != null && !endUpdate.Endereco)
+                {
+                    messageError.Add("Para continuar, é necessário atualizar seu endereço.");
+                }
+                if (endUpdate != null && !endUpdate.Telefone)
+                {
+                    if (
+                        (pessoa != null && pessoa.Telefone != null && pessoa.Telefone.Count > 0) ||
+                        (naccPessoa != null && naccPessoa.Telefone != null && naccPessoa.Telefone.Count > 0)
+                       )
+                        endUpdate.Telefone = true;
+                    else
+                        messageError.Add("É necessário possuir pelo menos um telefone para contato.");
+                }
+                if (endUpdate != null && endUpdate.Endereco && endUpdate.Telefone)
+                {
+                    //Endereço atualizado Gerar cache
+                    cache.AddCache("EnderecoAtualizado", true);
+
+                    #region Atualizar Clique no botão Continuar
+                    //IbiService.WebSiteAddress wsAddress = cache.Get<IbiService.WebSiteAddress>("WebSiteAddress");
+                    WebSiteAddress wsAddress = cache.Get<WebSiteAddress>("WebSiteAddress");
+                    if (wsAddress != null)
+                    {
+                        wsAddress.FlContinue = true;
+                        //IbiService.URAClient client = new IbiService.URAClient();
+                        //var _wsAddress = client.SetWebSiteAddressAsync(wsAddress).Result;
+                        var _wsAddress = HttpHelper.POST<WebSiteAddress>(Utils.API.Ibi.Uri.SetWebSiteAddress(), wsAddress);
+                        cache.AddCache("WebSiteAddress", _wsAddress);
+                    }
+                    #endregion
+                    return RedirectToAction("Finalizar");
+                }
+                else
+                {
+                    cache.AddCache("MessageEnderecoUpdate", messageError);
+                    return RedirectToAction("ConfirmacaoDeEndereco");
+                }
+            }
+            catch (Exception)
+            {
+                return RedirectToAction("ConfirmacaoDeEndereco");
+            }
+
+        }
+
+
+        [Route("Forma-De-Pagamento")]
+        public IActionResult FormaDePagamento()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(_contextAccessor.HttpContext.Session.GetString("_sID")))
+                    return RedirectToAction("Index", "NegociarAgora");
+
+                IList<string> message = new List<string>();
+                Produto _produto = cache.Get<Produto>("produto");
+                ConsultaCpfCnpj model = cache.Get<ConsultaCpfCnpj>("model");
+
+                UR80 getUr80 = cache.Get<UR80>("ibiUr80");
+                IList<Logo> logomarca = cache.Get<List<Logo>>("ibiLogo");
+
+                IList<NaccLogomarca> naccLogomarca = cache.Get<List<NaccLogomarca>>("naccLogo");
+
+                Utils.API.Nacc.Pessoa naccPessoa = cache.Get<Utils.API.Nacc.Pessoa>("naccPessoa");
+                Utils.API.Nacc.Conta naccConta = cache.Get<Utils.API.Nacc.Conta>("naccConta");
+
+                if (_contextAccessor.HttpContext.Session.GetString("_sID") == null || _produto == null || model == null && (logomarca == null || naccLogomarca == null))
+                {
+                    return RedirectToAction("Index", "NegociarAgora");
+                }
+
+                UR84.UR84Detail ibiCard = new UR84.UR84Detail();
+                AgreementSimulate parcelamento = new AgreementSimulate();
+                SimulaParcelamento simulaParcelamento = new SimulaParcelamento();
+
+                Debtor naccCard = new Debtor();
+
+                if (_produto != null && _produto.NomeProduto == "IBI")
+                {
+                    //IbiService.UR84 ibiService = cache.Get<IbiService.UR84>("ibiUr84");
+                    UR84 ibiService = cache.Get<UR84>("ibiUr84");
+                    ibiCard = ibiService.Detail.Where(p => p.NumeroCartao?.Trim() == _produto.CodProduto?.Trim()).FirstOrDefault();
+
+                    if (Convert.ToInt32(ibiCard.DiasAtraso) < 1)
+                        return RedirectToAction("Acordo", "SegundaVia");
+
+                    /** Validar se existe acordo. **/
+                    UR86 ibiUr86 = new UR86();
+                    UR80 ibiUr80 = new UR80();
+
+                    if (getUr80 == null || getUr80.NumeroCartao?.Trim() != _produto.CodProduto?.Trim())
+                    {
+                        string cpf = Regex.Replace(model.CpfCnpj, @"\D", "");
+
+                        Parallel.Invoke(
+                            () => ibiUr80 = HttpHelper.GET<UR80>(Utils.API.Ibi.Uri.GetUR80(_produto.CodProduto)),
+                            () => ibiUr86 = HttpHelper.GET<UR86>(Utils.API.Ibi.Uri.GetUR86(_produto.CodProduto, "1"))
+                            );
+
+                        var ur86Detail = ibiUr86.Detail.Where(p => p.NumeroCartao.Contains(ibiCard.NumeroCartao?.Trim())).FirstOrDefault();
+                        if (ur86Detail != null)
+                        {
+                            IList<WebSiteProduct> listWsProduct = cache.Get<List<WebSiteProduct>>("WebSiteProduct");
+                            if (listWsProduct != null)
+                            {
+                                var wsProduct = listWsProduct.Where(p => p.DsProduct?.Trim() == ibiCard.NumeroCartao?.Trim()).FirstOrDefault();
+                                if (wsProduct != null)
+                                {
+                                    wsProduct.AccountIBI = ur86Detail.NumeroConta;
+                                    var res = HttpHelper.POST<WebSiteProduct>(Utils.API.Ibi.Uri.UpdateWebSiteProduct(), wsProduct);
+                                }
+                            }
+                        }
+
+                        cache.AddCache("ibiUr80", ibiUr80);
+                        cache.AddCache("ibiUr86", ibiUr86);
+                    }
+
+                    #region VERIFICAR ACORDO REALIZADO HOJE
+
+                    //ICollection<IbiService.WebSiteAgreement> listAgreement = ibiClient.GetWebSiteAgreementTodayAsync().Result;
+                    ICollection<WebSiteAgreement> listAgreement = HttpHelper.GET<ICollection<WebSiteAgreement>>(Utils.API.Ibi.Uri.GetWebSiteAgreementToday());
+                    //IbiService.WebSiteAgreement agreement = null;
+                    WebSiteAgreement agreement = null;
+                    if (listAgreement != null && listAgreement.Count() > 0)
+                    {
+                        //Parallel.ForEach(listAgreement, (IbiService.WebSiteAgreement agree, ParallelLoopState state) =>
+                        Parallel.ForEach(listAgreement, (WebSiteAgreement agree, ParallelLoopState state) =>
+                        {
+                            //var x = ibiClient.GetWebSiteProductAsync(agree.IdWebSiteProduct.ToString()).Result;
+                            var x = HttpHelper.GET<WebSiteProduct>(Utils.API.Ibi.Uri.GetWebSiteProduct(agree.IdWebSiteProduct.ToString()));
+                            if (x != null && x.DsProduct == _produto.CodProduto)
+                            {
+                                agreement = agree;
+                                state.Break();
+                            }
+                        });
+                        //foreach (var agree in listAgreement)
+                        //{
+                        //var x = ibiClient.GetWebSiteProductAsync(agree.IdWebSiteProduct.ToString()).GetAwaiter().GetResult();
+                        //if (x != null && x.DsProduct == _produto.CodProduto)
+                        //{
+                        //    agreement = agree;
+                        //    break;
+                        //}
+                        //}
+                    }
+                    #endregion
+
+                    if (listStatacorIbi.Contains(ibiUr80.StatusAcordo) || agreement != null)
+                    {
+                        return RedirectToAction("Acordo", "SegundaVia");
+                    }
+                    Ibi ibi = new Ibi();
+                    ibi.AccountIBI(_produto, ibiCard, parcelamento, simulaParcelamento, logomarca, message, cache);
+                    // Dentro de AccountIBI está gravando log de simulações
+                }
+                else if (_produto != null && _produto.NomeProduto == "NACC")
+                {
+                    string cpf = Regex.Replace(model.CpfCnpj, @"\D", "");
+                    naccCard = naccPessoa.Debtor.Where(p => p.IdDebtor.ToString() == _produto.CodProduto).FirstOrDefault();
+
+                    //NaccService.IDebtorService debtorService = new NaccService.DebtorServiceClient();
+                    simulaParcelamento = cache.Get<SimulaParcelamento>("simulaParcelamento");
+
+                    //Buscar débito em aberto na FMC - a vista
+                    //naccConta = debtorService.GetContaAsync(cpf, DateTime.Today.ToString("yyyy-MM-dd"), naccCard.Carteira).Result;
+                    naccConta = HttpHelper.GET<Utils.API.Nacc.Conta>(Utils.API.Nacc.Uri.GetConta(cpf, DateTime.Today.ToString("yyyy-MM-dd"), naccCard.Carteira));
+                    //naccConta = debtorService.GetContaAsync(cpf, DateTime.Today.ToString("yyyy-MM-dd"), naccCard.Carteira).Result;
+                    cache.AddCache("naccConta", naccConta);
+
+                    //Valida acordo ativo
+                    foreach (var acordo in naccCard.Acordo)
+                        if (listaAcordoNacc.Contains(acordo.StatusAcordo))
+                            return RedirectToAction("Acordo");
+
+                    //Buscar débito em aberto na FMC - parcelado
+                    Nacc nacc = new Nacc();
+                    nacc.GetParcelamento(naccPessoa, naccCard, naccConta, simulaParcelamento, message, cache);
+                }
+
+                IList<object> data = new List<object> { cache.Get<ConsultaCpfCnpj>("model"), ibiCard, naccCard, cache.Get<AgreementSimulate>("parcelamento"), cache.Get<SimulaParcelamento>("simulaParcelamento"), logomarca, naccLogomarca, cache.Get<IList<Parcela>>("naccParcelado"), naccPessoa, naccConta };
+                ViewData["Message"] = message;
+                return View(data);
+            }
+            catch (Exception e)
+            {
+                return RedirectToAction("CentralCobranca");
+            }
+        }
+
+        [HttpPost]
+        [Route("Simular-Negociacao")]
+        public async Task<IActionResult> SimularNegociacao(string _CaptchaToken, UR84.UR84Detail ur84Detail = null, Debtor debtor = null)
+        {
+            var isCaptchaValid = await Utils.Util.IsCaptchaValid(_CaptchaToken);
+            if (isCaptchaValid)
+            {
+                try
+                {
+                    if (debtor != null && debtor.IdDebtor > 0)
+                        cache.AddCache("produto", new Produto() { CodProduto = debtor.IdDebtor.ToString(), NomeProduto = "NACC" });
+                    else if (ur84Detail != null && !string.IsNullOrEmpty(ur84Detail.NumeroCartao?.Trim()))
+                        cache.AddCache("produto", new Produto() { CodProduto = ur84Detail.NumeroCartao?.Trim(), NomeProduto = "IBI" });
+
+                    return RedirectToAction("FormaDePagamento");
+                }
+                catch (Exception)
+                {
+                    return RedirectToAction("Index");
+                }
+            }
+            else
+            {
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpPost]
+        [Route("Forma-De-Pagamento")]
+        public IActionResult FormaDePagamento(SimulaParcelamento simula)
+        {
+            try
+            {
+                cache.Remove("simulaParcelamento");
+                cache.Remove("parcelamento");
+                //if (simula != null)
+                //    if (simula.Entrada == null || Convert.ToDecimal(simula.Entrada) == 0)
+                //        simula.Parcela = 0;
+
+                cache.AddCache("simulaParcelamento", simula);
+                return RedirectToAction("FormaDePagamento");
+            }
+            catch (Exception)
+            {
+                return RedirectToAction("Index", "NegociarAgora");
+            }
+        }
+
+        [Route("Central-De-Cobranca")]
+        public IActionResult CentralCobranca()
+        {
+            IList<object> data = new List<object> { new ConsultaCpfCnpj() };
+            return View(data);
+        }
+
+        [HttpPost]
+        [Route("Termos-E-Condicoes")]
+        public IActionResult TermosECondicoes(string totalParcel)
+        {
+            try
+            {
+                ConsultaCpfCnpj model = cache.Get<ConsultaCpfCnpj>("model");
+                if (model == null)
+                    return RedirectToAction("SessaoExpirada", "ConsultaCpfCnpj");
+
+                Produto _produto = cache.Get<Produto>("produto");
+
+                if (!VerifyOperation.ValidOperation())
+                    return RedirectToAction("Encerrado", "ConsultaCpfCnpj");
+
+                SimulaParcelamento simulaParcelamento = cache.Get<SimulaParcelamento>("simulaParcelamento");
+                UR84 ibiService = cache.Get<UR84>("ibiUr84");
+                TermoECondicao termo = cache.Get<TermoECondicao>("termo");
+
+                if (_produto != null && _produto.NomeProduto == "IBI")
+                {
+                    UR84.UR84Detail ibiCard = new UR84.UR84Detail();
+                    ibiCard = ibiService.Detail.Where(p => p.NumeroCartao?.Trim() == _produto.CodProduto).FirstOrDefault();
+                    cache.AddCache("totalParcel", totalParcel);
+
+                    #region LOG AGREEMENT IBI
+                    //Insert Log Agreement
+                    IList<WebSiteProduct> listWsProduct = cache.Get<List<WebSiteProduct>>("WebSiteProduct");
+                    WebSiteProduct wsProduct = listWsProduct.Where(p => p.DsProduct?.Trim() == _produto.CodProduto).FirstOrDefault();
+                    WebSiteAgreement wsAgreement = cache.Get<WebSiteAgreement>("WebSiteAgreement");
+                    WebSiteSimulate wsSimulate = cache.Get<WebSiteSimulate>("WebSiteSimulate");
+                    decimal vlDiscount = (wsSimulate != null) ? wsSimulate.VlDesconto : 0;
+                    DateTime? dtFirstParcel = (wsSimulate != null) ? wsSimulate.DtFirstParcel : DateTime.Today.AddDays(15);
+
+                    if (wsAgreement == null)
+                    {
+                        if (wsProduct != null && wsProduct.AccountIBI == null)
+                        {
+                            var ur86 = cache.Get<UR86>("ibiUr86");
+                            var ur86Detail = ur86.Detail.Where(p => p.NumeroCartao.Contains(ibiCard.NumeroCartao?.Trim())).FirstOrDefault();
+                            if (ur86Detail != null)
+                            {
+                                wsProduct.AccountIBI = ur86Detail.NumeroConta;
+                                // var r = client.UpdateWebSiteProductAsync(wsProduct).Result;
+                                var r = HttpHelper.POST<WebSiteProduct>(Utils.API.Ibi.Uri.UpdateWebSiteProduct(), wsProduct);
+                            }
+                        }
+
+                        if (termo.ValueEntrance > 0 && termo.Age > 55)
+                            dtFirstParcel = termo.DateParcel;
+
+                        //var agreement = new IbiService.WebSiteAgreement()
+                        var agreement = new WebSiteAgreement()
+                        {
+                            IdWebSiteProduct = wsProduct.IdWebSiteProduct,
+                            IdAccount = _produto.IdAccount,
+                            VlEntrace = termo.ValueEntrance,
+                            DtEntrace = Convert.ToDateTime(termo.DateEntranceParcel),
+                            NrParcel = termo.Age <= 55 ? 0 : termo.NrParcel,
+                            VlParcel = termo.ValueParcel,
+                            DtFirstParcel = dtFirstParcel,
+                            FlPromisse = termo.Age <= 55 ? true : false,
+                            FlAccept = true,
+                            VlDesconto = vlDiscount,
+                            DtInsert = DateTime.Now,
+                        };
+                        var _wsAgreement = HttpHelper.POST<WebSiteAgreement>(Utils.API.Ibi.Uri.SetWebSiteAgreement(), agreement);
+                        cache.AddCache("WebSiteAgreement", _wsAgreement);
+                    }
+                    //End Log
+                    #endregion LOG AGREEMENT IBI
+
+                    return RedirectToAction("Confirmacao-De-Endereco", "Consulta-Documento");
+                }
+                else if (_produto != null && _produto.NomeProduto == "NACC")
+                {
+                    Utils.API.Nacc.Pessoa naccPessoa = cache.Get<Utils.API.Nacc.Pessoa>("naccPessoa");
+                    Utils.API.Nacc.Debtor naccCard = naccPessoa.Debtor.Where(p => p.IdDebtor.ToString() == _produto.CodProduto).FirstOrDefault();
+                    IList<Utils.API.Nacc.Parcela> naccParcelas = cache.Get<List<Utils.API.Nacc.Parcela>>("naccParcelado");
+                    Utils.API.Nacc.Conta naccConta = cache.Get<Conta>("naccConta");
+
+                    var parcelOption = naccParcelas.Where(p => p.NumeroParcelas == Convert.ToInt32(totalParcel)).FirstOrDefault();// parcelamento.ParcelOption.Where(p => p.NumberParcel == Convert.ToInt32(totalParcel)).FirstOrDefault();
+
+                    #region LOG AGREEMENT NACC
+
+                    //IList<IbiService.WebSiteProduct> listWsProduct = cache.Get<List<IbiService.WebSiteProduct>>("WebSiteProduct");
+                    IList<WebSiteProduct> listWsProduct = cache.Get<List<WebSiteProduct>>("WebSiteProduct");
+                    WebSiteProduct wsProduct;
+                    if (naccCard.Carteira == "ENO")
+                    {
+                        List<string> contract = naccCard.Contrato.Split('/').ToList();
+                        wsProduct = listWsProduct.Where(p => p.DsProduct == contract[0]).FirstOrDefault();
+                    }
+                    else if (naccCard.Carteira == "CDJ")
+                    {
+                        List<string> contract = naccCard.Contrato.Split('/').ToList();
+                        wsProduct = listWsProduct.Where(p => p.DsProduct == contract[0]).FirstOrDefault();
+                    }
+                    else if (naccCard.Carteira == "MMN")
+                    {
+                        List<string> contract = naccCard.Contrato.Split('-').ToList();
+                        try
+                        {
+                            wsProduct = listWsProduct.Where(p => p.DsProduct == contract[0]).FirstOrDefault();
+                        }
+                        catch
+                        {
+                            wsProduct = null;
+                        }
+                    }
+                    else
+                    {
+                        wsProduct = listWsProduct.Where(p => p.DsProduct?.Trim() == _produto.CodProduto).FirstOrDefault();
+                    }
+                    //IbiService.WebSiteAgreement wsAgreement = cache.Get<IbiService.WebSiteAgreement>("WebSiteAgreement");
+                    WebSiteAgreement wsAgreement = cache.Get<WebSiteAgreement>("WebSiteAgreement");
+                    if (wsAgreement == null)
+                    {
+                        //var agreement = new IbiService.WebSiteAgreement()
+                        var agreement = new WebSiteAgreement()
+                        {
+                            IdWebSiteProduct = wsProduct.IdWebSiteProduct,
+                            IdAccount = naccCard.IdDebtor,
+                            VlEntrace = termo.ValueEntrance,
+                            DtEntrace = Convert.ToDateTime(termo.DateEntranceParcel),
+                            NrParcel = termo.NrParcel,
+                            VlParcel = termo.ValueParcel,
+                            FlPromisse = false,
+                            FlAccept = true,
+                            VlDesconto = 0,
+                            DtInsert = DateTime.Now
+                        };
+                        // var _wsAgreement = client.SetWebSiteAgreementAsync(agreement).Result;
+                        var _wsAgreement = HttpHelper.POST<WebSiteAgreement>(Utils.API.Ibi.Uri.SetWebSiteAgreement(), agreement);
+                        cache.AddCache("WebSiteAgreement", _wsAgreement);
+                    }
+                    #endregion LOG AGREEMENT NACC
+
+                    //Registrar Acordo
+                    Nacc nacc = new Nacc();
+                    nacc.RegisterAgreement(cache);
+                    return RedirectToAction("Confirmacao-De-Endereco", "Consulta-Documento");
+                }
+                return RedirectToAction("Forma-De-Pagamento", "Consulta-Documento");
+            }
+            catch (Exception e)
+            {
+                return RedirectToAction("FormaDePagamento");
+            }
+
+        }
+
+        [Route("Termos-E-Condicoes")]
+        public IActionResult TermosECondicoes()
+        {
+            try
+            {
+                string totalParcel = cache.Get<string>("totalParcel");
+                if (string.IsNullOrEmpty(_contextAccessor.HttpContext.Session.GetString("_sID")) || string.IsNullOrEmpty(totalParcel))
+                    return RedirectToAction("Index", "NegociarAgora");
+
+                // IbiService.URAClient client = new IbiService.URAClient();
+                UR84.UR84Detail ibiCard = new UR84.UR84Detail();
+                Produto _produto = cache.Get<Produto>("produto");
+                SimulaParcelamento simulaParcelamento = cache.Get<SimulaParcelamento>("simulaParcelamento");
+                UR84 ibiService = cache.Get<UR84>("ibiUr84");
+
+                TermoECondicao termo = new TermoECondicao();
+
+                if (_produto != null && _produto.NomeProduto == "IBI")
+                {
+                    //Se for IBI, encerra operação
+                    if (!VerifyOperation.ValidOperation())
+                        return RedirectToAction("Encerrado", "ConsultaCpfCnpj");
+
+                    ibiCard = ibiService.Detail.Where(p => p.NumeroCartao?.Trim() == _produto.CodProduto).FirstOrDefault();
+                    if (Convert.ToInt32(ibiCard.DiasAtraso) < 1)
+                        return RedirectToAction("Acordo", "SegundaVia");
+
+                    AgreementSimulate parcelamento = cache.Get<AgreementSimulate>("parcelamento");
+
+                    DateTime dataEntrada = DateTime.Now;
+                    if (!DateTime.TryParse(simulaParcelamento.DataEntrada, out dataEntrada)) { }
+                    string vlEntrada = (simulaParcelamento != null && simulaParcelamento.Entrada != null) ? simulaParcelamento.Entrada : "0";
+                    vlEntrada = Regex.Replace(vlEntrada, @"\D", "");
+
+                    termo = new TermoECondicao
+                    {
+                        Age = Convert.ToInt32(ibiCard.DiasAtraso),
+                        NrParcel = Convert.ToInt32(totalParcel),
+                        DateEntranceParcel = dataEntrada
+                    };
+
+
+                    if (parcelamento != null)
+                    {
+                        var parcelOption = parcelamento.ParcelOption.Where(p => p.NumberParcel == Convert.ToInt32(totalParcel)).FirstOrDefault();
+                        if (parcelOption != null)
+                            termo.ValueParcel = parcelOption.ValueParcel;
+                    }
+
+                    if (vlEntrada != "0")
+                    {
+                        termo.DateParcel = dataEntrada.AddMonths(1);
+                        termo.PercentageTax = (termo.Age > 59) ? 4.99 : 4.90;
+                        termo.ValueEntrance = Convert.ToDecimal(simulaParcelamento.Entrada);
+                    }
+                    else
+                    {
+                        termo.PercentageTax = (termo.Age < 360) ? Convert.ToDouble(AppSettings.JurosAvistaIBI) : 0;
+                    }
+
+
+                    //Para promessa
+                    int NrParcelLog = termo.NrParcel;
+                    bool FlPromisseLog = false;
+                    if (termo.Age <= 55)
+                    {
+                        if (termo.NrParcel == 0)
+                            termo.ValueEntrance = ibiCard.PagamentoMinimo;
+                        else if (termo.NrParcel == 1)
+                            termo.ValueEntrance = ibiCard.SaldoDevedorAtraso;
+                        else
+                            termo.ValueEntrance = Convert.ToDecimal(simulaParcelamento.Entrada);
+
+                        NrParcelLog = 0;
+                        FlPromisseLog = true;
+                    }
+
+
+                    #region LOG AGREEMENT IBI
+                    //Insert Log Agreement
+                    IList<WebSiteProduct> listWsProduct = cache.Get<List<WebSiteProduct>>("WebSiteProduct");
+                    WebSiteProduct wsProduct = listWsProduct.Where(p => p.DsProduct?.Trim() == _produto.CodProduto).FirstOrDefault();
+                    WebSiteAgreement wsAgreement = cache.Get<WebSiteAgreement>("WebSiteAgreement");
+                    WebSiteSimulate wsSimulate = cache.Get<WebSiteSimulate>("WebSiteSimulate");
+                    decimal vlDiscount = (wsSimulate != null) ? wsSimulate.VlDesconto : 0;
+                    DateTime? dtFirstParcel = (wsSimulate != null) ? wsSimulate.DtFirstParcel : DateTime.Today.AddDays(15);
+
+                    if (wsAgreement == null)
+                    {
+                        if (wsProduct != null && wsProduct.AccountIBI == null)
+                        {
+                            var ur86 = cache.Get<UR86>("ibiUr86");
+                            var ur86Detail = ur86.Detail.Where(p => p.NumeroCartao.Contains(ibiCard.NumeroCartao?.Trim())).FirstOrDefault();
+                            if (ur86Detail != null)
+                            {
+                                wsProduct.AccountIBI = ur86Detail.NumeroConta;
+                                // var r = client.UpdateWebSiteProductAsync(wsProduct).Result;
+                                var r = HttpHelper.POST<WebSiteProduct>(Utils.API.Ibi.Uri.UpdateWebSiteProduct(), wsProduct);
+                            }
+                        }
+
+                        if (termo.ValueEntrance > 0 && !FlPromisseLog)
+                            dtFirstParcel = termo.DateParcel;
+
+                        //var agreement = new IbiService.WebSiteAgreement()
+                        var agreement = new WebSiteAgreement()
+                        {
+                            IdWebSiteProduct = wsProduct.IdWebSiteProduct,
+                            IdAccount = _produto.IdAccount,
+                            VlEntrace = termo.ValueEntrance,
+                            DtEntrace = Convert.ToDateTime(termo.DateEntranceParcel),
+                            NrParcel = NrParcelLog,
+                            VlParcel = termo.ValueParcel,
+                            DtFirstParcel = dtFirstParcel,
+                            FlPromisse = FlPromisseLog,
+                            FlAccept = false,
+                            VlDesconto = vlDiscount,
+                            DtInsert = DateTime.Now,
+                        };
+                        //var _wsAgreement = client.SetWebSiteAgreementAsync(agreement).Result;
+                        var _wsAgreement = HttpHelper.POST<WebSiteAgreement>(Utils.API.Ibi.Uri.SetWebSiteAgreement(), agreement);
+                        cache.AddCache("WebSiteAgreement", _wsAgreement);
+                    }
+                    //End Log
+                    #endregion LOG AGREEMENT IBI
+
+                }
+                else if (_produto != null && _produto.NomeProduto == "NACC")
+                {
+                    //NaccService.Pessoa naccPessoa = cache.Get<NaccService.Pessoa>("naccPessoa");
+                    //NaccService.Debtor naccCard = naccPessoa.Debtor.Where(p => p.IdDebtor.ToString() == _produto.CodProduto).FirstOrDefault();
+                    //IList<NaccService.Parcela> naccParcelas = cache.Get<List<NaccService.Parcela>>("naccParcelado");
+                    //NaccService.Conta naccConta = cache.Get<NaccService.Conta>("naccConta");
+                    Utils.API.Nacc.Pessoa naccPessoa = cache.Get<Utils.API.Nacc.Pessoa>("naccPessoa");
+                    Utils.API.Nacc.Debtor naccCard = naccPessoa.Debtor.Where(p => p.IdDebtor.ToString() == _produto.CodProduto).FirstOrDefault();
+                    IList<Utils.API.Nacc.Parcela> naccParcelas = cache.Get<List<Utils.API.Nacc.Parcela>>("naccParcelado");
+                    Utils.API.Nacc.Conta naccConta = cache.Get<Utils.API.Nacc.Conta>("naccConta");
+
+                    DateTime dataEntrada = DateTime.Now;
+                    if (!DateTime.TryParse(simulaParcelamento.DataEntrada, out dataEntrada)) { }
+                    string vlEntrada = (simulaParcelamento != null && simulaParcelamento.Entrada != null) ? simulaParcelamento.Entrada : "0";
+                    vlEntrada = Regex.Replace(vlEntrada, @"\D", "");
+                    var parcelOption = naccParcelas.Where(p => p.NumeroParcelas == Convert.ToInt32(totalParcel)).FirstOrDefault();// parcelamento.ParcelOption.Where(p => p.NumberParcel == Convert.ToInt32(totalParcel)).FirstOrDefault();
+
+                    termo = new TermoECondicao
+                    {
+                        //Age = Convert.ToInt32(ibiCard.DiasAtraso),
+                        NrParcel = Convert.ToInt32(totalParcel),
+                        DateEntranceParcel = dataEntrada,
+                        CarteiraNacc = naccCard.Carteira
+                    };
+
+                    if (naccParcelas != null && Convert.ToInt32(totalParcel) > 0)
+                    {
+                        if (parcelOption != null)
+                            termo.ValueParcel = parcelOption.ValorParcela;
+                    }
+                    else if (naccParcelas != null && Convert.ToInt32(totalParcel) == 0)
+                    {
+                        if (naccConta != null)
+                        {
+                            if (naccCard.Carteira == "ENO")
+                            {
+                                decimal saldo = 0;
+                                decimal desconto = 0;
+                                //foreach (NaccService.Contratos c in naccConta.Contratos)
+                                foreach (Utils.API.Nacc.Contratos c in naccConta.Contratos)
+                                {
+                                    if (c != null)
+                                    {
+                                        desconto += c.VlMaxDescontoVista;
+                                        saldo += c.VlAcordoVista;
+                                    }
+                                }
+                                termo.ValueParcel = saldo - (desconto * Convert.ToDecimal(AppSettings.PercentageDiscountNaccCashENO * 0.01));
+                            }
+                            else if (naccCard.Carteira == "CDJ")
+                            {
+                                decimal saldo = 0;
+                                decimal desconto = 0;
+                                //foreach (NaccService.Contratos c in naccConta.Contratos)
+                                foreach (Utils.API.Nacc.Contratos c in naccConta.Contratos)
+                                {
+                                    if (c != null)
+                                    {
+                                        desconto += c.VlMaxDescontoVista;
+                                        saldo += c.VlAcordoVista;
+                                    }
+                                }
+                                termo.ValueParcel = saldo - (desconto * Convert.ToDecimal(AppSettings.PercentageDiscountNaccCash * 0.01));
+                            }
+                            else if (naccCard.Carteira == "MMN")
+                            {
+                                decimal saldo = 0;
+                                decimal desconto = 0;
+                                //foreach (NaccService.Contratos c in naccConta.Contratos)
+                                foreach (Utils.API.Nacc.Contratos c in naccConta.Contratos)
+                                {
+                                    if (c != null)
+                                    {
+                                        desconto += c.VlMaxDescontoVista;
+                                        saldo += c.VlAcordoVista;
+                                    }
+                                }
+                                termo.ValueParcel = saldo - (desconto * Convert.ToDecimal(AppSettings.PercentageDiscountNaccCashMMN * 0.01));
+                            }
+                            else
+                            {
+                                //NaccService.Contratos contrato = naccConta.Contratos.Where(p => p.IdConta == naccCard.IdDebtor).FirstOrDefault();
+                                Utils.API.Nacc.Contratos contrato = naccConta.Contratos.Where(p => p.IdConta == naccCard.IdDebtor).FirstOrDefault();
+                                decimal desconto = contrato.VlMaxDescontoVista * Convert.ToDecimal(AppSettings.PercentageDiscountNaccCash * 0.01);
+                                termo.ValueParcel = contrato.VlAcordoVista - desconto;
+                            }
+                        }
+                    }
+
+                    if (Convert.ToInt32(totalParcel) > 0)
+                    {
+                        termo.DateParcel = dataEntrada.AddMonths(1);
+                        //termo.PercentageTax = (termo.Age > 59) ? 4.99 : 4.90;
+                        termo.ValueEntrance = Convert.ToDecimal(simulaParcelamento.Entrada);
+                        if (parcelOption != null)
+                            termo.ValueEntrance = parcelOption.ValorEntrada;
+                    }
+
+                    #region LOG AGREEMENT NACC
+
+                    //IList<IbiService.WebSiteProduct> listWsProduct = cache.Get<List<IbiService.WebSiteProduct>>("WebSiteProduct");
+                    IList<WebSiteProduct> listWsProduct = cache.Get<List<WebSiteProduct>>("WebSiteProduct");
+                    WebSiteProduct wsProduct;
+                    if (naccCard.Carteira == "ENO")
+                    {
+                        List<string> contract = naccCard.Contrato.Split('/').ToList();
+                        wsProduct = listWsProduct.Where(p => p.DsProduct == contract[0]).FirstOrDefault();
+                    }
+                    else if (naccCard.Carteira == "CDJ")
+                    {
+                        List<string> contract = naccCard.Contrato.Split('/').ToList();
+                        wsProduct = listWsProduct.Where(p => p.DsProduct == contract[0]).FirstOrDefault();
+                    }
+                    else if (naccCard.Carteira == "MMN")
+                    {
+                        List<string> contract = naccCard.Contrato.Split('-').ToList();
+                        try
+                        {
+                            wsProduct = listWsProduct.Where(p => p.DsProduct == contract[0]).FirstOrDefault();
+                        }
+                        catch
+                        {
+                            wsProduct = null;
+                        }
+                    }
+                    else
+                    {
+                        wsProduct = listWsProduct.Where(p => p.DsProduct == _produto.CodProduto).FirstOrDefault();
+                    }
+                    //IbiService.WebSiteAgreement wsAgreement = cache.Get<IbiService.WebSiteAgreement>("WebSiteAgreement");
+                    WebSiteAgreement wsAgreement = cache.Get<WebSiteAgreement>("WebSiteAgreement");
+                    if (wsAgreement == null)
+                    {
+                        //var agreement = new IbiService.WebSiteAgreement()
+                        var agreement = new WebSiteAgreement()
+                        {
+                            IdWebSiteProduct = wsProduct.IdWebSiteProduct,
+                            IdAccount = naccCard.IdDebtor,
+                            VlEntrace = termo.ValueEntrance,
+                            DtEntrace = Convert.ToDateTime(termo.DateEntranceParcel),
+                            NrParcel = termo.NrParcel,
+                            VlParcel = termo.ValueParcel,
+                            FlPromisse = false,
+                            FlAccept = false,
+                            VlDesconto = 0,
+                            DtInsert = DateTime.Now
+                        };
+                        // var _wsAgreement = client.SetWebSiteAgreementAsync(agreement).Result;
+                        var _wsAgreement = HttpHelper.POST<WebSiteAgreement>(Utils.API.Ibi.Uri.SetWebSiteAgreement(), agreement);
+                        cache.AddCache("WebSiteAgreement", _wsAgreement);
+                    }
+                    #endregion LOG AGREEMENT NACC
+
+                    //Registrar Acordo
+                    Nacc nacc = new Nacc();
+                    nacc.RegisterAgreement(cache);
+
+
+                }
+                IList<object> data = new List<object> { _produto, termo };
+
+                return View(data);
+            }
+            catch (Exception)
+            {
+                return RedirectToAction("CentralCobranca");
+            }
+        }
+
+        [Route("Finalizar")]
+        //public IActionResult Finalizar()
+        //{
+        //    IList<object> data = new List<object> { new ConsultaCpfCnpj(), "", cache.Get<List<IbiService.WebSiteProduct>>("WebSiteProduct") };
+        //    return View(data);
+        //}
+        public IActionResult Finalizar()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(_contextAccessor.HttpContext.Session.GetString("_sID")))
+                    return RedirectToAction("Index", "NegociarAgora");
+
+                Produto _produto = cache.Get<Produto>("produto");
+                ConsultaCpfCnpj model = cache.Get<ConsultaCpfCnpj>("model");
+                //byte[] byteArray = new byte[] { };
+                Boleto boletoGerado = new Boleto();
+                string linhaDigitavel = "";
+
+                WebSiteAgreement agreement = cache.Get<WebSiteAgreement>("WebSiteAgreement");
+
+                if (_produto != null && _produto.NomeProduto == "IBI")
+                {
+                    //IbiService.UR86 ibiUr86 = cache.Get<IbiService.UR86>("ibiUr86");
+                    //IbiService.UR86.UR86Detail ur86Detail = ibiUr86.Detail.Where(p => p.NumeroCartao.Contains(_produto.CodProduto)).FirstOrDefault();
+
+                    UR86 ibiUr86 = cache.Get<UR86>("ibiUr86");
+                    UR86.UR86Detail ur86Detail = ibiUr86.Detail.Where(p => p.NumeroCartao.Contains(_produto.CodProduto)).FirstOrDefault();
+
+                    DateTime dtEntrace = agreement.DtEntrace;
+                    decimal value = (agreement.VlEntrace > 0) ? agreement.VlEntrace : agreement.VlParcel;
+                    string cpfCnpj = Regex.Replace(model.CpfCnpj, @"[^\d]", "");
+                    //Boleto boleto = client.GetPDFAsync(agreement.DtEntrace.ToString("yyyy-MM-dd"), value.ToString("N2"), ur86Detail.NumeroConta, cpfCnpj, "P").Result;
+                    Boleto boleto = HttpHelper.GET<Boleto>(Utils.API.Ibi.Uri.GetPDF(agreement.DtEntrace.ToString("yyyy-MM-dd"), value.ToString("N2"), ur86Detail.NumeroConta, cpfCnpj, "P"));
+                    if (boleto != null && boleto.PDF != null)
+                    {
+                        cache.AddCache("boleto", boleto);
+
+                        //linhaDigitavel = client.GetLinhaDigitavelAsync(agreement.DtEntrace.ToString("yyyy-MM-dd"), value.ToString("N2"), ur86Detail.NumeroConta, model.CpfCnpj, "P").GetAwaiter().GetResult();
+                        //linhaDigitavel = linhaDigitavel.Replace("  ", "-").Replace(" ", "").Replace("-", " ");
+                        boletoGerado = boleto;
+                        linhaDigitavel = boleto.LinhaDigitavel.Replace("  ", "-").Replace(" ", "").Replace("-", " ");
+                    }
+                }
+                else if (_produto != null && _produto.NomeProduto == "NACC")
+                {
+                    //NaccService.IDebtorService service = new NaccService.DebtorServiceClient();
+                    //NaccService.Pessoa naccPessoa = cache.Get<NaccService.Pessoa>("naccPessoa");
+                    //NaccService.Debtor naccCard = naccPessoa.Debtor.Where(p => p.IdDebtor.ToString() == _produto.CodProduto).FirstOrDefault();
+                    //NaccService.Billet billet = cache.Get<NaccService.Billet>("billet");
+
+                    Utils.API.Nacc.Pessoa naccPessoa = cache.Get<Utils.API.Nacc.Pessoa>("naccPessoa");
+                    Utils.API.Nacc.Debtor naccCard = naccPessoa.Debtor.Where(p => p.IdDebtor.ToString() == _produto.CodProduto).FirstOrDefault();
+                    Utils.API.Nacc.Billet billet = cache.Get<Utils.API.Nacc.Billet>("billet");
+
+                    //Tratar boleto ENV
+                    if (billet == null || billet.IdBoleto == 0)
+                    {
+                        int idAcordo = cache.Get<int>("idAcordo");
+                        try
+                        {
+
+                            //billet = service.GetBoletoAsync(naccCard.IdDebtor.ToString(), idAcordo.ToString(), "1", "true", naccCard.Carteira).Result;
+                            billet = HttpHelper.GET<Utils.API.Nacc.Billet>(Utils.API.Nacc.Uri.GetBoleto(naccCard.IdDebtor.ToString(), idAcordo.ToString(), "1", "true", naccCard.Carteira));
+                            boletoGerado.PDF = billet.PDF;
+                            linhaDigitavel = billet.LinhaDigitavel;
+
+                            cache.AddCache("boleto", boletoGerado);
+                            cache.AddCache("billet", billet);
+                        }
+                        catch (Exception e)
+                        {
+                            string msg = e.Message;
+                            if (msg.Length > 3)
+                            {
+                                if (msg.Substring(0, 3) == "ENV")
+                                {
+                                    //billet
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        linhaDigitavel = billet.LinhaDigitavel;
+                    }
+                }
+
+                IList<object> data = new List<object> { model, linhaDigitavel, cache.Get<List<WebSiteProduct>>("WebSiteProduct"), boletoGerado, cache.Get<int>("idAcordo") };
+
+                return View(data);
+            }
+            catch (Exception e)
+            {
+                return RedirectToAction("Index", "NegociarAgora");
+            }
+            finally
+            {
+                cache.Reset();
+            }
+        }
+
+        [Route("Obrigado")]
+        public IActionResult Obrigado()
+        {
+            ConsultaCpfCnpj model = cache.Get<ConsultaCpfCnpj>("model");
+            if (model == null || string.IsNullOrEmpty(model.CpfCnpj))
+            {
+                return RedirectToAction("Index", "NegociarAgora");
+            }
+            IList<object> data = new List<object> { model };
+            return View(data);
+        }
+
+        [Route("Nada-Consta")]
+        public IActionResult NadaConsta()
+        {
+            ConsultaCpfCnpj model = cache.Get<ConsultaCpfCnpj>("model");
+            if (model == null || string.IsNullOrEmpty(model.CpfCnpj))
+            {
+                return RedirectToAction("Index", "NegociarAgora");
+            }
+            IList<object> data = new List<object> { model };
+            return View(data);
+        }
+
+        [Route("Acordo")]
+        public IActionResult Acordo()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(_contextAccessor.HttpContext.Session.GetString("_sID")))
+                    return RedirectToAction("Index", "NegociarAgora");
+
+                Produto _produto = cache.Get<Produto>("produto");
+                ConsultaCpfCnpj model = cache.Get<ConsultaCpfCnpj>("model");
+                string cpfCnpj = Regex.Replace(model.CpfCnpj, @"[^\d]", "");
+
+                // IbiService.UR83 ibiUr83 = new IbiService.UR83();
+                UR83 ibiUr83 = new UR83();
+                Boleto boletoGerado = new Boleto();
+                //NaccService.Acordo acordo = new NaccService.Acordo();
+                //NaccService.ParcelaAcordo parcelaAcordo = new NaccService.ParcelaAcordo();
+                //NaccService.Billet billet = new NaccService.Billet();
+
+                Utils.API.Nacc.Acordo acordo = new Utils.API.Nacc.Acordo();
+                Utils.API.Nacc.ParcelaAcordo parcelaAcordo = new Utils.API.Nacc.ParcelaAcordo();
+                Utils.API.Nacc.Billet billet = new Utils.API.Nacc.Billet();
+                string linhaDigitavel = null;
+
+                if (_produto != null && _produto.NomeProduto == "IBI")
+                {
+                    //IbiService.UR80 ibiUr80 = (IbiService.UR80)cache.Get("ibiUr80");
+                    //IbiService.URAClient ibiClient = new IbiService.URAClient();
+                    //ibiUr83 = ibiClient.GetUR83Async(_produto.CodProduto).Result;
+                    ibiUr83 = HttpHelper.GET<UR83>(Utils.API.Ibi.Uri.GetUR83(_produto.CodProduto));
+                    cache.AddCache("ibiUR83", ibiUr83);
+
+                    //IbiService.UR86 ibiUr86 = cache.Get<IbiService.UR86>("ibiUr86");
+                    //IbiService.UR86.UR86Detail ur86Detail = ibiUr86.Detail.Where(p => p.NumeroCartao.Contains(_produto.CodProduto)).FirstOrDefault();
+
+                    UR86 ibiUr86 = cache.Get<UR86>("ibiUr86");
+                    UR86.UR86Detail ur86Detail = ibiUr86.Detail.Where(p => p.NumeroCartao.Contains(_produto.CodProduto)).FirstOrDefault();
+
+
+
+                    if (ur86Detail != null)
+                    {
+                        //ICollection<IbiService.WebSiteAgreement> listAgreement = ibiClient.GetWebSiteAgreementTodayAsync().Result;
+                        ICollection<WebSiteAgreement> listAgreement = HttpHelper.GET<ICollection<WebSiteAgreement>>(Utils.API.Ibi.Uri.GetWebSiteAgreementToday());
+                        WebSiteAgreement agreement = null;
+                        if (listAgreement != null && listAgreement.Count() > 0)
+                        {
+                            foreach (var agree in listAgreement)
+                            {
+                                //var x = ibiClient.GetWebSiteProductAsync(agree.IdWebSiteProduct.ToString()).Result;
+                                var x = HttpHelper.GET<WebSiteProduct>(Utils.API.Ibi.Uri.GetWebSiteProduct(agree.IdWebSiteProduct.ToString()));
+                                if (x != null && x.DsProduct == _produto.CodProduto)
+                                {
+                                    agreement = agree;
+                                    break;
+                                }
+                            }
+                            if (agreement != null)
+                            {
+                                DateTime dtAcordo = agreement.DtEntrace;
+                                decimal vlAcordo = (agreement.VlEntrace > 0) ? agreement.VlEntrace : agreement.VlParcel;
+
+                                //Boleto boleto = ibiClient.GetPDFAsync(dtAcordo.ToString("yyyy-MM-dd"), vlAcordo.ToString("N2"), ur86Detail.NumeroConta, cpfCnpj, "P").Result;
+                                Boleto boleto = HttpHelper.GET<Boleto>(Utils.API.Ibi.Uri.GetPDF(dtAcordo.ToString("yyyy-MM-dd"), vlAcordo.ToString("N2"), ur86Detail.NumeroConta, cpfCnpj, "P"));
+                                if (boleto != null && boleto.PDF != null)
+                                    boletoGerado = boleto;
+                            }
+                        }
+                        if (agreement == null)
+                        {
+                            DateTime dataEntradaAcordo;
+                            DateTime dataVencimentoParc1;
+                            DateTime.TryParse(ibiUr83.DataEntradaAcordo, out dataEntradaAcordo);
+                            DateTime.TryParse(ibiUr83.DataVencimentoParc1, out dataVencimentoParc1);
+                            DateTime dtVctoParcelaAtraso = DateTime.Today;
+
+                            if (dataVencimentoParc1.Date > DateTime.Today)
+                            {
+                                if ((ibiUr83.ValorEntrada > 0 && dataEntradaAcordo.AddDays(15) > DateTime.Today) || dataVencimentoParc1.Date > DateTime.Today)
+                                {
+                                    //Boleto boleto = ibiClient.GetPDFAsync(DateTime.Now.ToString("yyyy-MM-dd"), ibiUr83.ValorEntrada.ToString("N2"), ur86Detail.NumeroConta, cpfCnpj, "P").Result;
+                                    Boleto boleto = HttpHelper.GET<Boleto>(Utils.API.Ibi.Uri.GetPDF(DateTime.Now.ToString("yyyy-MM-dd"), ibiUr83.ValorEntrada.ToString("N2"), ur86Detail.NumeroConta, cpfCnpj, "P"));
+                                    if (boleto != null && boleto.PDF != null)
+                                        boletoGerado = boleto;
+                                }
+                                else
+                                {
+                                    TempData["AcordoQuebrado"] = "Sim"; //acordo quebrado
+                                }
+                            }
+                            else
+                            {
+                                if (!DateTime.TryParse(ibiUr83.DtVctoParcelaAtraso, out dtVctoParcelaAtraso))
+                                {
+                                    //Boleto boleto = ibiClient.GetPDFAsync(DateTime.Now.ToString("yyyy-MM-dd"), ibiUr83.ValorParcela.ToString("N2"), ur86Detail.NumeroConta, cpfCnpj, "P").Result;
+                                    Boleto boleto = HttpHelper.GET<Boleto>(Utils.API.Ibi.Uri.GetPDF(DateTime.Now.ToString("yyyy-MM-dd"), ibiUr83.ValorParcela.ToString("N2"), ur86Detail.NumeroConta, cpfCnpj, "P"));
+                                    if (boleto != null && boleto.PDF != null)
+                                        boletoGerado = boleto;
+                                }
+                                else
+                                {
+                                    if (dtVctoParcelaAtraso.AddDays(15) > DateTime.Today)
+                                    {
+                                        //Boleto boleto = ibiClient.GetPDFAsync(DateTime.Now.ToString("yyyy-MM-dd"), ibiUr83.ValorParcela.ToString("N2"), ur86Detail.NumeroConta, model.CpfCnpj, "P").Result;
+                                        Boleto boleto = HttpHelper.GET<Boleto>(Utils.API.Ibi.Uri.GetPDF(DateTime.Now.ToString("yyyy-MM-dd"), ibiUr83.ValorParcela.ToString("N2"), ur86Detail.NumeroConta, model.CpfCnpj, "P"));
+                                        if (boleto != null && boleto.PDF != null)
+                                            boletoGerado = boleto;
+                                    }
+                                    else
+                                    {
+                                        TempData["AcordoQuebrado"] = "Sim"; //acordo quebrado
+                                    }
+                                }
+                            }
+                        }
+                        cache.AddCache("boleto", boletoGerado);
+                    }
+                }
+                else if (_produto != null && _produto.NomeProduto == "NACC")
+                {
+                    //NaccService.IDebtorService debtorService = new NaccService.DebtorServiceClient();
+                    //NaccService.Pessoa naccPessoa = cache.Get<NaccService.Pessoa>("naccPessoa");
+                    //NaccService.Debtor naccCard = naccPessoa.Debtor.Where(p => p.IdDebtor.ToString() == _produto.CodProduto).FirstOrDefault();
+
+
+                    Utils.API.Nacc.Pessoa naccPessoa = cache.Get<Utils.API.Nacc.Pessoa>("naccPessoa");
+                    Utils.API.Nacc.Debtor naccCard = naccPessoa.Debtor.Where(p => p.IdDebtor.ToString() == _produto.CodProduto).FirstOrDefault();
+
+                    foreach (var a in naccCard.Acordo.OrderByDescending(p => p.IdAcordo))
+                    {
+                        if (listaAcordoNacc.Contains(a.StatusAcordo))
+                        {
+                            acordo = a;
+                            break;
+                        }
+                    }
+                    if (acordo.ParcelaAcordo == null)
+                        return RedirectToAction("CentralCobranca");
+                    //NaccService.Conta naccConta = debtorService.GetContaAsync(naccPessoa.CPFCNPJ,;
+                    var listStatus = new List<string>() { "0", "4", "5" };
+                    parcelaAcordo = acordo.ParcelaAcordo.Where(p => listStatus.Contains(p.StatusParcela)).OrderBy(p => p.NumeroParcela).FirstOrDefault();
+                    if (parcelaAcordo == null || parcelaAcordo.NumeroParcela == 0)
+                    {
+                        return RedirectToAction("CentralCobranca");
+                    }
+                    else
+                    {
+                        try
+                        {
+                            //billet = debtorService.GetBoletoAsync(naccCard.IdDebtor.ToString(), acordo.IdAcordo.ToString(), parcelaAcordo.NumeroParcela.ToString(), "true", naccCard.Carteira).Result;
+                            billet = HttpHelper.GET<Utils.API.Nacc.Billet>(Utils.API.Nacc.Uri.GetBoleto(naccCard.IdDebtor.ToString(), acordo.IdAcordo.ToString(), parcelaAcordo.NumeroParcela.ToString(), "true", naccCard.Carteira));
+                            boletoGerado.PDF = billet.PDF;
+                            linhaDigitavel = billet.LinhaDigitavel;
+                            cache.AddCache("boleto", boletoGerado);
+                        }
+                        catch (Exception e)
+                        {
+
+                        }
+                    }
+
+                }
+
+                //DADOS PARA ACEITAÇÃO DO TERMO E FINALIZAÇÃO DO ACORDO
+                IList<object> data = new List<object> { model, ibiUr83, _produto, acordo, parcelaAcordo, linhaDigitavel };
+                return View(data);
+            }
+            catch (Exception e)
+            {
+                return RedirectToAction("CentralCobranca");
+            }
+        }
+
+        [Route("Imprimir")]
+        public IActionResult Imprimir()
+
+        {
+            try
+            {
+                Boleto boleto = cache.Get<Boleto>("boleto");
+                if (string.IsNullOrEmpty(_contextAccessor.HttpContext.Session.GetString("_sID")) || boleto == null && boleto.PDF == null)
+                {
+                    return RedirectToAction("Index", "NegociarAgora");
+                }
+
+                //IbiService.WebSiteAgreement wsAgreement = cache.Get<IbiService.WebSiteAgreement>("WebSiteAgreement");
+                //if (wsAgreement != null)
+                //{
+                //    IbiService.URAClient client = new IbiService.URAClient();
+                //    client.SetWebSiteBilletAsync(new IbiService.WebSiteBillet { DtInsert = DateTime.Now, IdWebSiteProduct = wsAgreement.IdWebSiteProduct }).GetAwaiter().GetResult();
+                //}
+
+                MemoryStream pdfStream = new MemoryStream();
+                pdfStream.Write(boleto.PDF, 0, boleto.PDF.Length);
+                pdfStream.Position = 0;
+                return new FileStreamResult(pdfStream, "application/pdf") { FileDownloadName = "Boleto.pdf" };
+            }
+            catch
+            {
+                return RedirectToAction("Index", "NegociarAgora");
+            }
+            return null;
+        }
+
+        [HttpGet]
+        [Route("Consulta-Cep")]
+        public JsonResult ConsultaCep(string cep)
+        {
+            GoogleMapsApi.EnderecoGoogleMaps endereco = GoogleMapsApi.GetEnderecoByCep(cep);
+            return Json(endereco);
+        }
+
+        [HttpPost]
+        [Route("Remove-Telefone")]
+        public JsonResult RemoveTelefone(string phone)
+        {
+            try
+            {
+                string nphone = Regex.Replace(phone, @"\D", "");
+                //IbiService.Pessoa pessoa = cache.Get<IbiService.Pessoa>("pessoa");
+                Utils.API.Ibi.Pessoa pessoa = cache.Get<Utils.API.Ibi.Pessoa>("pessoa");
+
+                var t = pessoa.Telefone.Where(p => p.NrTelefone == nphone).FirstOrDefault();
+                pessoa.Telefone.Remove(t);
+                //IbiService.URAClient client = new IbiService.URAClient();
+                //long idAccount = client.SetDataPersonAsync(pessoa).Result;
+                long idAccount = HttpHelper.POST<long>(Utils.API.Ibi.Uri.SetDataPerson(), pessoa);
+
+                if (idAccount > 0)
+                    return Json(true);
+                else
+                    return Json(false);
+            }
+            catch (Exception)
+            {
+                return Json(false);
+            }
+        }
+
+        [HttpPost]
+        [Route("Adicionar-Telefone")]
+        public JsonResult AdicionaTelefone(string phone)
+        {
+            try
+            {
+                Produto _produto = cache.Get<Produto>("produto");
+                string nphone = Regex.Replace(phone, @"\D", "");
+                bool idAccount = false;
+                if (_produto.NomeProduto == "NACC")
+                {
+                    nphone = "0" + nphone;
+                    //NaccService.Pessoa naccPessoa = cache.Get<NaccService.Pessoa>("naccPessoa");
+                    Utils.API.Nacc.Pessoa naccPessoa = cache.Get<Utils.API.Nacc.Pessoa>("naccPessoa");
+                    if (naccPessoa.Telefone != null)
+                    {
+                        var t = naccPessoa.Telefone.Where(p => p == nphone).FirstOrDefault();
+                        if (t == null)
+                            naccPessoa.Telefone.Add(nphone);
+                    }
+                    else
+                    {
+                        naccPessoa.Telefone = new List<string> { nphone };
+                    }
+                    //NaccService.IDebtorService debtorService = new NaccService.DebtorServiceClient();
+                    //idAccount = debtorService.AtualizaDadosCadastraisAsync(naccPessoa).Result;
+                    idAccount = HttpHelper.POST<bool>(Utils.API.Nacc.Uri.AtualizaDadosCadastrais(), naccPessoa);
+                }
+                else
+                {
+                    //IbiService.Pessoa pessoa = cache.Get<IbiService.Pessoa>("pessoa");
+                    Utils.API.Ibi.Pessoa pessoa = cache.Get<Utils.API.Ibi.Pessoa>("pessoa");
+                    if (pessoa.Telefone != null)
+                    {
+                        var t = pessoa.Telefone.Where(p => p.NrTelefone == nphone).FirstOrDefault();
+                        if (t == null)
+                        {
+                            pessoa.Telefone.Add(new Utils.API.Ibi.Telefone
+                            {
+                                TipoTelefone = (phone.Length == 10) ? 1 : 2,
+                                NrTelefone = nphone
+                            });
+                        }
+                    }
+                    else
+                    {
+                        pessoa.Telefone = new List<Utils.API.Ibi.Telefone>
+                        {
+                            new Utils.API.Ibi.Telefone
+                            {
+                                TipoTelefone = (phone.Length == 10) ? 1 : 2,
+                                NrTelefone = nphone
+                            }
+                        };
+                    }
+
+                    //IbiService.URAClient client = new IbiService.URAClient();
+                    //idAccount = client.SetDataPersonAsync(pessoa).Result != 0;
+                    idAccount = HttpHelper.POST<long>(Utils.API.Ibi.Uri.SetDataPerson(), pessoa) != 0;
+
+                }
+                if (idAccount)
+                    return Json(true);
+                else
+                    return Json(false);
+            }
+            catch (Exception)
+            {
+                return Json(false);
+            }
+        }
+
+        [HttpGet]
+        [Route("Get-Parcelas")]
+        public JsonResult GetParcelas(string valor)
+        {
+            string vl = (valor != null) ? valor.Replace(".", "").Replace(",", "") : "0";
+
+            IList<object> l0 = new List<Object>{
+                              new { value = 0 , text = "A Vista"  }
+                                };
+
+            IList<object> l1 = new List<Object>{
+                               new { value = 1 , text = "1 parcela" },
+                               new { value = 2 , text = "2 parcelas"},
+                               new { value = 3 , text = "3 parcelas"},
+                               new { value = 4 , text = "4 parcelas"},
+                               new { value = 5 , text = "5 parcelas"},
+                               new { value = 6 , text = "6 parcelas"},
+                               new { value = 7 , text = "7 parcelas"},
+                               new { value = 8 , text = "8 parcelas"},
+                               new { value = 9 , text = "9 parcelas"},
+                               new { value = 10 , text = "10 parcelas"},
+                               new { value = 11 , text = "11 parcelas"},
+                               new { value = 12 , text = "12 parcelas"},
+                               new { value = 13 , text = "13 parcelas"},
+                               new { value = 14 , text = "14 parcelas"},
+                               new { value = 15 , text = "15 parcelas"},
+                               new { value = 16 , text = "16 parcelas"},
+                               new { value = 17 , text = "17 parcelas"},
+                               new { value = 18 , text = "18 parcelas"},
+                               new { value = 19 , text = "19 parcelas"},
+                               new { value = 20 , text = "20 parcelas"},
+                               new { value = 21 , text = "21 parcelas"},
+                               new { value = 22 , text = "22 parcelas"},
+                               new { value = 23 , text = "23 parcelas"},
+                               new { value = 24 , text = "24 parcelas"} };
+
+            if (Convert.ToInt64(vl) / 100 > 0)
+                return Json(l1);
+            else
+                return Json(l0);
+
+
+        }
+
+        [HttpPost]
+        [Route("Envia-Sms")]
+        public JsonResult EnviarSms(string phone)
+        {
+            try
+            {
+                string nphone = Regex.Replace(phone, @"\D", "");
+                Produto _produto = cache.Get<Produto>("produto");
+
+                if (_produto.NomeProduto == "IBI")
+                {
+
+                }
+                else if (_produto.NomeProduto == "NACC")
+                {
+                    //NaccService.Pessoa naccPessoa = cache.Get<NaccService.Pessoa>("naccPessoa");
+                    //NaccService.Billet billet = cache.Get<NaccService.Billet>("billet");
+
+                    //NaccService.Debtor naccCard = naccPessoa.Debtor.Where(p => p.IdDebtor.ToString() == _produto.CodProduto).FirstOrDefault();
+
+                    Utils.API.Nacc.Pessoa naccPessoa = cache.Get<Utils.API.Nacc.Pessoa>("naccPessoa");
+                    Utils.API.Nacc.Billet billet = cache.Get<Utils.API.Nacc.Billet>("billet");
+                    Utils.API.Nacc.Debtor naccCard = naccPessoa.Debtor.Where(p => p.IdDebtor.ToString() == _produto.CodProduto).FirstOrDefault();
+
+                    //var naccClient = new NaccService.DebtorServiceClient();
+                    string message = "Segue linha digitável para pagamento " + billet.LinhaDigitavel + ".";
+                    //string send = naccClient.EnviarSMSAsync(nphone, message, naccCard.Carteira).Result;
+                    string send = HttpHelper.GET<string>(Utils.API.Nacc.Uri.EnviarSMS(nphone, message, naccCard.Carteira));
+                }
+                return Json(true);
+            }
+            catch (Exception e)
+            {
+                return Json(false);
+            }
+        }
+
+        [HttpPost]
+        [Route("Envia-Email")]
+        public JsonResult EnviarEmail(string email)
+        {
+            try
+            {
+                Regex regex = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
+                Match match = regex.Match(email);
+                if (match.Success)
+                {
+                    Produto _produto = cache.Get<Produto>("produto");
+                    if (_produto.NomeProduto == "IBI")
+                    {
+
+                        try
+                        {
+                            Utils.API.Ibi.UR86 ibiUR86 = cache.Get<Utils.API.Ibi.UR86>("ibiUr86");
+                            ConsultaCpfCnpj model = cache.Get<ConsultaCpfCnpj>("model");
+                            Utils.API.Ibi.WebSiteNavigation wsNavigation = cache.Get<Utils.API.Ibi.WebSiteNavigation>("WebSiteNavigation");
+                            if (wsNavigation != null)
+                            {
+                                if (!string.IsNullOrEmpty(email) && Util.IsEmail(email))
+                                {
+                                    string cpf = Regex.Replace(model.CpfCnpj, @"\D", "");
+                                    if (ibiUR86 != null)
+                                    {
+                                        Utils.API.Ibi.UR86.UR86Detail uR86Detail = ibiUR86.Detail.Where(p => p.NumeroCartao.Contains(_produto.CodProduto)).FirstOrDefault();
+                                        if (uR86Detail != null)
+                                        {
+                                            //var ibiClient = new URAClient();
+                                            //string x = ibiClient.SendBilletWebSiteAsync(DateTime.Today.AddDays(1).ToString("yyyy-MM-dd"), uR86Detail.SaldoDevedor.ToString("N2"), uR86Detail.NumeroConta, cpf, boletoEmail.Email).Result;
+                                            WebSiteAgreement agreement = cache.Get<WebSiteAgreement>("WebSiteAgreement");
+                                            DateTime dtEntrace = agreement.DtEntrace;
+                                            decimal value = (agreement.VlEntrace > 0) ? agreement.VlEntrace : agreement.VlParcel;
+                                            string cpfCnpj = Regex.Replace(model.CpfCnpj, @"[^\d]", "");
+
+                                            string x = HttpHelper.GET<string>(Utils.API.Ibi.Uri.SendBilletWebSite(agreement.DtEntrace.ToString("yyyy-MM-dd"), value.ToString("N2"), uR86Detail.NumeroConta, cpfCnpj, email));
+
+                                            #region Log Billet
+                                            if (wsNavigation != null)
+                                            {
+                                                Utils.API.Ibi.WebSiteBilletIBI webSiteBilletIBI = new Utils.API.Ibi.WebSiteBilletIBI()
+                                                {
+                                                    IdWebSiteNavigation = wsNavigation.IdWebSiteNavigation,
+                                                    NrAccount = uR86Detail.NumeroConta,
+                                                    Age = Convert.ToInt32(uR86Detail.DiasAtraso),
+                                                    CodeBar = x,
+                                                    VlBillet = uR86Detail.SaldoDevedor,
+                                                    DtInsert = DateTime.Now,
+                                                    Email = email
+                                                };
+                                                //URAClient client = new URAClient();
+                                                //var wsBillet = client.SetWebSiteBilletIBIAsync(webSiteBilletIBI).Result;
+                                                var wsBillet = HttpHelper.POST<Utils.API.Ibi.WebSiteBilletIBI>(Utils.API.Ibi.Uri.SetWebSiteBilletIBI(), webSiteBilletIBI);
+                                                //cache.AddCache("WebSiteBillet", wsBilletIBI);
+                                            }
+                                            #endregion Log Billet
+
+                                            return Json(true);
+                                        }
+                                    }
+                                }
+                                //cache.AddCache("AcordoSegundaVia", acordoSegundaVia);
+                            }
+                            return Json(false);
+                        }
+                        catch
+                        {
+                            return Json(false);
+                        }
+
+
+                    }
+                    else if (_produto.NomeProduto == "NACC")
+                    {
+                        //NaccService.Pessoa naccPessoa = cache.Get<NaccService.Pessoa>("naccPessoa");
+                        //NaccService.Billet billet = cache.Get<NaccService.Billet>("billet");
+
+                        Utils.API.Nacc.Pessoa naccPessoa = cache.Get<Utils.API.Nacc.Pessoa>("naccPessoa");
+                        Utils.API.Nacc.Billet billet = cache.Get<Utils.API.Nacc.Billet>("billet");
+
+                        Utils.API.Nacc.Debtor naccCard = naccPessoa.Debtor.Where(p => p.IdDebtor.ToString() == _produto.CodProduto).FirstOrDefault();
+
+                        //bool send = naccClient.EnviarBoletoEmailAsync(billet.IdBoleto.ToString(), email, AppSettings.CodUserNacc).Result;
+                        bool send = HttpHelper.GET<bool>(Utils.API.Nacc.Uri.EnviarBoletoEmail(billet.IdBoleto.ToString(), email, AppSettings.CodUserNacc));
+                    }
+                    return Json(true);
+                }
+                return Json(false);
+            }
+            catch (Exception e)
+            {
+                return Json(false);
+            }
+        }
+
+        [Route("Atendimento-Encerrado")]
+        public ActionResult Encerrado()
+        {
+            IList<object> data = new List<object> { new ConsultaCpfCnpj() };
+            return View(data);
+        }
+
+        [HttpPost]
+        [Route("Termos-Do-Acordo")]
+        public ActionResult TermosDoAcordo(string totalParcel)
+        {
+            try
+            {
+                Produto _produto = cache.Get<Produto>("produto");
+                UR84.UR84Detail ibiCard = new UR84.UR84Detail();
+                SimulaParcelamento simulaParcelamento = cache.Get<SimulaParcelamento>("simulaParcelamento");
+                UR84 ibiService = cache.Get<UR84>("ibiUr84");
+                string html = string.Empty;
+                TermoECondicao termo = new TermoECondicao();
+
+                if (_produto != null && _produto.NomeProduto == "IBI")
+                {
+                    //Se for IBI, encerra operação
+                    if (!VerifyOperation.ValidOperation())
+                        return RedirectToAction("Encerrado", "ConsultaCpfCnpj");
+
+                    ibiCard = ibiService.Detail.Where(p => p.NumeroCartao?.Trim() == _produto.CodProduto?.Trim()).FirstOrDefault();
+                    if (Convert.ToInt32(ibiCard.DiasAtraso) < 5)
+                        return RedirectToAction("Acordo", "SegundaVia");
+
+                    AgreementSimulate parcelamento = cache.Get<AgreementSimulate>("parcelamento");
+
+                    DateTime dataEntrada = DateTime.Now;
+                    if (!DateTime.TryParse(simulaParcelamento.DataEntrada, out dataEntrada)) { }
+                    string vlEntrada = (simulaParcelamento != null && simulaParcelamento.Entrada != null) ? simulaParcelamento.Entrada : "0";
+                    vlEntrada = Regex.Replace(vlEntrada, @"\D", "");
+
+                    termo = new TermoECondicao
+                    {
+                        Age = Convert.ToInt32(ibiCard.DiasAtraso),
+                        NrParcel = Convert.ToInt32(totalParcel),
+                        DateEntranceParcel = dataEntrada
+                    };
+
+                    if (parcelamento != null)
+                    {
+                        var parcelOption = parcelamento.ParcelOption.Where(p => p.NumberParcel == Convert.ToInt32(totalParcel)).FirstOrDefault();
+                        if (parcelOption != null)
+                        {
+                            /** CET **/
+                            Discount discount = new Discount();
+                            if (simulaParcelamento != null)
+                                discount = HttpHelper.GET<Discount>(Utils.API.Ibi.Uri.GetDiscount(ibiCard.DiasAtraso, simulaParcelamento.Parcela.ToString()));
+
+                            if (discount == null)
+                                //    discount = new IbiService.Discount();
+                                discount = new Discount();
+
+                            decimal vlFinanciado = parcelamento.AgreementBal - (parcelamento.AgreementBal * (discount.MaxDiscount / 100));// - valorEntrada
+                            decimal vlParcela = parcelOption.ValueParcel;
+                            int prazo = Convert.ToInt32(totalParcel);
+
+                            DateTime dataVencimento = vlEntrada != "0" ? dataEntrada.AddMonths(1) : dataEntrada;
+
+                            double cetAnual = CET.CalcularCet(Convert.ToDouble(vlFinanciado), Convert.ToDouble(vlParcela), prazo, DateTime.Today, dataVencimento);
+                            double cetMensal = Math.Pow(1 + (cetAnual / 100), 1 / 12d) - 1;
+                            /** END CET **/
+
+                            termo.CETAnual = Convert.ToDecimal(cetAnual);
+                            termo.CETMensal = Convert.ToDecimal(cetMensal);
+                            termo.ValueParcel = parcelOption.ValueParcel;
+                        }
+                    }
+
+                    if (vlEntrada != "0")
+                    {
+                        termo.DateParcel = dataEntrada.AddMonths(1);
+                        if (parcelamento != null)
+                        {
+                            termo.PercentageTax = Convert.ToDouble(parcelamento.InterestPCT); //(termo.Age > 59) ? 4.99 : 4.90;
+                        }
+                        termo.ValueEntrance = Convert.ToDecimal(simulaParcelamento.Entrada);
+                    }
+                    else
+                    {
+                        if (parcelamento != null)
+                        {
+                            termo.PercentageTax = Convert.ToDouble(parcelamento.InterestPCT);
+                        }
+                    }
+                    //Para promessa
+                    int NrParcelLog = termo.NrParcel;
+                    bool FlPromisseLog = false;
+                    if (termo.Age <= 55)
+                    {
+                        if (termo.NrParcel == 0)
+                            termo.ValueEntrance = ibiCard.PagamentoMinimo;
+                        else if (termo.NrParcel == 1)
+                            termo.ValueEntrance = ibiCard.SaldoDevedorAtraso;
+                        else
+                            termo.ValueEntrance = Convert.ToDecimal(simulaParcelamento.Entrada);
+
+                        NrParcelLog = 0;
+                        FlPromisseLog = true;
+                    }
+
+                    html = "<div class=\"box-termos\">";
+                    if (termo.Age > 55)
+                    {
+                        html += "<p>";
+                        html += "As condições anteriormente propostas são válidas apenas para esta negociação realizada neste canal na data de ";
+                        html += DateTime.Now.ToString("dd/MM/yyyy") + ". O desconto concedido somente será valido se o pagamento for feito em sua totalidade e até a data de vencimento. " +
+                            "Caso não ocorra o pagamento em dias úteis, o acordo será quebrado e a cobrança retomada em sua totalidade.</p>";
+                        html += "<p>Ratificamos que devido a negociação dessa dívida, ocorrerá o cancelamento do seu cartão de crédito, inclusive dos seus dependentes.</p>";
+                        html += "<p>Após o aceite desta proposta a sua negociação será processada e a reabilitação de seu CPF junto aos órgãos de proteção ao crédito(SPC / SERASA) ocorrerá em aproximadamente 5 dias úteis.</p>";
+                        html += "<p>Para maior comodidade, encaminharemos o seu boleto por SMS / e-mail que nos foi fornecido até 3 dias antes do vencimento.</p>";
+                        html += "<p>Caso tenha dúvidas, por favor, entre em contato com a nossa Central de Atendimento:</p>";
+                        html += "<p> 4004 - 1203(principais capitais) ou 0800 703 2065(demais regiões).</p>";
+                        html += "<p>" +
+                            "<br/><strong> Lembrando </strong><br/><br/>";
+
+                        if (termo.ValueEntrance == 0 && termo.NrParcel == 1)
+                        {
+                            html += "Foi formalizado o ACORDO à vista no valor de " +
+                                termo.ValueParcel.ToString("C2") + " com vencimento para o dia " +
+                                termo.DateEntranceParcel.Date.ToString("dd/MM/yyyy") + ".";
+                        }
+                        else
+                        {
+                            if (termo.ValueEntrance == 0 && termo.NrParcel > 1)
+                            {
+                                html += "Foi formalizado o ACORDO SEM ENTRADA com primeiro vencimento para o dia " +
+                                    termo.DateEntranceParcel.Date.ToString("dd/MM/yyyy") + " no valor de " + termo.ValueParcel.ToString("C2") + ",  mais " + (termo.NrParcel - 1).ToString();
+
+                                if (termo.NrParcel - 1 > 1)
+                                    html += " parcelas de ";
+                                else
+                                    html += " parcela de ";
+
+                                html += termo.ValueParcel.ToString("C2") + " e demais vencimentos para todo dia " + termo.DateParcel.Day.ToString() + ".";
+                            }
+                            else
+                            {
+                                html += "Foi formalizado o ACORDO COM ENTRADA para dia ";
+                                html += termo.DateEntranceParcel.Date.ToString("dd /MM/yyyy");
+                                html += " no valor de ";
+                                html += termo.ValueEntrance.ToString("C2");
+                                html += ",  mais ";
+                                html += termo.NrParcel;
+
+                                if (termo.NrParcel > 1)
+                                    html += " parcelas de ";
+                                else
+                                    html += " parcela de ";
+
+                                html += termo.ValueParcel.ToString("C2");
+                                html += ", sendo primeiro vencimento para o dia ";
+                                html += termo.DateParcel.ToString("dd/MM/yyyy");
+                                html += " e demais vencimentos para todo dia ";
+                                html += termo.DateParcel.Day;
+                                html += ".";
+                            }
+                        }
+                        html += "</p>" +
+                            "<p>Para este acordo está inclusa a taxa de " +
+                            termo.PercentageTax + " % AO MÊS. <br/><br/>";
+                        html += "<strong> Custo Efetivo Total(CET)</strong><br/>";
+                        html += "<span style=\"padding:3px; background-color: #ccc\"> Percentual </span><br/>";
+                        html += termo.CETMensal.ToString("N4") + "% ao mês <br/>" +
+                         termo.CETAnual.ToString("N4") + "% ao ano </p>";
+
+                        html += "<p>Bradescard agradece sua atenção. Tenha ";
+                        if (DateTime.Now.Hour >= 12 && DateTime.Now.Hour < 18)
+                        {
+                            html += "uma Boa Tarde.";
+                        }
+                        else if (DateTime.Now.Hour >= 18 && DateTime.Now.Hour <= 23)
+                        {
+                            html += "uma Boa Noite.";
+                        }
+                        else
+                        {
+                            html += "um Bom Dia.";
+                        }
+                        html += "</p>";
+                    }
+                    else
+                    {
+                        html += "<p>";
+                        html += "Ao clicar em CONFIRMAR, sua PROMESSA será registrada em nossos sistemas.";
+                        html += "</p>";
+                        html += "<p>";
+                        html += "Será formalizado uma PROMESSA de pagamento no valor de ";
+                        html += termo.ValueEntrance.ToString("C2");
+                        html += " com vencimento para o dia ";
+                        html += termo.DateEntranceParcel.Date.ToString("dd/MM/yyyy");
+                        html += ".";
+                        html += "</p>";
+                        html += "<p>Tem certeza que deseja formalizar esta PROMESSA?</p>";
+                    }
+                    html += "</div>";
+
+                    cache.AddCache("termo", termo);
+                    return Content(html, "text/html");
+                }
+                // SE PRODUTO FOR NACC
+                else if (_produto.NomeProduto == "NACC")
+                {
+
+                    Utils.API.Nacc.Pessoa naccPessoa = cache.Get<Utils.API.Nacc.Pessoa>("naccPessoa");
+                    Utils.API.Nacc.Debtor naccCard = naccPessoa.Debtor.Where(p => p.IdDebtor.ToString() == _produto.CodProduto).FirstOrDefault();
+                    IList<Utils.API.Nacc.Parcela> naccParcelas = cache.Get<List<Utils.API.Nacc.Parcela>>("naccParcelado");
+                    Utils.API.Nacc.Conta naccConta = cache.Get<Conta>("naccConta");
+
+                    DateTime dataEntrada = DateTime.Now;
+                    if (!DateTime.TryParse(simulaParcelamento.DataEntrada, out dataEntrada)) { }
+                    string vlEntrada = (simulaParcelamento != null && simulaParcelamento.Entrada != null) ? simulaParcelamento.Entrada : "0";
+                    vlEntrada = Regex.Replace(vlEntrada, @"\D", "");
+                    var parcelOption = naccParcelas.Where(p => p.NumeroParcelas == Convert.ToInt32(totalParcel)).FirstOrDefault();// parcelamento.ParcelOption.Where(p => p.NumberParcel == Convert.ToInt32(totalParcel)).FirstOrDefault();
+
+                    termo = new TermoECondicao
+                    {
+                        //Age = Convert.ToInt32(ibiCard.DiasAtraso),
+                        NrParcel = Convert.ToInt32(totalParcel),
+                        DateEntranceParcel = dataEntrada,
+                        CarteiraNacc = naccCard.Carteira
+                    };
+
+                    if (naccParcelas != null && Convert.ToInt32(totalParcel) > 0)
+                    {
+                        if (parcelOption != null)
+                            termo.ValueParcel = parcelOption.ValorParcela;
+                    }
+                    else if (naccParcelas != null && Convert.ToInt32(totalParcel) == 0)
+                    {
+                        if (naccConta != null)
+                        {
+                            if (naccCard.Carteira == "ENO")
+                            {
+                                decimal saldo = 0;
+                                decimal desconto = 0;
+                                //foreach (NaccService.Contratos c in naccConta.Contratos)
+                                foreach (Utils.API.Nacc.Contratos c in naccConta.Contratos)
+                                {
+                                    if (c != null)
+                                    {
+                                        desconto += c.VlMaxDescontoVista;
+                                        saldo += c.VlAcordoVista;
+                                    }
+                                }
+                                termo.ValueParcel = saldo - (desconto * Convert.ToDecimal(AppSettings.PercentageDiscountNaccCashENO * 0.01));
+                            }
+                            else if (naccCard.Carteira == "CDJ")
+                            {
+                                decimal saldo = 0;
+                                decimal desconto = 0;
+                                //foreach (NaccService.Contratos c in naccConta.Contratos)
+                                foreach (Utils.API.Nacc.Contratos c in naccConta.Contratos)
+                                {
+                                    if (c != null)
+                                    {
+                                        desconto += c.VlMaxDescontoVista;
+                                        saldo += c.VlAcordoVista;
+                                    }
+                                }
+                                termo.ValueParcel = saldo - (desconto * Convert.ToDecimal(AppSettings.PercentageDiscountNaccCash * 0.01));
+                            }
+                            else if (naccCard.Carteira == "MMN")
+                            {
+                                decimal saldo = 0;
+                                decimal desconto = 0;
+                                //foreach (NaccService.Contratos c in naccConta.Contratos)
+                                foreach (Utils.API.Nacc.Contratos c in naccConta.Contratos)
+                                {
+                                    if (c != null)
+                                    {
+                                        desconto += c.VlMaxDescontoVista;
+                                        saldo += c.VlAcordoVista;
+                                    }
+                                }
+                                termo.ValueParcel = saldo - (desconto * Convert.ToDecimal(AppSettings.PercentageDiscountNaccCashMMN * 0.01));
+                            }
+                            else
+                            {
+                                //NaccService.Contratos contrato = naccConta.Contratos.Where(p => p.IdConta == naccCard.IdDebtor).FirstOrDefault();
+                                Utils.API.Nacc.Contratos contrato = naccConta.Contratos.Where(p => p.IdConta == naccCard.IdDebtor).FirstOrDefault();
+                                decimal desconto = contrato.VlMaxDescontoVista * Convert.ToDecimal(AppSettings.PercentageDiscountNaccCash * 0.01);
+                                termo.ValueParcel = contrato.VlAcordoVista - desconto;
+                            }
+                        }
+                    }
+
+                    if (Convert.ToInt32(totalParcel) > 0)
+                    {
+                        termo.DateParcel = dataEntrada.AddMonths(1);
+                        //termo.PercentageTax = (termo.Age > 59) ? 4.99 : 4.90;
+                        termo.ValueEntrance = Convert.ToDecimal(simulaParcelamento.Entrada);
+                        if (parcelOption != null)
+                            termo.ValueEntrance = parcelOption.ValorEntrada;
+                    }
+
+                    html = "<p>";
+                    if (termo.CarteiraNacc == "DRC")
+                    {
+                        html += "Pedimos que efetue o pagamento na data estabelecida, visto que, caso ocorra a antecipação, o pagamento poderá constar como avulso e ocasionar possíveis cobranças indevidas. Caso queira antecipar, peço por gentileza, que entre em contato e solicite outro boleto para pagamento no número 011 3304-4100. Salientamos que o cartão continuará cancelado e que, após constar pagamento em sistema, em até 5 dias úteis serão retiradas as restrições pertinentes de seu CPF.";
+                    }
+                    else
+                    {
+                        html += "Informamos que entre 5 a 7 dias uteis após a baixa do pagamento constar em nosso sistema serão retiradas as restrições externas pertinentes de seu CPF. Lembrando que, caso houver a quebra do acordo em sistema, não será possível permanecer o mesmo valor que havia sido negociado, ocorrendo a atualização dos juros e multas conforme dias em atraso.";
+                    }
+                    html += "</p>";
+                    html += "<p>";
+                    html += "<br />";
+                    html += "<strong>Lembrando</strong>";
+                    html += "<br /><br />";
+
+                    if (termo.ValueEntrance == 0)
+                    {
+
+                        html += "Foi formalizado o ACORDO à vista no valor de " + termo.ValueParcel.ToString("C2") + " com vencimento para o dia " +
+                            termo.DateEntranceParcel.Date.ToString("dd/MM/yyyy") + ".";
+                    }
+                    else
+                    {
+                        html += "Foi formalizado o ACORDO com entrada para dia " + termo.DateEntranceParcel.Date.ToString("dd/MM/yyyy") + " no valor de " +
+                        termo.ValueEntrance.ToString("C2") + ",  mais " + termo.NrParcel;
+                        if (termo.NrParcel > 1)
+                            html += " parcelas de ";
+                        else
+                            html += " parcela de ";
+
+                        html += termo.ValueParcel.ToString("C2") + ", sendo primeiro vencimento para o dia " + termo.DateParcel.ToString("dd/MM/yyyy") +
+                            " e demais vencimentos para todo dia " + termo.DateParcel.Day + ".";
+                    }
+                    html += "</p>";
+
+                    html += "<p>Tenha ";
+                    if (DateTime.Now.Hour >= 12 && DateTime.Now.Hour < 18)
+                        html += "uma Boa Tarde.";
+                    else if (DateTime.Now.Hour >= 18 && DateTime.Now.Hour <= 23)
+                        html += "uma Boa Noite.";
+                    else
+                        html += "um Bom Dia.";
+                    html += "</p>";
+
+                    cache.AddCache("termo", termo);
+                    return Content(html, "text/html");
+                }
+                else
+                {
+                    return Content("<h2>Falha ao gerar os termos do acordo.<br/>Tente novamente mais tarde</h2>", "text/html");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        [Route("Sessao-Expirada")]
+        public IActionResult SessaoExpirada()
+        {
+            IList<object> data = new List<object> { new ConsultaCpfCnpj() };
+            return View(data);
+        }
+    }
+}
