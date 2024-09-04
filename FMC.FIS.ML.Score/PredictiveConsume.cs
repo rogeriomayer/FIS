@@ -1,10 +1,5 @@
-﻿using FMC_FIS_ML_Score;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static FMC_FIS_ML_Score.MLGeneric;
+﻿using FMC_FIS_EnvioEmailCredz1;
+using static FMC_FIS_EnvioEmailCredz1.MLGeneric;
 
 namespace FMC.FIS.ML.Score
 {

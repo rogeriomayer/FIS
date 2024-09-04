@@ -5,7 +5,7 @@ using System;
 using System.Linq;
 using System.IO;
 using System.Collections.Generic;
-namespace FMC_FIS_ML_Score
+namespace FMC_FIS_EnvioEmailCredz1
 {
     public partial class MLGeneric
     {
@@ -16,7 +16,7 @@ namespace FMC_FIS_ML_Score
         public class ModelInput
         {
             [ColumnName(@"col0")]
-            public float Col0 { get; set; }
+            public string Col0 { get; set; }
 
             [ColumnName(@"col1")]
             public float Col1 { get; set; }

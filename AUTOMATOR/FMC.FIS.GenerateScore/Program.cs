@@ -1,5 +1,6 @@
 ﻿using FMC.FIS.Business.BLL;
 using FMC.FIS.Business.Models.FIS;
+using FMC_FIS_EnvioEmailCredz1;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,8 +20,6 @@ namespace FMC.FIS.GenerateScore
             Lead lead = null;
             foreach (var product in listProduct)
             {
-                if (DateTime.Now.Subtract(startTime).Hours > 2)
-                    break;
                 try
                 {
                     Console.Clear();
@@ -88,9 +87,9 @@ namespace FMC.FIS.GenerateScore
                     }
                     return new ScoreAiBLL().GetSingleScore
                         (
-                            new FMC_FIS_ML_Score.MLGeneric.ModelInput()
+                            new MLGeneric.ModelInput()
                             {
-                                Col0 = Convert.ToInt16(DateTime.Today.Subtract(lead.Product.Person.DtBirth.Value).TotalDays / 365),
+                                Col0 = Convert.ToInt16(DateTime.Today.Subtract(lead.Product.Person.DtBirth.Value).TotalDays / 365).ToString(),
                                 Col1 = (float)(lead.Product.IdProductSpecification != null ? lead.Product.IdProductSpecification : 0),
                                 Col2 = address.DsCity,
                                 Col3 = address.DsUF,

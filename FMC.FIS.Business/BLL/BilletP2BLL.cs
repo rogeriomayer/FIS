@@ -23,7 +23,7 @@ namespace FMC.FIS.BLL
                 billetRequest.Account = "000" + billetRequest.Account;
 
             BilletResponse billet = null;
-            if (billetRequest.Account.Length == 19 && billetRequest.Account.EndsWith("000"))
+            if (billetRequest.Account.Length == 19)
                 billet = RestApi.Post<BilletResponse, BilletRequest>(url, "GetBilletFISP2", billetRequest, "");
 
             if (billet != null)

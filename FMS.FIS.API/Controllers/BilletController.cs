@@ -31,8 +31,8 @@ namespace FMC.FIS.API.Controllers
                 // if (TextUtil.IsDate(billetRequest.Date))
                 //     throw new Exception("Erro:Data inválida!");
 
-                if (billetRequest.Account.Length != 19 && (!billetRequest.Account.StartsWith("000")) && (!billetRequest.Account.EndsWith("000")))
-                    throw new Exception("Erro: Não foi informado um número de conta válido! Número de conta deve ter 19 caracteres, iniciar e terminar com 000");
+                //if (billetRequest.Account.Length != 19 && (!billetRequest.Account.StartsWith("000")) && (!billetRequest.Account.EndsWith("000")))
+                //    throw new Exception("Erro: Não foi informado um número de conta válido! Número de conta deve ter 19 caracteres, iniciar e terminar com 000");
 
                 var billet = new BilletP2BLL().GetBillet(billetRequest);
 

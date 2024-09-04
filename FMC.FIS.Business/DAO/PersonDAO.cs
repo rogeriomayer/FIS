@@ -19,7 +19,7 @@ namespace FMC.FIS.Business.DAO
             return Context.Where(p => p.NrCNPJCPF == cpf).FirstOrDefault();
         }
 
-        public ICollection<Person> GetByMailSend(int idProductType, DateTime dtLead, int count, int ageIni, int ageFim)
+        public ICollection<Person> GetByMailSend(int idProductType, DateTime dtLead, int count, int ageIni, int ageFim, int lift)
         {
             var query = new StringBuilder();
 
@@ -70,7 +70,7 @@ namespace FMC.FIS.Business.DAO
             query.Append("       LEFT join FIS.DBO.SCOREAI SA ");
             query.Append("           ON SA.IdProduct = PR.IdProduct ");
 
-            query.Append("  WHERE NOT EXISTS(SELECT * FROM FIS.CREDZ.SENDEMAIL SE WHERE SE.IDPERSON = PR.IdPerson and dtinsert >= getdate() -8) ");
+            query.Append("  WHERE NOT EXISTS(SELECT * FROM FIS.CREDZ.SENDEMAIL SE WHERE SE.IDPERSON = PR.IdPerson and dtinsert >= getdate() - ").Append(lift).Append(")");
             query.Append("       AND LE.DtInsert >= '").Append(dtLead.ToString("yyyy-MM-dd")).Append("'");
             query.Append("       AND PR.IdProductType = 3 ");
             query.Append("       and not exists (select * from CREDZ.SendBrokenEmail sb where sb.IdProduct = pr.IdProduct and dtinsert >= getdate() -2)  ");
@@ -98,7 +98,7 @@ namespace FMC.FIS.Business.DAO
             query.Append("       LEFT join FIS.DBO.SCOREAI SA ");
             query.Append("           ON SA.IdProduct = PR.IdProduct ");
 
-            query.Append("  WHERE NOT EXISTS(SELECT * FROM FIS.CREDZ.SENDEMAIL SE WHERE SE.IDPERSON = PR.IdPerson and dtinsert >= getdate() -8) ");
+            query.Append("  WHERE NOT EXISTS(SELECT * FROM FIS.CREDZ.SENDEMAIL SE WHERE SE.IDPERSON = PR.IdPerson and dtinsert >= getdate() - ").Append(lift).Append(")");
             query.Append("       AND LE.DtInsert >= '").Append(dtLead.ToString("yyyy-MM-dd")).Append("'");
             query.Append("       and le.age between ").Append(ageIni).Append(" and ").Append(ageFim);
             query.Append("       AND PR.IdProductType = 3 ");
@@ -170,59 +170,25 @@ namespace FMC.FIS.Business.DAO
             var query = new StringBuilder();
 
             /*
-            query.Append(" select distinct top 30000 p.*, Age  ");
-            query.Append(" from Person p ");
-            query.Append(" 	inner join Product pr ");
-            query.Append(" 		on pr.IdPerson = p.IdPerson ");
-            query.Append(" 	inner join Lead l ");
-            query.Append(" 		on l.IdProduct = pr.IdProduct ");
-            query.Append(" 		and l.dtinsert >= convert(date, getdate()-1)");
-            //query.Append(" 		and l.age in (77,78)");
-            query.Append(" 		and (l.age in (151, 152,181, 182,211,281,282,721,722))");
-            query.Append(" 	inner join Email e ");
-            query.Append(" 		on e.IdPerson = p.IdPerson ");
+            query.Append(" select distinct pe.*, a.Age ");
+            query.Append(" from Lead a ");
+            query.Append(" 	inner join Product p ");
+            query.Append(" 		on a.IdProduct = p.IdProduct ");
+            query.Append(" 	inner join Person pe ");
+            query.Append(" 		on pe.IdPerson = p.IdProduct ");
+            query.Append(" 	inner join Email em ");
+            query.Append(" 		on em.IdPerson = pe.IdPerson ");
             query.Append(" 		and flBloqueado = 0 ");
-            query.Append(" where not exists ");
-            query.Append(" ( ");
-            query.Append(" 	select 1 ");
-            query.Append(" 	from CREDZ.SendEmail se ");
-            query.Append(" 	where dtInsert > CONVERT(Date, getdate()  ) ");
-            query.Append(" 	and p.IdPerson = se.idperson ");
-            query.Append(" ) ");
-            query.Append(" and not exists ");
-            query.Append(" ( ");
-            query.Append(" 	select 1 ");
-            query.Append(" 	from CREDZ.SendEmailUra su ");
-            query.Append(" 	where dtInsert > CONVERT(Date, getdate() -2) ");
-            query.Append(" 	and p.IdPerson = su.idperson ");
-            query.Append(" ) ");
-            query.Append(" and not exists ");
-            query.Append(" ( ");
-            query.Append(" 	select 1 ");
-            query.Append(" 	from CREDZ.SendBrokenEmail sb ");
-            query.Append(" 	where dtInsert > CONVERT(Date, getdate() -2) ");
-            query.Append(" 	and p.IdPerson = sb.idperson ");
-            query.Append(" ) ");
-            query.Append(" and not exists ");
-            query.Append(" ( ");
-            query.Append(" 	select 1 ");
-            query.Append(" 	from CREDZ.SMS sms ");
-            query.Append(" 	where dtEnvio > CONVERT(Date, getdate() -5) ");
-            query.Append(" 	and p.IdPerson = sms.idperson ");
-            query.Append(" ) ");
-            query.Append(" and not exists ");
-            query.Append(" ( ");
-            query.Append(" 	select 1 ");
-            query.Append(" 	from CREDZ.sendrcs rcs ");
-            query.Append(" 	where dtInsert > CONVERT(Date, getdate() -5) ");
-            query.Append(" 	and p.IdPerson = rcs.idperson ");
+            query.Append(" where a.DtInsert >= CONVERT(Date, getdate()) ");
+            query.Append(" and Age between 78 and 150 ");
+            query.Append(" and not exists (select id from CREDZ.SendEmail se where dtInsert >= CONVERT(Date, getdate() -2) and se.IdProduct = a.IdProduct) ");
+            query.Append(" and not exists (select id from CREDZ.SendRCS rc where dtInsert >= CONVERT(Date, getdate() -2) and rc.IdProduct = a.IdProduct) ");
+            query.Append(" order by Age ");
 
-            query.Append(" ) ");
-            query.Append("  ORDER BY Age ASC");
             return Context.FromSqlRaw(query.ToString()).ToList();
 
-
             */
+
             /*--------------------------------------------------------*/
 
             query.Append(" select distinct TOP 10000 [pe].[IdPerson], [pe].[DsName], [pe].[DtBirth], ");
@@ -237,7 +203,7 @@ namespace FMC.FIS.Business.DAO
             query.Append("      INNER join FIS.DBO.LEAD LE  ");
             query.Append("          ON LE.IdProduct = PR.IdProduct  ");
             query.Append(" 			and LE.DtInsert >= CONVERT(date, getdate()) ");
-            query.Append(" 			AND LE.Age >= 78  ");
+            query.Append(" 			AND LE.Age >= 251  ");
             query.Append("      LEFT join FIS.DBO.SCOREAI SA  ");
             query.Append("          ON SA.IdProduct = PR.IdProduct  ");
             query.Append(" WHERE (   ");
@@ -246,16 +212,16 @@ namespace FMC.FIS.Business.DAO
             query.Append("         (  ");
             query.Append("         select idlead  ");
             query.Append("         from Lead l  ");
-            query.Append("         where l.DtInsert between DATEADD(day, -30, getdate())  and DATEADD(day, -1, getdate())  ");
+            query.Append("         where l.DtInsert between DATEADD(day, -30, getdate() -1)  and DATEADD(day, -1, getdate() -1)  ");
             query.Append("         and le.IdProduct = l.IdProduct  ");
             query.Append(" 		) ");
             query.Append(" 	) ");
             query.Append("    or  ");
             query.Append(" 	( ");
-            query.Append(" 		NOT EXISTS(SELECT * FROM FIS.CREDZ.SENDEMAIL SE WHERE SE.IDPERSON = PR.IdPerson and se.dtinsert >= getdate())  ");
-            query.Append(" 		and LE.Age in (151,181,211,281,721) ");
+            query.Append(" 		NOT EXISTS(SELECT * FROM FIS.CREDZ.SENDEMAIL SE WHERE SE.IDPERSON = PR.IdPerson and se.dtinsert >= convert(date, getdate()))  ");
+            query.Append(" 		and LE.Age in (78,79,151,152,181,182,211,212,281,282,721,722) ");
             query.Append(" 	) ");
-            query.Append(" ORDER BY Score DESC, Age ASC, DebitBalance DESC  ");
+            query.Append(" ORDER BY  Age ASC, DebitBalance DESC  ");
 
             return Context.FromSqlRaw(query.ToString()).ToList();
         }
@@ -361,14 +327,14 @@ namespace FMC.FIS.Business.DAO
         {
             var query = new StringBuilder();
 
-            query.Append(" select pe.*");
+            query.Append(" select top 500 pe.*");
             query.Append(" from Lead a  WITH(NOLOCK) ");
             query.Append(" 	inner join Product p WITH(NOLOCK) ");
             query.Append(" 		on a.IdProduct = p.IdProduct ");
             query.Append(" 	inner join Person pe	WITH(NOLOCK)  ");
             query.Append(" 		on pe.IdPerson = p.IdPerson ");
-            query.Append(" where a.DtInsert >= CONVERT(date, getdate()-1)  ");
-            query.Append(" and a.age between 78 and 81");
+            query.Append(" where a.DtInsert >= CONVERT(date, getdate())  ");
+            query.Append(" and a.age = 91 ");
             //query.Append(" and a.IdProduct not in   ");
             //query.Append(" (  ");
             //query.Append(" select IdProduct  ");
@@ -376,26 +342,26 @@ namespace FMC.FIS.Business.DAO
             //query.Append(" where b.DtInsert between CONVERT(Date, getdate() -60) and CONVERT(date, getdate())  ");
             //query.Append(" and a.IdProduct = b.IdProduct  ");
             //query.Append(" ) ");
-            query.Append(" and not exists ");
-            query.Append(" ( ");
-            query.Append(" 	select IdPerson ");
-            query.Append(" 	from CREDZ.SendEmail se WITH(NOLOCK) ");
-            query.Append(" 	where se.dtInsert >= CONVERT(Date, getdate()-1) ");
-            query.Append(" 	and se.idPerson = pe.IdPerson ");
-            query.Append(" ) ");
+            //query.Append(" and not exists ");
+            //query.Append(" ( ");
+            //query.Append(" 	select IdPerson ");
+            //query.Append(" 	from CREDZ.SendEmail se WITH(NOLOCK) ");
+            //query.Append(" 	where se.dtInsert >= CONVERT(Date, getdate()-1) ");
+            //query.Append(" 	and se.idPerson = pe.IdPerson ");
+            //query.Append(" ) ");
             query.Append(" AND NOT EXISTS ");
             query.Append(" ( ");
             query.Append(" 	SELECT * ");
             query.Append(" 	FROM CREDZ.SendRCS rcs WITH(NOLOCK) ");
             query.Append(" 	WHERE rcs.idPerson = Pe.idPerson ");
-            query.Append(" 	AND rcs.DTINSERT >= GETDATE() - 8 ");
+            query.Append(" 	AND rcs.DTINSERT >= GETDATE() - 20 ");
             query.Append(" ) ");
             query.Append(" AND NOT EXISTS ");
             query.Append(" ( ");
             query.Append(" 	SELECT * ");
-            query.Append(" 	FROM CREDZ.sms sms WITH(NOLOCK) ");
-            query.Append(" 	WHERE sms.idPerson = Pe.idPerson ");
-            query.Append(" 	AND sms.dtenvio >= GETDATE() - 8 ");
+            query.Append(" 	FROM CREDZ.DBO.NAVIGATION NAV WITH(NOLOCK) ");
+            query.Append(" 	WHERE NAV.CPF = Pe.NRCNPJCPF ");
+            query.Append(" 	AND NAV.dtINSERT >= GETDATE() - 8 ");
             query.Append(" ) ");
             //query.Append(" ORDER BY S.Score DESC ");
 

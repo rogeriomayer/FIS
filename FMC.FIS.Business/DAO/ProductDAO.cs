@@ -25,7 +25,7 @@ namespace FMC.FIS.Business.DAO
             query.Append(" and not exists  ");
             query.Append(" ( ");
             query.Append(" 	select * ");
-            query.Append(" 	from ScoreAI_NEW c ");
+            query.Append(" 	from ScoreAI c ");
             query.Append(" 	where c.idproduct = a.IdProduct ");
             query.Append(" ) ");
 

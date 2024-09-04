@@ -48,9 +48,9 @@ namespace FMC.FIS.EnvioEmailCredz
                         }
                         */
 
-                        string title = envioEmail.NomeCartao + " INFORMA";
+                        string title = "OFERTA " + envioEmail.NomeCartao;
                         if (new List<int>() { 151, 181, 211, 281, 721 }.Contains(envioEmail.Atraso))
-                            title = "OFERTA POR TEMPO LIMITADO " + envioEmail.NomeCartao;
+                            title = "NOVO DESCONTO LIBERADO " + envioEmail.NomeCartao;
 
                         if (SendMail(null, title, body, envioEmail.NomeCartao, smtp, email, senha, porta, envioEmail.Email))
                         {
@@ -285,7 +285,7 @@ namespace FMC.FIS.EnvioEmailCredz
                     body.Append(" para quitar seu <b>").Append(cartao).Append(" ").Append(nomeCartao).Append("</b>");
 
 
-                    if (avista.ValueEntrace <= 500)
+                    if (avista.ValueEntrace <= 200)
                     {
                         body.Append(" por apenas <b>R$").Append(avista.ValueEntrace.ToString("N2")).Append("</b> no pagamento a vista!</p>");
                         body.Append("<p>Não perca essa oportunidade, valida apenas em nosso portal!</p>");

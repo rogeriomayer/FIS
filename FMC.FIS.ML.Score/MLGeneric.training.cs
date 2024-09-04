@@ -9,7 +9,7 @@ using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers;
 using Microsoft.ML;
 
-namespace FMC_FIS_ML_Score
+namespace FMC_FIS_EnvioEmailCredz1
 {
     public partial class MLGeneric
     {
@@ -29,11 +29,12 @@ namespace FMC_FIS_ML_Score
         public static IEstimator<ITransformer> BuildPipeline(MLContext mlContext)
         {
             // Data process configuration with pipeline data transformations
-            var pipeline = mlContext.Transforms.ReplaceMissingValues(new []{new InputOutputColumnPair(@"col0", @"col0"),new InputOutputColumnPair(@"col1", @"col1"),new InputOutputColumnPair(@"col4", @"col4"),new InputOutputColumnPair(@"col5", @"col5"),new InputOutputColumnPair(@"col6", @"col6"),new InputOutputColumnPair(@"col7", @"col7"),new InputOutputColumnPair(@"col8", @"col8")})      
+            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding(@"col0", @"col0")      
+                                    .Append(mlContext.Transforms.ReplaceMissingValues(new []{new InputOutputColumnPair(@"col1", @"col1"),new InputOutputColumnPair(@"col4", @"col4"),new InputOutputColumnPair(@"col5", @"col5"),new InputOutputColumnPair(@"col6", @"col6"),new InputOutputColumnPair(@"col7", @"col7"),new InputOutputColumnPair(@"col8", @"col8")}))      
                                     .Append(mlContext.Transforms.Text.FeaturizeText(@"col2", @"col2"))      
                                     .Append(mlContext.Transforms.Text.FeaturizeText(@"col3", @"col3"))      
                                     .Append(mlContext.Transforms.Concatenate(@"Features", new []{@"col0",@"col1",@"col4",@"col5",@"col6",@"col7",@"col8",@"col2",@"col3"}))      
-                                    .Append(mlContext.Regression.Trainers.FastTree(new FastTreeRegressionTrainer.Options(){NumberOfLeaves=164,MinimumExampleCountPerLeaf=58,NumberOfTrees=32768,MaximumBinCountPerFeature=1024,LearningRate=1F,FeatureFraction=0.477461178229405F,LabelColumnName=@"col9",FeatureColumnName=@"Features"}));
+                                    .Append(mlContext.Regression.Trainers.FastForest(new FastForestRegressionTrainer.Options(){NumberOfTrees=313,FeatureFraction=0.732343853657246F,LabelColumnName=@"col9",FeatureColumnName=@"Features"}));
 
             return pipeline;
         }

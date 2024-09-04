@@ -29,6 +29,8 @@ public class BilletResponse
 
     public string CdAgreementRecupera { get; set; }
 
+    public string URL { get; set; }
+
     public int Parcel { get; set; }
 }
 

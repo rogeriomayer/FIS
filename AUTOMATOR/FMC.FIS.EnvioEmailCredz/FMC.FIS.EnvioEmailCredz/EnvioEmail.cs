@@ -48,7 +48,11 @@ namespace FMC.FIS.EnvioEmailCredz
                         }
                         */
 
-                        if (SendMail(null, envioEmail.NomeCartao + " INFORMA", body, envioEmail.NomeCartao, smtp, email, senha, porta, envioEmail.Email))
+                        string title = "OFERTA " + envioEmail.NomeCartao;
+                        if (new List<int>() {78, 151, 181, 211, 281, 721 }.Contains(envioEmail.Atraso))
+                            title = "NOVO DESCONTO LIBERADO " + envioEmail.NomeCartao;
+
+                        if (SendMail(null, title, body, envioEmail.NomeCartao, smtp, email, senha, porta, envioEmail.Email))
                         {
                             string emails = "";
                             envioEmail.Email.ToList().ForEach(p => emails += p + ";");
@@ -261,70 +265,77 @@ namespace FMC.FIS.EnvioEmailCredz
 
         private StringBuilder GetBody181_9999(string nome, string cartao, string nomeCartao, string desconto)
         {
-            StringBuilder body = new StringBuilder();
-            AgreementSimulateResponse simulate = null;
-
-            var contrato = GetContratos();
-            if (contrato != null)
-                simulate = GetValueAgreement(0, contrato);
-
-
-            if (simulate != null && simulate.ParcelResponse != null && simulate.ParcelResponse.Count() > 0 && simulate.ParcelResponse.FirstOrDefault().VlParcel > 5)
+            try
             {
-                var avista = simulate.ParcelResponse.OrderBy(p => p.NrParcel).FirstOrDefault();
-                //var body = new StringBuilder();
-                body.Append("<html>");
-                body.Append("<p>Olá ").Append(nome).Append("</p>");
-                body.Append("<p>Aproveite essa oferta que a Credz lhe oferece apenas nesse mês e renegocie sua dívida com um super desconto de <b>R$").Append((avista.VlDiscount - 1).ToString("N2")).Append("</b>");
-                body.Append(" para quitar seu <b>").Append(cartao).Append(" ").Append(nomeCartao).Append("</b>");
+                StringBuilder body = new StringBuilder();
+                AgreementSimulateResponse simulate = null;
+
+                var contrato = GetContratos();
+                if (contrato != null)
+                    simulate = GetValueAgreement(0, contrato);
 
 
-                if (avista.ValueEntrace <= 500)
+                if (simulate != null && simulate.ParcelResponse != null && simulate.ParcelResponse.Count() > 0 && simulate.ParcelResponse.FirstOrDefault().VlParcel > 5)
                 {
-                    body.Append(" por apenas <b>R$").Append(avista.ValueEntrace.ToString("N2")).Append("</b> no pagamento a vista!</p>");
-                    body.Append("<p>Não perca essa oportunidade, valida apenas em nosso portal!</p>");
+                    var avista = simulate.ParcelResponse.OrderBy(p => p.NrParcel).FirstOrDefault();
+                    //var body = new StringBuilder();
+                    body.Append("<html>");
+                    body.Append("<p>Olá ").Append(nome).Append("</p>");
+                    body.Append("<p>Aproveite essa oferta que a Credz lhe oferece apenas nesse mês e renegocie sua dívida com um super desconto de <b>R$").Append((avista.VlDiscount - 1).ToString("N2")).Append("</b>");
+                    body.Append(" para quitar seu <b>").Append(cartao).Append(" ").Append(nomeCartao).Append("</b>");
+
+
+                    if (avista.ValueEntrace <= 200)
+                    {
+                        body.Append(" por apenas <b>R$").Append(avista.ValueEntrace.ToString("N2")).Append("</b> no pagamento a vista!</p>");
+                        body.Append("<p>Não perca essa oportunidade, valida apenas em nosso portal!</p>");
+                        body.Append("<br>");
+                        body.Append("<p>Temos também opções de parcelamento com um desconto que vale a pena conferir!</p>");
+                    }
+                    else
+                    {
+                        decimal vlParcel = 50;
+                        var parcela = 24;
+                        for (int i = 24; i > 0; i--)
+                        {
+                            parcela = i;
+                            vlParcel = (simulate.VlFull - simulate.PctDiscount) / i;
+                            if (vlParcel > 50)
+                            {
+                                break;
+                            }
+                        }
+                        simulate = GetValueAgreement(parcela, contrato);
+                        var parcelamento = simulate.ParcelResponse.OrderByDescending(p => p.NrParcel).FirstOrDefault();
+                        body.Append(" por apenas <b>R$").Append(avista.ValueEntrace.ToString("N2")).Append("</b> no pagamento <b>a vista</b>!</p>");
+                        body.Append("<p> Temos também opção de parcelamento com desconto de <b>R$").Append(parcelamento.VlDiscount.ToString("N2"));
+                        body.Append("</b>, pagando uma entrada de <b>R$").Append(parcelamento.ValueEntrace.ToString("N2"));
+                        body.Append("</b> e ").Append(parcelamento.NrParcel).Append(" parcelas de <b>R$");
+                        body.Append(parcelamento.VlParcel).Append(" </b>.");
+                        body.Append("</p><br>");
+                        body.Append("<p>Não perca essa oportunidade, valida apenas em nosso portal!</p>");
+
+                    }
+
                     body.Append("<br>");
-                    body.Append("<p>Temos também opções de parcelamento com um desconto que vale a pena conferir!</p>");
+                    body.Append("<p>Esta oferta é válida até ").Append(DateTime.Today.AddDays(2).ToString("dd/MM/yyyy")).Append(" para pagamento até ").Append(avista.DtParcel.ToString("dd/MM/yyyy")).Append(".</p>");
+                    body.Append("<p>Para aproveitar esta oferta ou simular outras condições acesse: <a href='https://fmc.digital/ecredz'>www.negociadorcredz.fmcbrasil.com.br</a> </p>");
+                    body.Append("<p>Em caso de dúvidas, pode entrar em contato com nossa central de atendimento");
+                    body.Append(" nos telefones <b>4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(Demais Regiões)</b>.</p>");
+                    body.Append("<br>");
+                    body.Append("<br>");
+                    body.Append("<p>Caso já tenha efetuado o pagamento favor desconsiderar este e-mail.</p>");
                 }
                 else
                 {
-                    decimal vlParcel = 50;
-                    var parcela = 24;
-                    for (int i = 24; i > 0; i--)
-                    {
-                        parcela = i;
-                        vlParcel = (simulate.VlFull - simulate.PctDiscount) / i;
-                        if (vlParcel > 50)
-                        {
-                            break;
-                        }
-                    }
-                    simulate = GetValueAgreement(parcela, contrato);
-                    var parcelamento = simulate.ParcelResponse.OrderByDescending(p => p.NrParcel).FirstOrDefault();
-                    body.Append(" por apenas <b>R$").Append(avista.ValueEntrace.ToString("N2")).Append("</b> no pagamento <b>a vista</b>!</p>");
-                    body.Append("<p> Temos também opção de parcelamento com desconto de <b>R$").Append(parcelamento.VlDiscount.ToString("N2"));
-                    body.Append("</b>, pagando uma entrada de <b>R$").Append(parcelamento.ValueEntrace.ToString("N2"));
-                    body.Append("</b> e ").Append(parcelamento.NrParcel).Append(" parcelas de <b>R$");
-                    body.Append(parcelamento.VlParcel).Append(" </b>.");
-                    body.Append("</p><br>");
-                    body.Append("<p>Não perca essa oportunidade, valida apenas em nosso portal!</p>");
-
+                    return null;
                 }
-
-                body.Append("<br>");
-                body.Append("<p>Esta oferta é válida até ").Append(DateTime.Today.AddDays(2).ToString("dd/MM/yyyy")).Append(" para pagamento até ").Append(avista.DtParcel.ToString("dd/MM/yyyy")).Append(".</p>");
-                body.Append("<p>Para aproveitar esta oferta ou simular outras condições acesse: <a href='https://fmc.digital/ecredz'>www.negociadorcredz.fmcbrasil.com.br</a> </p>");
-                body.Append("<p>Em caso de dúvidas, pode entrar em contato com nossa central de atendimento");
-                body.Append(" nos telefones <b>4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(Demais Regiões)</b>.</p>");
-                body.Append("<br>");
-                body.Append("<br>");
-                body.Append("<p>Caso já tenha efetuado o pagamento favor desconsiderar este e-mail.</p>");
+                return body;
             }
-            else
+            catch (Exception ex)
             {
                 return null;
             }
-            return body;
         }
 
         private Contrato GetContratos()
@@ -347,14 +358,21 @@ namespace FMC.FIS.EnvioEmailCredz
             {
                 var lead = envioEmail.Lead;
 
-                ICollection<ComplementData> complementData = new HashSet<ComplementData>();
+                ICollection<ParcelaCredz> complementData = new HashSet<ParcelaCredz>();
 
 
-                complementData.Add(new ComplementData() { Name = "negociacao_id", Value = contract.negociacao_id.ToString() });
-                complementData.Add(new ComplementData() { Name = "id", Value = contract.parcelas.OrderBy(p => p.vencimento).FirstOrDefault().id.ToString() });
-                complementData.Add(new ComplementData() { Name = "numero", Value = contract.parcelas.OrderBy(p => p.vencimento).FirstOrDefault().numero.ToString() });
-                complementData.Add(new ComplementData() { Name = "vencimento", Value = contract.parcelas.OrderBy(p => p.vencimento).FirstOrDefault().vencimento.ToString("yyyy-MM-dd") });
-                complementData.Add(new ComplementData() { Name = "valor", Value = contract.parcelas.OrderBy(p => p.vencimento).FirstOrDefault().valor.ToString("N2") });
+                complementData = contract.parcelas.Select(p =>
+                        new ParcelaCredz()
+                        {
+                            id_parcela_original = p.id,
+                            negociacao_id = contract.negociacao_id,
+                            numero_parcela_original = p.numero,
+                            vencimento = p.vencimento,
+                            valor = p.valor
+                        }
+
+                    ).ToList();
+
 
                 return new AgreementBLL().GetOnlyOneSimulateCredz
                     (
@@ -368,7 +386,7 @@ namespace FMC.FIS.EnvioEmailCredz
                             VlEntrace = 0,
                             Product = lead.Product.DsProduct,
                             CdSimulate = "",
-                            ComplementData = complementData,
+                            ParcelaCredz = complementData,
                             FixedEntraceValue = false
                         }
                     );

@@ -1,0 +1,54 @@
+﻿Set log file path to C:\Users\Administrador\AppData\Local\Temp\2\MLVSTools\logs\MLGeneric-U2928I.txt
+start nni training
+Experiment output folder: C:\Users\Administrador\AppData\Local\Temp\2\AutoML-NNI\Experiment-GCRH2R
+|     Trainer                             RSquared Absolute-loss Squared-loss RMS-loss  Duration #Iteration      |
+|0    FastForestRegression                  0,0669          0,10         0,07     0,27       4,9          0      |
+|1    FastTreeTweedieRegression            -0,4063          0,31         0,11     0,34       1,9          1      |
+|2    FastTreeRegression                    0,0034          0,10         0,08     0,28       1,6          2      |
+|3    SdcaRegression                       -0,0289          0,12         0,08     0,29       2,0          3      |
+|4    LightGbmRegression                    0,0401          0,12         0,08     0,28       2,5          4      |
+|5    LbfgsPoissonRegressionRegression     -0,0186          0,10         0,08     0,29       2,1          5      |
+|6    FastForestRegression                  0,1167          0,14         0,07     0,27      40,8          6      |
+|7    FastForestRegression                  0,1171          0,14         0,07     0,27      64,6          7      |
+|8    FastTreeRegression                   -0,0924          0,09         0,09     0,30       1,8          8      |
+|9    LightGbmRegression                    0,0987          0,15         0,07     0,27      47,3          9      |
+|10   SdcaRegression                       -0,0113          0,18         0,08     0,28      54,8         10      |
+|11   FastForestRegression                  0,1153          0,14         0,07     0,27     313,9         11      |
+|12   FastTreeTweedieRegression             0,0953          0,17         0,07     0,27      41,5         12      |
+
+===============================================Experiment Results=================================================
+------------------------------------------------------------------------------------------------------------------
+|                                                     Summary                                                    |
+------------------------------------------------------------------------------------------------------------------
+|ML Task: Regression                                                                                             |
+|Dataset: C:\Projetos TreyNet\FIS\DEV\FMC.FIS.ML.Score\DB\2024-08-26-01.csv                                      |
+|Label : col9                                                                                                    |
+|Total experiment time : 579,77 Secs                                                                             |
+|Total number of models explored: 13                                                                             |
+------------------------------------------------------------------------------------------------------------------
+
+|                                              Top 5 models explored                                             |
+------------------------------------------------------------------------------------------------------------------
+|     Trainer                             RSquared Absolute-loss Squared-loss RMS-loss  Duration #Iteration      |
+|7    FastForestRegression                  0,1171          0,14         0,07     0,27      64,6          7      |
+|6    FastForestRegression                  0,1167          0,14         0,07     0,27      40,8          6      |
+|11   FastForestRegression                  0,1153          0,14         0,07     0,27     313,9         11      |
+|9    LightGbmRegression                    0,0987          0,15         0,07     0,27      47,3          9      |
+|12   FastTreeTweedieRegression             0,0953          0,17         0,07     0,27      41,5         12      |
+------------------------------------------------------------------------------------------------------------------
+
+Generate code behind files
+
+
+Copying generated code to project...
+Copying MLGeneric.consumption.cs to folder: C:\Projetos TreyNet\FIS\DEV\FMC.FIS.ML.Score
+Copying MLGeneric.training.cs to folder: C:\Projetos TreyNet\FIS\DEV\FMC.FIS.ML.Score
+COMPLETED
+
+
+Updating nuget dependencies...
+Installing nuget package, package ID: Microsoft.ML, package Version: 1.6.0
+Microsoft.ML has been updated successfully
+Installing nuget package, package ID: Microsoft.ML.FastTree, package Version: 1.6.0
+Microsoft.ML.FastTree has been updated successfully
+COMPLETED

@@ -1038,11 +1038,13 @@ namespace FMC.WebSite.FIS.Controllers
         }
 
         [Route("Imprimir")]
-        public IActionResult Imprimir()
+        public IActionResult Imprimir(string urlPDF)
 
         {
+            /*
             try
             {
+                
                 BilletResponse boleto = cache.Get<BilletResponse>("boleto");
                 PersonResponse pessoa = cache.Get<PersonResponse>("Pessoa");
                 Produto _produto = cache.Get<Produto>("produto");
@@ -1079,6 +1081,32 @@ namespace FMC.WebSite.FIS.Controllers
                     ViewData["Message"] = new List<string> { "Não foi possível obter o boleto para esta conta!" };
                     return View("Encerrado", new List<object> { cache.Get<ConsultaCpfCnpj>("model") });
                 }
+            }
+            catch
+            {
+                ViewData["Message"] = new List<string> { "Não foi possível obter o boleto para esta conta!" };
+                return View("Encerrado", new List<object> { cache.Get<ConsultaCpfCnpj>("model") });
+            }
+                */
+
+            try
+            {
+                BilletResponse boleto = cache.Get<BilletResponse>("boleto");
+
+                if (!string.IsNullOrEmpty(urlPDF))
+                {
+                    return Redirect(urlPDF);
+                }
+                else if (!string.IsNullOrEmpty(boleto.URL))
+                {
+                    return Redirect(boleto.URL);
+                }
+                else
+                {
+                    ViewData["Message"] = new List<string> { "Não foi possível obter o boleto para esta conta!" };
+                    return View("Encerrado", new List<object> { cache.Get<ConsultaCpfCnpj>("model") });
+                }
+
             }
             catch
             {
@@ -1241,6 +1269,8 @@ namespace FMC.WebSite.FIS.Controllers
                 {
                     try
                     {
+                        return Json(true);
+
                         PersonResponse pessoa = cache.Get<PersonResponse>("Pessoa");
                         BilletResponse boleto = cache.Get<BilletResponse>("boleto");
 
@@ -1339,6 +1369,8 @@ namespace FMC.WebSite.FIS.Controllers
                 Match match = regex.Match(email);
                 if (match.Success)
                 {
+                    return Json(true);
+
                     Produto _produto = cache.Get<Produto>("produto");
                     if (_produto.NomeProduto == "IBI")
                     {

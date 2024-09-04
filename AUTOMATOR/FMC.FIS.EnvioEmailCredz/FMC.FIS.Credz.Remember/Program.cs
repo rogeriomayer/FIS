@@ -240,7 +240,7 @@ try
                                                 objectSend.Phone = sms.telefone.ToString();
                                             else
                                             {
-                                                var phone = product.Person.Phone.OrderBy(p => p.IdPhoneStatus).FirstOrDefault();
+                                                var phone = product.Person.Phone.Where(p=> p.IdPhoneType > 1).OrderBy(p => p.IdPhoneStatus).FirstOrDefault();
                                                 if (phone != null) objectSend.Phone = phone.NrPhone;
                                             }
                                             if (!string.IsNullOrEmpty(objectSend.Phone))

@@ -12,13 +12,14 @@ using Microsoft.IdentityModel.Tokens;
 
 using FMC.FIS.Business.Models.FIS;
 using FMC.FIS.Business.DAO;
+using static FMC_FIS_EnvioEmailCredz1.MLGeneric;
 
 namespace FMC.FIS.Business.BLL
 {
     public class ScoreAiBLL : BLL<ScoreAI, ScoreAiDAO>
     {
 
-        public Decimal GetSingleScore(FMC_FIS_ML_Score.MLGeneric.ModelInput model)
+        public Decimal GetSingleScore(ModelInput model)
         {
             var output = new FMC.FIS.ML.Score.PredictiveConsume().GetPredictive(model);
             return output != null ? Convert.ToDecimal(output.Score) : decimal.Zero;

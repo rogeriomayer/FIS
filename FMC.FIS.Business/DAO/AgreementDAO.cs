@@ -16,13 +16,35 @@ namespace FMC.FIS.Business.DAO
         {
             var query = new StringBuilder();
 
-            query.Append("select a.* ");
-            query.Append("from agreement a ");
+            query.Append(" SELECT DISTINCT [A].[IdAgreement] ");
+            query.Append("       ,[A].[IdStatusLead] ");
+            query.Append("       ,[A].[VlEntrace] ");
+            query.Append("       ,[A].[DtEntrace] ");
+            query.Append("       ,[A].[PcDiscount] ");
+            query.Append("       ,[A].[QtParcel] ");
+            query.Append("       ,[A].[VlParcel] ");
+            query.Append("       ,[A].[VlAgreement] ");
+            query.Append("       ,[A].[CdPaymentOption] ");
+            query.Append("       ,[A].[CdParcelPlan] ");
+            query.Append("       ,[A].[CdAgreement] ");
+            query.Append("       ,[A].[IdAgreementStatus] ");
+            query.Append("       ,[A].[DtInsert] ");
+            query.Append(" FROM Agreement A ");
+            query.Append(" WHERE A.IdAgreementStatus = 5 ");
+            query.Append(" AND EXISTS  ");
+            query.Append(" ( ");
+            query.Append(" 	SELECT IdAgreement ");
+            query.Append(" 	FROM AgreementParcel AP ");
+            query.Append(" 	WHERE A.IdAgreement = AP.IdAgreement ");
+            query.Append(" 	AND AP.DtParcel >= CONVERT(dATE, GETDATE() -9) ");
+            query.Append(" ) ");
+
+            /*query.Append("from agreement a ");
             query.Append("where CdParcelPlan = '' ");
             query.Append("and cdagreement in  ");
             query.Append("( ");
-            query.Append("'4142698186') ");
-
+            query.Append("'4138064687') ");
+            */
 
             return Context.FromSqlRaw(query.ToString()).ToList();
 

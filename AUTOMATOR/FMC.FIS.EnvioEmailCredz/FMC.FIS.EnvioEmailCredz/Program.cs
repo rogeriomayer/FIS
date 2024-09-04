@@ -38,7 +38,7 @@ try
     {
         DateTime dtIni = DateTime.Now.Hour < 12 ? DateTime.Today.AddDays(-2) : DateTime.Today;
         IList<Discount> Discounts = new DiscountBLL().GetByProductType(3).ToList();
-        IList<Person> listPerson = new PersonBLL().GetByMailSend(3, dtIni, 13000, 78, 150).ToList();
+        IList<Person> listPerson = new PersonBLL().GetByMailSend(3, dtIni, 13000, 78, 150, 2).ToList();
         Util.SaveFile("Foram encontrados " + listPerson.Count + " CPFs ");
         IList<EnviosBalance> enviosBalance = new List<EnviosBalance>();
 
@@ -70,8 +70,8 @@ try
                     idPerson = person.IdPerson;
 
                     Console.WriteLine(idPerson);
-                    
-                    foreach (var product in person.Product.Where(p=> p.Lead.Where(l=> l.DtInsert >= DateTime.Today.AddDays(-1)).Any()))
+
+                    foreach (var product in person.Product.Where(p => p.Lead.Where(l => l.DtInsert >= DateTime.Today.AddDays(-1)).Any()))
                     {
                         if (accout != product.DsProduct)
                         {

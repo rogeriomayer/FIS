@@ -129,7 +129,26 @@ namespace FMC.FIS.Business.BLL
             }
             else
             {
-                throw new Exception("metodo desabilitado");
+                //throw new Exception("metodo desabilitado");
+                return new BilletResponse()
+                {
+                    IdBillet = 1,
+                    IdProduct = billetRequest.IdProduct,
+                    IdAgreementParcel = null,
+                    IdPromisse = null,
+                    VlBillet = billetRequest.VlBillet,
+                    DtBillet = billetRequest.DtBillet,
+                    Barcode = "23799948400000209613391090004199420900101620",
+                    Line = "23793.39100 90004.199429 09001.016204 9 94840000020961",
+                    DocumentNumber = "09/00041994209-2",
+                    DtInsert = Convert.ToDateTime("2024-01-31 11:37:57.573"),
+                    CdAgreement = "123",
+                    CdBillet = "",
+                    URL = "http://cobranca.fmcbrasil.com.br/images/boletoteste.pdf",
+                    NrSendEmail = 0,
+                    NrSendSMS = 0,
+                    Parcel = 0
+                };
             }
 
             /*

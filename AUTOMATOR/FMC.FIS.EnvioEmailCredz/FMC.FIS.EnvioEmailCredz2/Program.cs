@@ -37,7 +37,7 @@ try
     {
         DateTime dtIni = DateTime.Now.Hour < 12 ? DateTime.Today.AddDays(-2) : DateTime.Today;
         IList<Discount> Discounts = new DiscountBLL().GetByProductType(3).ToList();
-        IList<Person> listPerson = new PersonBLL().GetByMailSend(3, dtIni, 7600, 151,250).ToList();
+        IList<Person> listPerson = new PersonBLL().GetByMailSend(3, dtIni, 6000, 151,250,2).ToList();
         Util.SaveFile("Foram encontrados " + listPerson.Count + " CPFs ");
         IList<EnviosBalance> enviosBalance = new List<EnviosBalance>();
 
