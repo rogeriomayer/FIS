@@ -16,4 +16,13 @@
     <ProjectReference Include="..\..\..\FMC.FIS.Business\FMC.FIS.Business.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="TgSharp.Core">
+      <HintPath>Library\TgSharp.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="TgSharp.TL">
+      <HintPath>Library\TgSharp.TL.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

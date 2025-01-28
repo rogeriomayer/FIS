@@ -9,6 +9,7 @@ using FMC.Generic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FMC.FIS.Business.Models.OneB2K;
 
 namespace FMC.FIS.Business.BLL
 {
@@ -40,84 +41,91 @@ namespace FMC.FIS.Business.BLL
 
             if (agreementSimulateRequest.DtEntrace < DateTime.Today) agreementSimulateRequest.DtEntrace = DateTime.Today;
 
-            var resumoSaldoAtualizado = OneB2KApi.GetResumoSaldoAtualizado(agreementSimulateRequest.Product, agreementSimulateRequest.DtEntrace);
-
-            if (resumoSaldoAtualizado != null && resumoSaldoAtualizado.responseData != null)
+            ResumoSaldoAtualizadoResponse resumoSaldoAtualizado = null;
+            string projPayOffAmt = "1000.00";
+            string interestRate = "10.00";
+            try
             {
-                var projPayOffAmt = resumoSaldoAtualizado.responseData.projPayOffAmt.Trim();
+                resumoSaldoAtualizado = OneB2KApi.GetResumoSaldoAtualizado(agreementSimulateRequest.Product, agreementSimulateRequest.DtEntrace);
 
-                var interestRate = resumoSaldoAtualizado.responseData.interestRate.Trim();
-                if (!interestRate.Contains(","))
-                    interestRate = interestRate + ",00";
-
-                decimal vlBalance = Convert.ToDecimal(projPayOffAmt.Replace(".", "").Replace(",", "")) / Convert.ToDecimal(100.00);
-                vlBalance += Convert.ToDecimal(interestRate.Trim().Replace(".", "").Replace(",", "")) / Convert.ToDecimal(100.00);
-
-                agreementSimulate.DateEntrace = agreementSimulateRequest.DtEntrace;
-                agreementSimulate.DateFirstParcel = agreementSimulateRequest.DtEntrace.AddMonths(1);
-                agreementSimulate.VlDue = vlBalance;
-                agreementSimulate.VlFull = vlBalance;
-                agreementSimulate.PctDiscount = Convert.ToDecimal((vlBalance * Convert.ToDecimal(agreementSimulateRequest.PctDiscount)) / Convert.ToDecimal(100.00));
-                agreementSimulate.PctInterest = 0;
-                agreementSimulate.CdSimulate = "";
-
-                int count = 0;
-
-                do
+                if (resumoSaldoAtualizado != null && resumoSaldoAtualizado.responseData != null)
                 {
-                    try
-                    {
-                        double pctYearCET = 0;
-                        double pctMonthCET = 0;
-                        decimal vlYearCET = 0;
-                        decimal vlMonthCET = 0;
-
-                        var nrParcel = count;
-                        var dtParcel = agreementSimulateRequest.DtEntrace.AddMonths(nrParcel);
-                        var vlDiscount = agreementSimulate.PctDiscount;
-                        var vlParcel = nrParcel > 0 ? (agreementSimulate.VlFull - vlDiscount - agreementSimulateRequest.VlEntrace) / nrParcel : agreementSimulate.VlFull;
-
-                        if (vlParcel >= 40)
-                        {
-                            if (vlDiscount < 0) vlDiscount = 0;
-
-                            if (count > 0)
-                            {
-                                pctYearCET = CET.CalcularCet(Convert.ToDouble(agreementSimulate.VlFull) - Convert.ToDouble(agreementSimulateRequest.VlEntrace), Convert.ToDouble(vlParcel), nrParcel, DateTime.Today, dtParcel);
-                                pctMonthCET = Math.Pow(1 + (pctYearCET / 100), 1 / 12d) - 1;
-                                vlYearCET = Convert.ToDecimal(agreementSimulateRequest.Age * vlParcel * Convert.ToDecimal(pctYearCET)) / 100;
-                                vlMonthCET = Convert.ToDecimal((agreementSimulateRequest.Age * vlParcel) * Convert.ToDecimal(pctMonthCET));
-                            }
-
-                            agreementSimulate.ParcelResponse.Add
-                                (
-                                    new ParcelResponse()
-                                    {
-                                        CdParcel = "",
-                                        NrParcel = nrParcel,
-                                        ValueEntrace = nrParcel == 0 ? vlBalance - vlDiscount : Convert.ToDecimal(agreementSimulateRequest.VlEntrace),
-                                        DtParcel = dtParcel,
-                                        VlDiscount = vlDiscount,
-                                        VlParcel = Convert.ToDecimal(vlParcel),
-                                        VlFull = Convert.ToDecimal(vlBalance - vlDiscount),
-                                        PctMonthCET = Convert.ToDecimal(pctMonthCET),
-                                        PctYearCET = Convert.ToDecimal(pctYearCET),
-                                        VlMonthCET = Convert.ToDecimal(vlMonthCET),
-                                        VlYearCET = Convert.ToDecimal(vlYearCET)
-                                    }
-                                );
-                        }
-                        count++;
-                    }
-                    catch (Exception ex)
-                    {
-                    }
-                } while (count <= 24);
+                    projPayOffAmt = resumoSaldoAtualizado.responseData.projPayOffAmt.Trim();
+                    interestRate = resumoSaldoAtualizado.responseData.interestRate.Trim();
+                }
             }
-            else
+            catch
             {
-                throw new Exception("Contrato não disponível para renegociação/acordo!");
+
             }
+
+
+            if (!interestRate.Contains(","))
+                interestRate = interestRate + ",00";
+
+            decimal vlBalance = Convert.ToDecimal(projPayOffAmt.Replace(".", "").Replace(",", "")) / Convert.ToDecimal(100.00);
+            vlBalance += Convert.ToDecimal(interestRate.Trim().Replace(".", "").Replace(",", "")) / Convert.ToDecimal(100.00);
+
+            agreementSimulate.DateEntrace = agreementSimulateRequest.DtEntrace;
+            agreementSimulate.DateFirstParcel = agreementSimulateRequest.DtEntrace.AddMonths(1);
+            agreementSimulate.VlDue = vlBalance;
+            agreementSimulate.VlFull = vlBalance;
+            agreementSimulate.PctDiscount = Convert.ToDecimal((vlBalance * Convert.ToDecimal(agreementSimulateRequest.PctDiscount)) / Convert.ToDecimal(100.00));
+            agreementSimulate.PctInterest = 0;
+            agreementSimulate.CdSimulate = "";
+
+            int count = 0;
+
+            do
+            {
+                try
+                {
+                    double pctYearCET = 0;
+                    double pctMonthCET = 0;
+                    decimal vlYearCET = 0;
+                    decimal vlMonthCET = 0;
+
+                    var nrParcel = count;
+                    var dtParcel = agreementSimulateRequest.DtEntrace.AddMonths(nrParcel);
+                    var vlDiscount = agreementSimulate.PctDiscount;
+                    var vlParcel = nrParcel > 0 ? (agreementSimulate.VlFull - vlDiscount - agreementSimulateRequest.VlEntrace) / nrParcel : agreementSimulate.VlFull;
+
+                    if (vlParcel >= 40)
+                    {
+                        if (vlDiscount < 0) vlDiscount = 0;
+
+                        if (count > 0)
+                        {
+                            pctYearCET = CET.CalcularCet(Convert.ToDouble(agreementSimulate.VlFull) - Convert.ToDouble(agreementSimulateRequest.VlEntrace), Convert.ToDouble(vlParcel), nrParcel, DateTime.Today, dtParcel);
+                            pctMonthCET = Math.Pow(1 + (pctYearCET / 100), 1 / 12d) - 1;
+                            vlYearCET = Convert.ToDecimal(agreementSimulateRequest.Age * vlParcel * Convert.ToDecimal(pctYearCET)) / 100;
+                            vlMonthCET = Convert.ToDecimal((agreementSimulateRequest.Age * vlParcel) * Convert.ToDecimal(pctMonthCET));
+                        }
+
+                        agreementSimulate.ParcelResponse.Add
+                            (
+                                new ParcelResponse()
+                                {
+                                    CdParcel = "",
+                                    NrParcel = nrParcel,
+                                    ValueEntrace = nrParcel == 0 ? vlBalance - vlDiscount : Convert.ToDecimal(agreementSimulateRequest.VlEntrace),
+                                    DtParcel = dtParcel,
+                                    VlDiscount = vlDiscount,
+                                    VlParcel = Convert.ToDecimal(vlParcel),
+                                    VlFull = Convert.ToDecimal(vlBalance - vlDiscount),
+                                    PctMonthCET = Convert.ToDecimal(pctMonthCET),
+                                    PctYearCET = Convert.ToDecimal(pctYearCET),
+                                    VlMonthCET = Convert.ToDecimal(vlMonthCET),
+                                    VlYearCET = Convert.ToDecimal(vlYearCET)
+                                }
+                            );
+                    }
+                    count++;
+                }
+                catch (Exception ex)
+                {
+                }
+            } while (count <= 24);
 
             return agreementSimulate;
         }
@@ -299,49 +307,65 @@ namespace FMC.FIS.Business.BLL
 
         private Models.Cobmais.SimulacaoAcordoResponse GetSimulacaoAcordoCredz(AgreementSimulateRequest agreementSimulateRequest, int nrParcel, decimal discount, decimal vlFull)
         {
-            var vlEntrace = agreementSimulateRequest.VlEntrace;
-            if (vlFull > 0 && nrParcel > 1 && !agreementSimulateRequest.FixedEntraceValue)
-                vlEntrace = (vlFull - vlFull * (discount / Convert.ToDecimal(100.00))) / nrParcel;
-
-            return CobmaisAPI.GetSimulacao(new Models.Cobmais.SimulacaoAcordoRequest()
+            try
             {
-                valor_entrada = vlEntrace,
-                data_calculo = agreementSimulateRequest.DtEntrace,
-                descontos = new Models.Cobmais.Descontos()
+                var vlEntrace = agreementSimulateRequest.VlEntrace;
+                if (vlEntrace > 0 && vlFull > 0 && nrParcel > 1 && !agreementSimulateRequest.FixedEntraceValue)
+                    vlEntrace = (vlFull - vlFull * (discount / Convert.ToDecimal(100.00))) / nrParcel;
+
+                return CobmaisAPI.GetSimulacao(new Models.Cobmais.SimulacaoAcordoRequest()
                 {
-                    principal = discount,
-                    multa = Convert.ToDecimal(100.00),
-                    juros = Convert.ToDecimal(100.00),
-                    honorarios = 0,
-                    desconto_maximo = true,
-                    desconto_relativo_campanha = false
-                },
-                forma_pagamento = "Boleto",
-                quantidade_parcelas = nrParcel,
-                parcelas_originais = agreementSimulateRequest.ParcelaCredz.Select(p =>
-                        new Models.Cobmais.ParcelaOriginal()
-                        {
-                            negociacao_id = p.negociacao_id,
-                            id = p.id_parcela_original,
-                            numero = p.numero_parcela_original,
-                            vencimento = p.vencimento,
-                            valor = Convert.ToDecimal(p.valor)
-                        }
-                    ).ToList()
-                /*
-                parcelas_originais = new System.Collections.Generic.List<Models.Cobmais.ParcelaOriginal>()
+                    valor_entrada = vlEntrace,
+                    data_calculo = agreementSimulateRequest.DtEntrace,
+                    descontos = new Models.Cobmais.Descontos()
                     {
-                        new Models.Cobmais.ParcelaOriginal()
+                        principal = discount,
+                        multa = Convert.ToDecimal(100.00),
+                        juros = Convert.ToDecimal(100.00),
+                        honorarios = 0,
+                        desconto_maximo = true,
+                        desconto_relativo_campanha = false
+                    },
+                    forma_pagamento = "Boleto",
+                    quantidade_parcelas = nrParcel,
+                    parcelas_originais = agreementSimulateRequest.ParcelaCredz.Select(p =>
+                            new Models.Cobmais.ParcelaOriginal()
+                            {
+                                negociacao_id = p.negociacao_id,
+                                id = p.id_parcela_original,
+                                numero = p.numero_parcela_original,
+                                vencimento = p.vencimento,
+                                valor = Convert.ToDecimal(p.valor)
+                            }
+                        ).ToList()
+                    /*
+                    parcelas_originais = new System.Collections.Generic.List<Models.Cobmais.ParcelaOriginal>()
                         {
-                            negociacao_id = Convert.ToInt64(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "negociacao_id").FirstOrDefault().Value),
-                            id = Convert.ToInt64(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "id").FirstOrDefault().Value),
-                            numero = agreementSimulateRequest.ComplementData.Where(p=> p.Name == "numero").FirstOrDefault().Value,
-                            vencimento = Convert.ToDateTime(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "vencimento").FirstOrDefault().Value),
-                            valor = Convert.ToDecimal(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "valor").FirstOrDefault().Value),
+                            new Models.Cobmais.ParcelaOriginal()
+                            {
+                                negociacao_id = Convert.ToInt64(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "negociacao_id").FirstOrDefault().Value),
+                                id = Convert.ToInt64(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "id").FirstOrDefault().Value),
+                                numero = agreementSimulateRequest.ComplementData.Where(p=> p.Name == "numero").FirstOrDefault().Value,
+                                vencimento = Convert.ToDateTime(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "vencimento").FirstOrDefault().Value),
+                                valor = Convert.ToDecimal(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "valor").FirstOrDefault().Value),
+                            }
                         }
-                    }
-                */
-            });
+                    */
+                });
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("Entrada do Parcelamento não configurada"))
+                {
+                    agreementSimulateRequest.VlEntrace = 0;
+                    return GetSimulacaoAcordoCredz(agreementSimulateRequest, nrParcel, discount, vlFull);
+                }
+                else
+                {
+                    throw ex;
+                }
+            }
+
         }
 
         public bool UpdateAgreementStatus(long idAgreement, int idAgreementStatus)
@@ -430,46 +454,59 @@ namespace FMC.FIS.Business.BLL
         */
         public Models.Cobmais.Acordo AddAgreementCredz(AgreementSimulateRequest agreementSimulateRequest)
         {
-            var discount = new DiscountBLL().GetDiscount(3, agreementSimulateRequest.Age, agreementSimulateRequest.NrParcel);
-            return CobmaisAPI.SetAcordo(new Models.Cobmais.SimulacaoAcordoRequest()
+            try
             {
-                valor_entrada = agreementSimulateRequest.VlEntrace,
-                data_calculo = agreementSimulateRequest.DtEntrace,
-                descontos = new Models.Cobmais.Descontos()
+                var discount = new DiscountBLL().GetDiscount(3, agreementSimulateRequest.Age, agreementSimulateRequest.NrParcel);
+                return CobmaisAPI.SetAcordo(new Models.Cobmais.SimulacaoAcordoRequest()
                 {
-                    principal = discount.MaxDiscount,
-                    multa = 100,
-                    juros = 100,
-                    honorarios = 0,
-                    desconto_maximo = true,
-                    desconto_relativo_campanha = false
-                },
-                forma_pagamento = "Boleto",
-                quantidade_parcelas = agreementSimulateRequest.NrParcel,
-                parcelas_originais = agreementSimulateRequest.ParcelaCredz.Select(p =>
-                        new Models.Cobmais.ParcelaOriginal()
-                        {
-                            negociacao_id = p.negociacao_id,
-                            id = p.id_parcela_original,
-                            numero = p.numero_parcela_original,
-                            vencimento = p.vencimento,
-                            valor = p.valor
-                        }
-                    ).ToList()
-                /*
-                parcelas_originais = new System.Collections.Generic.List<Models.Cobmais.ParcelaOriginal>()
+                    valor_entrada = agreementSimulateRequest.VlEntrace,
+                    data_calculo = agreementSimulateRequest.DtEntrace,
+                    descontos = new Models.Cobmais.Descontos()
                     {
-                        new Models.Cobmais.ParcelaOriginal()
+                        principal = discount.MaxDiscount,
+                        multa = 100,
+                        juros = 100,
+                        honorarios = 0,
+                        desconto_maximo = true,
+                        desconto_relativo_campanha = false
+                    },
+                    forma_pagamento = "Boleto",
+                    quantidade_parcelas = agreementSimulateRequest.NrParcel,
+                    parcelas_originais = agreementSimulateRequest.ParcelaCredz.Select(p =>
+                            new Models.Cobmais.ParcelaOriginal()
+                            {
+                                negociacao_id = p.negociacao_id,
+                                id = p.id_parcela_original,
+                                numero = p.numero_parcela_original,
+                                vencimento = p.vencimento,
+                                valor = p.valor
+                            }
+                        ).ToList()
+                    /*
+                    parcelas_originais = new System.Collections.Generic.List<Models.Cobmais.ParcelaOriginal>()
                         {
-                            negociacao_id = Convert.ToInt64(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "negociacao_id").FirstOrDefault().Value),
-                            id = Convert.ToInt64(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "id").FirstOrDefault().Value),
-                            numero = agreementSimulateRequest.ComplementData.Where(p=> p.Name == "numero").FirstOrDefault().Value,
-                            vencimento = Convert.ToDateTime(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "vencimento").FirstOrDefault().Value),
-                            valor = Convert.ToDecimal(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "valor").FirstOrDefault().Value),
+                            new Models.Cobmais.ParcelaOriginal()
+                            {
+                                negociacao_id = Convert.ToInt64(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "negociacao_id").FirstOrDefault().Value),
+                                id = Convert.ToInt64(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "id").FirstOrDefault().Value),
+                                numero = agreementSimulateRequest.ComplementData.Where(p=> p.Name == "numero").FirstOrDefault().Value,
+                                vencimento = Convert.ToDateTime(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "vencimento").FirstOrDefault().Value),
+                                valor = Convert.ToDecimal(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "valor").FirstOrDefault().Value),
+                            }
                         }
-                    }
-                */
-            });
+                    */
+                });
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("Falha ao simular acordo!"))
+                {
+                    agreementSimulateRequest.VlEntrace = 0;
+                    return AddAgreementCredz(agreementSimulateRequest);
+                }
+                else
+                    throw ex;
+            }
         }
 
 

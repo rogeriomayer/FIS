@@ -75,7 +75,7 @@ namespace FMC.FIS.Business.BLL
             {
                 var billets = persistence.GetByCdAgreement(billetRequest.CdAgreement);
 
-                Billet billetAviable = billets.Where(p => p.DtBillet >= billetRequest.DtBillet).OrderBy(p => p.DtBillet).FirstOrDefault();
+                Billet billetAviable = billets.Where(p => p.DtBillet.AddDays(10) >= billetRequest.DtBillet && p.AgreementParcel.Agreement.IdAgreementStatus != 2 && p.AgreementParcel.Payment.Count == 0).OrderBy(p => p.DtBillet).FirstOrDefault();
 
                 if (billetAviable == null)
                 {
@@ -152,7 +152,6 @@ namespace FMC.FIS.Business.BLL
             }
 
             /*
-            if (productType == Constants.ProductType.AFINZ)
             {
 
                 if (string.IsNullOrEmpty(billetRequest.CdAgreement) || billetRequest.NrParcel > 0)
@@ -288,20 +287,40 @@ namespace FMC.FIS.Business.BLL
         {
             var pdf = new System.Net.WebClient().DownloadData(url);
             var attachments = new Dictionary<string, byte[]>();
-            attachments.Add("boleto.pdf", pdf);
+            attachments.Add("boletoCredz.pdf", pdf);
 
-            Util.SendMail("Boleto CredZ",
+            var billet = persistence.GetBykey(Convert.ToInt64(idBillet));
+
+            var product = new ProductBLL().GetBykey(billet.IdProduct);
+
+            if (product != null && product.ProductSpecification != null)
+            {
+                Util.SendMail("BOLETO ACORDO" + product.ProductSpecification.Description.ToUpper(),
                            Util.BodyEmail(dtPayment, vlBillet.ToString("N2"), line),
-                           "Credz",
+                           product.ProductSpecification.Description.ToUpper(),
                            Constants.HOST_SMTP,
                            25,
                            Constants.USER_SMTP,
                            Constants.PASS_SMTP,
                            new List<string> { email },
                            attachments);
+            }
+            else
+            {
+                Util.SendMail("BOLETO ACORDO CREDZ VISA",
+                           Util.BodyEmail(dtPayment, vlBillet.ToString("N2"), line),
+                           "BOLETO ACORDO CREDZ VISA",
+                           Constants.HOST_SMTP,
+                           25,
+                           Constants.USER_SMTP,
+                           Constants.PASS_SMTP,
+                           new List<string> { email },
+                           attachments);
+            }
+
 
             var billetResponse = new BilletResponse();
-            var billet = persistence.GetBykey(Convert.ToInt64(idBillet));
+
 
             billet.BilletEmail.Add
                 (

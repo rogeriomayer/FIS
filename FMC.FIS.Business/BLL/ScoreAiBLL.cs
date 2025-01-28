@@ -12,10 +12,11 @@ using Microsoft.IdentityModel.Tokens;
 
 using FMC.FIS.Business.Models.FIS;
 using FMC.FIS.Business.DAO;
-using static FMC_FIS_EnvioEmailCredz1.MLGeneric;
+//using static FMC_FIS_EnvioEmailCredz1.MLGeneric;
 
 namespace FMC.FIS.Business.BLL
 {
+    /*
     public class ScoreAiBLL : BLL<ScoreAI, ScoreAiDAO>
     {
 
@@ -33,4 +34,5 @@ namespace FMC.FIS.Business.BLL
 
     }
 
+    */
 }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 public class FisAPI
 {
-    private static string Url_FIS_API = AppSettings.URL_API_FIS; //"http://localhost:5831/api";
+    private static string Url_FIS_API = AppSettings.URL_API_FIS; 
     /*
     public static ICollection<ParameterResponse> GetParameters(long idProduct)
     {

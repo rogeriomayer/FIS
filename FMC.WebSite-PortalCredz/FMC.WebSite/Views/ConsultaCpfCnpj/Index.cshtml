@@ -34,6 +34,16 @@
             {
                 foreach (var conta in pessoa.Cards.OrderByDescending(p => p.AvailableBilling).ThenByDescending(p => p.Age).Where(p => p.VlFull > 0).ToList())
                 {
+                    AgreementParcelResponse agreementParcelResponse = null;
+                    var statusLead = conta.StatusLeadResponse.Where(p => p.AgreementResponse != null).OrderByDescending(p => p.IdStatusLead).FirstOrDefault();
+                    if (statusLead != null)
+                    {
+                        agreement = statusLead.AgreementResponse;
+                    }
+                    if (agreement != null)
+                    {
+                        agreementParcelResponse = @agreement.AgreementParcelResponse.Where(p => p.Status == "EmAberto" && p.DtParcel >= DateTime.Today.AddDays(-10)).FirstOrDefault();
+                    }
                     string imageCard = "~/images/cartao/cardgenerico-v2.png";
                     if (!string.IsNullOrEmpty(conta.CardImage))
                         imageCard = conta.CardImage;
@@ -66,13 +76,11 @@
                                 }
                                 else if (conta.AvailableBilling == false
                                 && conta.StatusLeadResponse.Count() > 0
-                                && conta.StatusLeadResponse.Where(p => p.AgreementResponse != null).Count() > 0)
+                                && conta.StatusLeadResponse.Where(p => p.AgreementResponse != null).Count() > 0
+                                && agreementParcelResponse != null)
                                 {
-                                    agreement = conta.StatusLeadResponse.Where(p => p.AgreementResponse != null).OrderByDescending(p => p.IdStatusLead).FirstOrDefault().AgreementResponse;
-                                    var agreementParcelResponse = @agreement.AgreementParcelResponse.Where(p => p.Status == "EmAberto" && p.DtParcel >= DateTime.Today.AddDays(-10)).FirstOrDefault();
-                                    var parcel = agreementParcelResponse != null ? agreementParcelResponse.NrParcel + 1 : agreement.AgreementParcelResponse.OrderByDescending(p=> p.NrParcel).FirstOrDefault().NrParcel;
-                                    var qtdParcel = agreement.QtParcel -1;
-                                                                        
+                                    var parcel = agreementParcelResponse != null ? agreementParcelResponse.NrParcel + 1 : agreement.AgreementParcelResponse.OrderByDescending(p => p.NrParcel).FirstOrDefault().NrParcel;
+                                    var qtdParcel = agreement.QtParcel - 1;
                                     <span>
                                         @if (agreement.AgreementParcelResponse.Count() > 1)
                                         {
@@ -110,7 +118,8 @@
                         }
                         @if (conta.AvailableBilling == false
                        && conta.StatusLeadResponse.Count() > 0
-                       && conta.StatusLeadResponse.Where(p => p.AgreementResponse != null).Count() > 0)
+                       && conta.StatusLeadResponse.Where(p => p.AgreementResponse != null).Count() > 0
+                       && agreementParcelResponse != null)
                         {
                             <div class="dv-btn-boleto">
                                 @using (Html.BeginForm("Finalizar", "ConsultaCpfCnpj", FormMethod.Post))

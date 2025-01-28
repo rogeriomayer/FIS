@@ -61,7 +61,7 @@ try
 
                     var product = person.Product.Where(p => p.Lead.Where(l => l.DtInsert >= DateTime.Today.AddDays(-1)).Any()).FirstOrDefault();
 
-                    if (!listPhone.Where(p => person.Phone.Where(e => e.NrPhone == p).Any()).Any())
+                    if (product != null && !listPhone.Where(p => person.Phone.Where(e => e.NrPhone == p).Any()).Any())
                     {
                         /*var phones = person.Phone
                             .Where(p => p.IdPhoneStatus == 1 && Convert.ToInt32(p.NrPhone.Substring(2, 1)) >= 6 && p.Blacklist == false)

@@ -154,12 +154,12 @@ namespace FMC.FIS.Business.Code.Api.Cobmais
             }
             catch (Exception ex)
             {
-                if (ex.Message.Contains("Essa parcela já contem um boleto"))
+                if (ex.Message.Contains("Essa parcela já contem um boleto") || ex.Message.Contains("em aberto para este cliente"))
                 {
                     var acordo = GetAcordo(idAcordo);
                     if (acordo != null)
                     {
-                        var bol = acordo.boletos.Where(p => p.vencimento.Date == dtVencimento.Date).FirstOrDefault();
+                        var bol = acordo.boletos.Where(p => p.vencimento.Date >= dtVencimento.Date).FirstOrDefault();
                         if (bol != null)
                             return GetBoleto(bol.id);
                     }

@@ -148,6 +148,10 @@ namespace FMC.FIS.EnvioEmailCredz
 
         private string GetBody(EnvioEmailSMS envioEmail)
         {
+            if (envioEmail.Atraso >= 251 && envioEmail.Atraso <= 330)
+             {
+
+            }
             StringBuilder body = new StringBuilder();
             body.Append("<html>");
             if (envioEmail.Lead.DebitBalance - (envioEmail.Lead.DebitBalance * (envioEmail.Desconto / 100)) < 300)
@@ -274,7 +278,6 @@ namespace FMC.FIS.EnvioEmailCredz
                 if (contrato != null)
                     simulate = GetValueAgreement(0, contrato);
 
-
                 if (simulate != null && simulate.ParcelResponse != null && simulate.ParcelResponse.Count() > 0 && simulate.ParcelResponse.FirstOrDefault().VlParcel > 5)
                 {
                     var avista = simulate.ParcelResponse.OrderBy(p => p.NrParcel).FirstOrDefault();
@@ -306,6 +309,8 @@ namespace FMC.FIS.EnvioEmailCredz
                             }
                         }
                         simulate = GetValueAgreement(parcela, contrato);
+                        if (simulate == null)
+                            return null;
                         var parcelamento = simulate.ParcelResponse.OrderByDescending(p => p.NrParcel).FirstOrDefault();
                         body.Append(" por apenas <b>R$").Append(avista.ValueEntrace.ToString("N2")).Append("</b> no pagamento <b>a vista</b>!</p>");
                         body.Append("<p> Temos também opção de parcelamento com desconto de <b>R$").Append(parcelamento.VlDiscount.ToString("N2"));

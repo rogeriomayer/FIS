@@ -786,8 +786,15 @@ namespace FMC.FIS.Business.BLL
                         string finalCartao = contract.dados_adicionais.Where(p => p.nome == "Final Número Cartão").Count() > 0 ? contract.dados_adicionais.Where(p => p.nome == "Final Número Cartão").FirstOrDefault().valor : "";
                         card.CardNumber = Convert.ToInt64(contract.numero_contrato).ToString().Substring(0, 6).PadRight(finalCartao.Length >= 3 ? 12 : 16, '*') + finalCartao;
                         card.CardName = String.IsNullOrEmpty(contract.filial_descricao) ? (string.IsNullOrEmpty(card.CardName) ? "CredZ" : card.CardName) : contract.filial_descricao;
-                        var unvailableBilling = new UnvailableBillingBLL().GetByProduct(contract.numero_contrato);
-                        card.AvailableBilling = unvailableBilling != null ? false : true;
+                        var cobrador = contract.dados_adicionais.Where(p => p.nome.ToUpper() == "COBRADOR").FirstOrDefault();
+                        if (cobrador.valor == "ZZZ")
+                            card.AvailableBilling = false;
+                        else
+                        {
+                            var unvailableBilling = new UnvailableBillingBLL().GetByProduct(contract.numero_contrato);
+                            card.AvailableBilling = unvailableBilling != null ? false : true;
+                        }
+
 
                         ///validar acordos
                         FillAgreementCredz(personResponse.CPF, ref card, contract);

@@ -112,7 +112,7 @@ namespace FMC.EnvioDadosServidorFMC
             {
                 var result = TelegramAPI.SendTextMessage("6918027570:AAF_7-e5IhYn3jApDeZ7Q6ym0K85XQR9wtA", "-1002056284017", "- - -PING NOS SERVIDORES - - - ");
 
-                var listServer = new List<string> { "10.40.0.30", "10.40.109", "10.40.0.36", "10.40.0.12", "10.40.0.82", "10.40.0.21", "10.40.0.92", "10.40.0.93", "10.40.0.94" };
+                var listServer = new List<string> { "10.40.0.30", "10.40.110", "10.40.0.36", "10.40.0.12", "10.40.0.82", "10.40.0.21", "10.40.0.92", "10.40.0.93", "10.40.0.94" };
 
 
                 StringBuilder message = new StringBuilder();

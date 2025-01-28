@@ -123,13 +123,14 @@ namespace FMC.FIS.Business.DAO
             query.Append(" 	inner join CREDZ.dbo.RetornoUra ru ");
             query.Append(" 		on ru.cpf = pe.NrCNPJCPF ");
             query.Append(" 		and IdProductType = 3 ");
+            query.Append(" 		and RU.flEnviado = 0 ");
             query.Append(" 	inner join Lead l ");
             query.Append(" 		on l.IdProduct = pr.IdProduct ");
             query.Append(" 		and l.DtInsert >= CONVERT(Date, getdate()-1) ");
-            query.Append(" where  ru.dtLigacao >= CONVERT(Date, getdate() -3) ");
+            query.Append(" where  ru.dtLigacao >= CONVERT(Date, getdate() -15) ");
             query.Append(" and pr.IdProduct not in (select IdProduct from CREDZ.SendEmailUra seu where seu.dtInsert > GETDATE() -2 and seu.IdProduct = pr.IdProduct ) ");
             query.Append(" and pr.IdProduct not in (select IdProduct from CREDZ.SendRCS sr where sr.dtInsert > GETDATE() -2 and sr.IdProduct = pr.IdProduct) ");
-            query.Append(" and pe.NrCNPJCPF not in (select cpf from CREDZ.dbo.Navigation where DtInsert >= GETDATE() -2) ");
+            query.Append(" and pe.NrCNPJCPF not in (select cpf from CREDZ.dbo.Navigation where DtInsert >= GETDATE() -1) ");
             query.Append(" order by Age desc ");
             return Context.FromSqlRaw(query.ToString()).ToList();
 
@@ -142,7 +143,7 @@ namespace FMC.FIS.Business.DAO
             query.Append(" 		on c.IdPerson = b.IdPerson ");
             query.Append(" 	inner join Lead d ");
             query.Append(" 		on c.IdProduct = d.IdProduct ");
-            query.Append(" 		and d.Age > 78 ");
+            query.Append(" 		and d.Age >= 78 ");
             query.Append(" 		and d.DtInsert > convert(date, GETDATE() )");
             query.Append(" 	left join Email f ");
             query.Append(" 		on f.IdPerson = b.IdPerson ");

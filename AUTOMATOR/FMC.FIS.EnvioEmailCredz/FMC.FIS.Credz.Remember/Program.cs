@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using static FMC.FIS.Credz.Remember.SendRemember;
 
 try
 {
@@ -43,7 +44,7 @@ try
         var agreementBLL = new AgreementBLL();
         var discounts = new DiscountBLL().GetByProductType(3);
 
-        IList<Agreement> listAgreement = agreementBLL.GetRemember(dtIni, DateTime.Today.AddDays(10)).ToList();
+        IList<Agreement> listAgreement = agreementBLL.GetRemember(dtIni, DateTime.Today.AddDays(15)).ToList();
 
         Util.SaveFile("Foram encontrados " + listAgreement.Count + "acordos!");
         if (listAgreement.Count > 0)
@@ -58,7 +59,9 @@ try
             {
                 try
                 {
-                    AgreementParcel currentParcel = agreement.AgreementParcel.Where(p => p.DtParcel >= dtIni && p.DtParcel <= DateTime.Today.AddDays(8)).OrderBy(p => p.DtParcel).FirstOrDefault();
+                    AgreementParcel currentParcel = agreement.AgreementParcel.Where(p => p.DtParcel >= dtIni && p.DtParcel <= DateTime.Today.AddDays(20)).OrderBy(p => p.DtParcel).FirstOrDefault();
+                    var product = agreement.StatusLead.Lead.Product;
+                    var emails = product.Person.Email.Where(p => p.flBloqueado == false && Util.IsEmail(p.DsEmail)).Select(p => p.DsEmail).Distinct().ToList();
 
                     int count = 0;
                     Acordo acordo = null;
@@ -103,6 +106,18 @@ try
 
                     if (acordo != null)
                     {
+                        var objectSend = new ObjectSend()
+                        {
+                            IdAgreement = agreement.IdAgreement,
+                            IdAgreementParcel = currentParcel.IdAgreementParcel,
+                            Name = product.Person.DsName.Trim(),
+                            CardName = product.ProductSpecification != null ? product.ProductSpecification.Description : "Cartão CredZ",
+                            CardNumber = product.DsProduct.StartsWith("000") ? product.DsProduct.Substring(3, 8) + "********" : product.DsProduct.Substring(0, 8),
+                            aVista = agreement.QtParcel == 0,
+                            Parcel = currentParcel.NrParcel,
+                            Product = product,
+                            CardUrl = product.ProductSpecification != null ? product.ProductSpecification.UrlImage : "",
+                        };
 
                         Util.SaveFile("Verificando parcelas");
                         foreach (var parcela in acordo.parcelas_novas.Where(p => p.id_pagamento != null && p.id_pagamento > 0).OrderBy(p => p.vencimento).ToList())
@@ -116,7 +131,6 @@ try
 
                                 if (parcel.Payment.Where(p => p.NmFile == "API Cobmais - " + parcela.id_pagamento).Count() == 0)
                                 {
-
                                     pgt = CobmaisAPI.Pagamento(parcela.id_pagamento.Value);
                                     if (pgt != null && pgt.Count() > 0 && pgt.FirstOrDefault().pagamentos.Count() > 0)
                                     {
@@ -132,6 +146,50 @@ try
                                                  DtInsert = DateTime.Now
                                              }
                                          );
+
+                                        /* gerar boleto da proxima fatura*/
+                                        if (string.IsNullOrEmpty(agreement.CdParcelPlan) || string.IsNullOrWhiteSpace(agreement.CdParcelPlan))
+                                        {
+                                            Util.SaveFile("gerando boleto proxima fatura");
+
+                                            var payments = new PaymentBLL().GetPayments(agreement.IdAgreement);
+                                            if (payments != null && currentParcel.DtParcel >= DateTime.Today.AddDays(-15))
+                                            {
+                                                var lastPayment = payments.OrderByDescending(p => p.DtPayment).FirstOrDefault();
+
+                                                var parcelNewBillet = agreement.AgreementParcel.Where(p => p.NrParcel > lastPayment.AgreementParcel.NrParcel).OrderBy(p => p.NrParcel).FirstOrDefault();
+
+                                                var billetResponse = SendRemember.GetBillet(agreement, parcelNewBillet, product);
+
+                                                if (billetResponse != null)
+                                                {
+                                                    objectSend.Email = emails;
+                                                    objectSend.DtParcel = billetResponse.DtBillet;
+                                                    objectSend.Line = billetResponse.Line;
+                                                    objectSend.BilletUrl = billetResponse.URL;
+                                                    objectSend.Value = billetResponse.VlBillet;
+                                                    objectSend.Pdf = new System.Net.WebClient().DownloadData(billetResponse.URL);
+                                                    objectSend.IdAgreementParcel = currentParcel.IdAgreementParcel;
+                                                    objectSend.Parcel = currentParcel.NrParcel;
+
+                                                    var envioEmailThread = new SendRemember(objectSend);
+
+
+                                                    Ag ag = RestApi.Get<Ag>("https://10.40.0.30/credz/api", "agreement/" + product.DsProduct);
+                                                    IList<string> origem = new List<string> { "1", "/", "ura", "ope", "rcs","d=d", "9"};
+                                                    if (origem.Contains(ag.Product.Navigation.DsOrigem) || product.Person.Email.Count == 0)
+                                                    {
+                                                        objectSend.Phone = SendRemember.GetPhone(product.Person);
+                                                        if (!string.IsNullOrEmpty(objectSend.Phone))
+                                                            envioEmailThread.SendSMSPagamento();
+                                                    }
+
+                                                    if (emails.Count > 0)
+                                                        envioEmailThread.SendMailPagamento();
+                                                }
+                                            }
+                                        }
+
                                     }
                                 }
                             }
@@ -170,31 +228,15 @@ try
                         }
 
 
-                        var product = agreement.StatusLead.Lead.Product;
-
                         if (acordo.id_status.Value == 2)
                         {
                             if (product.Lead.Where(p => p.DtInsert >= DateTime.Today.AddDays(-1)).Count() > 0)
                             {
                                 Util.SaveFile("Enviando email quebra");
-                                var emails = product.Person.Email.Where(p => p.flBloqueado == false && Util.IsEmail(p.DsEmail)).Select(p => p.DsEmail).Distinct().ToList();
+                                //emails = product.Person.Email.Where(p => p.flBloqueado == false && Util.IsEmail(p.DsEmail)).Select(p => p.DsEmail).Distinct().ToList();
                                 var age = product.Lead.OrderByDescending(p => p.IdLead).FirstOrDefault().Age;
-                                var envioEmailThread = new SendRemember
-                                    (
-                                        new ObjectSend()
-                                        {
-                                            IdAgreement = agreement.IdAgreement,
-                                            Name = product.Person.DsName.Trim(),
-                                            Email = emails,
-                                            CardName = product.ProductSpecification != null ? product.ProductSpecification.Description : "Cartão CredZ",
-                                            CardNumber = product.DsProduct.StartsWith("000") ? product.DsProduct.Substring(3, 8) + "********" : product.DsProduct.Substring(0, 8),
-                                            aVista = agreement.QtParcel == 0,
-                                            CardUrl = product.ProductSpecification != null ? product.ProductSpecification.UrlImage : "",
-                                            Product = product,
-                                            Agreement = agreement,
-                                            Discount = discounts.Where(p => (age >= p.MinAge && age <= p.MaxAge) && p.MaxParcel <= 1).FirstOrDefault()
-                                        }
-                                    );
+                                objectSend.Discount = discounts.Where(p => (age >= p.MinAge && age <= p.MaxAge) && p.MaxParcel <= 1).FirstOrDefault();
+                                var envioEmailThread = new SendRemember(objectSend);
                                 envioEmailThread.SendEmailBroken();
                             }
                         }
@@ -205,8 +247,12 @@ try
                             {
                                 var envios = new EmailRememberBLL().GetEmailRemember(currentParcel.IdAgreementParcel);
 
-                                var dtParcel = new List<DateTime> { DateTime.Today, DateTime.Today.AddDays(2), DateTime.Today.AddDays(-3), DateTime.Today.AddDays(-5), DateTime.Today.AddDays(-7) };
+                                //var dtParcel = new List<DateTime> { DateTime.Today, DateTime.Today.AddDays(2), DateTime.Today.AddDays(-3), DateTime.Today.AddDays(-5), DateTime.Today.AddDays(-7) };
 
+                                var dtParcel = new List<DateTime>();
+
+                                for (int i = 1; i <= 17; i++)
+                                    dtParcel.Add(DateTime.Today.AddDays(i));
 
                                 if (envios.Where(p => p.DtInsert >= DateTime.Today).Count() == 0)
                                 {
@@ -216,125 +262,92 @@ try
                                 if (envios.Count == 0 || (envios.Where(p => p.DtInsert >= DateTime.Today).Count() == 0 && dtParcel.Contains(currentParcel.DtParcel)))
                                 {
                                     Util.SaveFile("Enviando sms");
-                                    var objectSend = new ObjectSend()
-                                    {
-                                        IdAgreement = agreement.IdAgreement,
-                                        IdAgreementParcel = currentParcel.IdAgreementParcel,
-                                        Name = product.Person.DsName.Trim(),
-                                        CardName = product.ProductSpecification != null ? product.ProductSpecification.Description : "Cartão CredZ",
-                                        CardNumber = product.DsProduct.StartsWith("000") ? product.DsProduct.Substring(3, 8) + "********" : product.DsProduct.Substring(0, 8),
-                                        aVista = agreement.QtParcel == 0,
-                                        Parcel = currentParcel.NrParcel,
-                                        Product = product,
-                                        CardUrl = product.ProductSpecification != null ? product.ProductSpecification.UrlImage : "",
-                                    };
+                                    Billet billet = null;
 
-                                    try
+                                    if (currentParcel.Billet != null && currentParcel.Billet.Count > 0)
+                                        billet = currentParcel.Billet.FirstOrDefault();
+                                    else
                                     {
-                                        Ag ag = RestApi.Get<Ag>("https://10.40.0.30/credz/api", "agreement/" + product.DsProduct);
-                                        IList<string> origem = new List<string> { "1", "/", "ura", "ope", "rcs" };
-                                        if (origem.Contains(ag.Product.Navigation.DsOrigem))
-                                        {
-                                            SMS sms = new SmsBLL().GetByIdPerson(product.IdPerson, ag.Product.Navigation.DtInsert);
-                                            if (sms != null)
-                                                objectSend.Phone = sms.telefone.ToString();
-                                            else
+                                        var billetResponse = SendRemember.GetBillet(agreement, currentParcel, product);
+                                        if (billetResponse != null)
+                                            billet = new Billet()
                                             {
-                                                var phone = product.Person.Phone.Where(p=> p.IdPhoneType > 1).OrderBy(p => p.IdPhoneStatus).FirstOrDefault();
-                                                if (phone != null) objectSend.Phone = phone.NrPhone;
-                                            }
-                                            if (!string.IsNullOrEmpty(objectSend.Phone))
-                                            {
-                                                var envioEmailThread = new SendRemember(objectSend);
-                                                envioEmailThread.SendSMS();
-                                            }
-                                        }
+                                                DtBillet = billetResponse.DtBillet,
+                                                Line = billetResponse.Line,
+                                                URL = billetResponse.URL,
+                                                VlBillet = billetResponse.VlBillet
+                                            };
                                     }
-                                    catch (Exception ex)
-                                    {
 
-                                    }
-                                    if (!listEmail.Where(p => product.Person.Email.Where(e => e.DsEmail == p).Any()).Any())
+                                    if (billet != null)
                                     {
                                         try
                                         {
-
-                                            var emails = product.Person.Email.Where(p => p.flBloqueado == false && Util.IsEmail(p.DsEmail)).Select(p => p.DsEmail).Distinct().ToList();
-
-                                            if (emails != null && emails.Count() > 0)
+                                            Ag ag = RestApi.Get<Ag>("https://10.40.0.30/credz/api", "agreement/" + product.DsProduct);
+                                            IList<string> origem = new List<string> { "1", "/", "ura", "ope", "rcs" };
+                                            if (origem.Contains(ag.Product.Navigation.DsOrigem))
                                             {
-                                                Util.SaveFile("Enviando email");
-                                                Billet billet = null;
+                                                objectSend.Line = billet.Line;
+                                                objectSend.DtParcel = billet.DtBillet;
+                                                objectSend.Phone = SendRemember.GetPhone(product.Person);
 
-                                                if (currentParcel.Billet != null && currentParcel.Billet.Count > 0)
-                                                    billet = currentParcel.Billet.FirstOrDefault();
-                                                else
+                                                if (!string.IsNullOrEmpty(objectSend.Phone))
                                                 {
-                                                    var billetResponse = new BilletBLL().AddNewBillet
-                                                        (
-                                                        new FMC.FIS.Business.Models.Customer.NewBilletRequest()
-                                                        {
-                                                            IdAgreement = agreement.IdAgreement,
-                                                            CdAgreement = agreement.CdAgreement,
-                                                            IdAgreementParcel = currentParcel.IdAgreementParcel,
-                                                            NrParcel = currentParcel.NrParcel + 1,
-                                                            IdProduct = product.IdProduct,
-                                                            VlBillet = currentParcel.VlParcel,
-                                                            CPF = product.Person.NrCNPJCPF,
-                                                            DtBillet = currentParcel.DtParcel,
-                                                        }
-                                                        ,
-                                                        Constants.ProductType.CREDZ
-                                                        );
-                                                    if (billetResponse != null)
-                                                        billet = new Billet()
-                                                        {
-                                                            DtBillet = billetResponse.DtBillet,
-                                                            Line = billetResponse.Line,
-                                                            URL = billetResponse.URL,
-                                                            VlBillet = billetResponse.VlBillet
-                                                        };
-                                                }
-
-                                                if (billet != null)
-                                                {
-                                                    objectSend.Email = emails;
-                                                    objectSend.DtParcel = billet.DtBillet;
-                                                    objectSend.Line = billet.Line;
-                                                    objectSend.BilletUrl = billet.URL;
-                                                    objectSend.Value = billet.VlBillet;
-                                                    objectSend.Pdf = new System.Net.WebClient().DownloadData(billet.URL);
-                                                    objectSend.Product = product;
                                                     var envioEmailThread = new SendRemember(objectSend);
-
-                                                    envioEmailThread.SendMail();
-
-
-
-
-
+                                                    envioEmailThread.SendSMS();
                                                 }
                                             }
-
                                         }
                                         catch (Exception ex)
                                         {
-                                            string erro = ex.Message + Environment.NewLine;
-                                            while (ex.InnerException != null)
-                                            {
-                                                ex = ex.InnerException;
-                                                erro += ex.Message + Environment.NewLine;
-                                            }
-                                            Util.SaveFile("Laço: Erro ao enviar e-mail para " + listEmail.FirstOrDefault() + " conta " + product.DsProduct);
-                                            Util.SaveFile(erro);
+
                                         }
+                                        if (!listEmail.Where(p => product.Person.Email.Where(e => e.DsEmail == p).Any()).Any())
+                                        {
+                                            try
+                                            {
+                                                if (emails != null && emails.Count() > 0)
+                                                {
+                                                    Util.SaveFile("Enviando email");
+
+
+                                                    if (billet != null)
+                                                    {
+                                                        objectSend.Email = emails;
+                                                        objectSend.DtParcel = billet.DtBillet;
+                                                        objectSend.Line = billet.Line;
+                                                        objectSend.BilletUrl = billet.URL;
+                                                        objectSend.Value = billet.VlBillet;
+                                                        objectSend.Pdf = new System.Net.WebClient().DownloadData(billet.URL);
+                                                        objectSend.Product = product;
+                                                        var envioEmailThread = new SendRemember(objectSend);
+
+                                                        envioEmailThread.SendMail();
+
+                                                    }
+                                                }
+
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                string erro = ex.Message + Environment.NewLine;
+                                                while (ex.InnerException != null)
+                                                {
+                                                    ex = ex.InnerException;
+                                                    erro += ex.Message + Environment.NewLine;
+                                                }
+                                                Util.SaveFile("Laço: Erro ao enviar e-mail para " + listEmail.FirstOrDefault() + " conta " + product.DsProduct);
+                                                Util.SaveFile(erro);
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Util.SaveFile("Erro ao gerar o boleto para parcela: " + currentParcel.IdAgreementParcel);
                                     }
                                 }
                             }
-
                         }
-
-
                     }
                 }
                 catch (Exception ex)
@@ -348,7 +361,6 @@ try
                     Util.SaveFile(erro);
                 }
             }
-
 
             Util.SaveFile("Processo finalizado!");
 

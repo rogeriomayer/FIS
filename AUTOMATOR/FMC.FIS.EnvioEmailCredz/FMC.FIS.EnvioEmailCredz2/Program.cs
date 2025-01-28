@@ -52,10 +52,9 @@ try
             smtpServers.Add(new KeyValuePair<string, int>("10.40.0.21", 25));
             smtpServers.Add(new KeyValuePair<string, int>("10.40.0.21", 25));
             smtpServers.Add(new KeyValuePair<string, int>("10.40.0.21", 25));
-            smtpServers.Add(new KeyValuePair<string, int>("10.40.0.92", 26));
-            //smtpServers.Add("10.40.0.92", 26);
-            smtpServers.Add(new KeyValuePair<string, int>("10.40.0.94", 26));
-            smtpServers.Add(new KeyValuePair<string, int>("10.40.0.82", 25));
+            //smtpServers.Add(new KeyValuePair<string, int>("10.40.0.92", 26));
+            //smtpServers.Add(new KeyValuePair<string, int>("10.40.0.94", 26));
+            //smtpServers.Add(new KeyValuePair<string, int>("10.40.0.82", 25));
             //IList<string> smtpServers = new List<string> { "10.40.0.92", "10.40.0.92", "10.40.0.92" };
             int balance = 0;
             long idPerson = 0;

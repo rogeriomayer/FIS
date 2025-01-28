@@ -14,5 +14,9 @@ namespace FMC.FIS.Business.BLL
 {
     public class PaymentBLL : BLL<Payment, PaymentDAO>
     {
+        public IList<Payment> GetPayments(long idAgreement)
+        {
+            return persistence.GetPayments(idAgreement);
+        }
     }
 }

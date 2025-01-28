@@ -52,12 +52,11 @@ try
             smtpServers.Add(new KeyValuePair<string, int>("10.40.0.21", 25));
             smtpServers.Add(new KeyValuePair<string, int>("10.40.0.21", 25));
             smtpServers.Add(new KeyValuePair<string, int>("10.40.0.21", 25));
-            smtpServers.Add(new KeyValuePair<string, int>("10.40.0.92", 26));
-            //smtpServers.Add("10.40.0.92", 26);
-            smtpServers.Add(new KeyValuePair<string, int>("10.40.0.94", 26));
-            smtpServers.Add(new KeyValuePair<string, int>("10.40.0.82", 25));
 
-            //IList<string> smtpServers = new List<string> { "10.40.0.92", "10.40.0.92", "10.40.0.92" };
+            //smtpServers.Add(new KeyValuePair<string, int>("10.40.0.92", 26));
+            //smtpServers.Add(new KeyValuePair<string, int>("10.40.0.94", 26));
+            //smtpServers.Add(new KeyValuePair<string, int>("10.40.0.82", 25));
+
             int balance = 0;
             long idPerson = 0;
             int countYahoo = 0;
@@ -81,11 +80,11 @@ try
                             if (!listEmail.Where(p => person.Email.Where(e => e.DsEmail == p).Any()).Any())
                             {
                                 var emails = product.Person.Email.Where(p => p.flBloqueado == false && Util.IsEmail(p.DsEmail)).Select(p => p.DsEmail).Distinct().ToList();
-                                if(emails.Count() == 0)
+                                if (emails.Count() == 0)
                                 {
                                     product.Person.Email.ToList().ForEach(p => Util.SaveFile(p.DsEmail));
                                     Util.SaveFile("update email set flbloqueado = 1 where idperson = " + person.IdPerson.ToString() + ";");
-                                }    
+                                }
                                 /*var emails = product.Person.Email.Where(p => Util.IsEmail(p.DsEmail)
                                     && (!p.DsEmail.Contains("outlook"))
                                     && (!p.DsEmail.Contains("hotmail"))
@@ -144,7 +143,7 @@ try
                         }
                     }
                 }
-                catch (Exception ex) 
+                catch (Exception ex)
                 {
                 }
             }

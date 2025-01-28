@@ -511,17 +511,20 @@ namespace FMC.WebSite.FIS.Controllers
                 if (simula == null || simula.DataEntrada == null || simula.Entrada == null)
                 {
                     ViewData["Message"] = new List<string> { "Informe uma valor de entrada e uma data de entrada válidos!" };
+                    simula.DataEntrada = DateTime.Today.AddDays(1).ToString("dd/MM/yyyy");
                     return View(data);
                 }
                 if (!Utils.Util.IsNumeric(simula.Entrada))
                 {
                     ViewData["Message"] = new List<string> { "Valor de entrada inválido!" };
+                    simula.Entrada = "50,00";
                     return View(data);
                 }
 
                 if (!Utils.Util.IsDate(simula.DataEntrada))
                 {
                     ViewData["Message"] = new List<string> { "Data de entrada inválida!" };
+                    simula.DataEntrada = DateTime.Today.AddDays(1).ToString("dd/MM/yyyy");
                     return View(data);
                 }
 
@@ -612,6 +615,14 @@ namespace FMC.WebSite.FIS.Controllers
                     cache.Remove("simulaParcelamento");
                     cache.AddCache("simulaParcelamento", simulaParcelamento);
                     message.Add("A data de entrada foi ajustada para a data máxima permitida " + simulaParcelamento.DataEntrada + " !");
+                }
+
+                if (Convert.ToDateTime(simulaParcelamento.DataEntrada) < DateTime.Today)
+                {
+                    simulaParcelamento.DataEntrada = DateTime.Today.ToString("dd/MM/yyyy");
+                    cache.Remove("simulaParcelamento");
+                    cache.AddCache("simulaParcelamento", simulaParcelamento);
+                    message.Add("A data de entrada foi ajustada para a data mínima permitida " + simulaParcelamento.DataEntrada + " !");
                 }
 
                 if (Convert.ToInt32(conta.Age) < 2)

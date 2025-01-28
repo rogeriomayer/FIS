@@ -12,5 +12,9 @@ namespace FMC.FIS.Business.DAO
     {
         public PaymentDAO() : base("CNN_FIS") { }
 
+        public IList<Payment> GetPayments(long idAgreement)
+        {
+            return Context.Where(p => p.AgreementParcel.IdAgreement == idAgreement).ToList();
+        }
     }
 }

@@ -1,9 +1,10 @@
-﻿namespace FMC.Boletos.Model
+﻿namespace FMC.FIS.Business.Models.Boleto
 {
+
     using System;
     using System.ComponentModel.DataAnnotations;
     using System.ComponentModel.DataAnnotations.Schema;
-    using System.Runtime.CompilerServices;
+
 
     [Table("Boleto", Schema = "dbo")]
     public class Boleto
@@ -186,5 +187,8 @@
 
         [Column("PDF", TypeName = "varbinary")]
         public byte[] PDF { get; set; }
+
+        [ForeignKey("IdSacado")]
+        public virtual Sacado Sacado { get; set; }
     }
 }

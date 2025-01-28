@@ -230,7 +230,7 @@ textarea::placeholder {
     background: url(../images/negociar-agora/bg.png) top center no-repeat;
     padding-top: 450px;
     padding-left: 420px;
-    height: 1080px;
+    /*height: 1080px;*/
 }
 
     #pg-negociar-agora .portal-negociacao .logo-portal img {
@@ -644,9 +644,17 @@ textarea::placeholder {
     background: #e6e8e8;
 }
 
-#pg-consulta-cpf-forma-de-pagamento .opcoes-de-pagamento h3 {
-    color: #7D278E;
+#pg-consulta-cpf-forma-de-pagamento .opcoes-de-pagamento {
+    margin-bottom: 10px;
 }
+
+    #pg-consulta-cpf-forma-de-pagamento .opcoes-de-pagamento ul {
+        margin-bottom: 10px;
+    }
+
+    #pg-consulta-cpf-forma-de-pagamento .opcoes-de-pagamento h3 {
+        color: #7D278E;
+    }
 
 #pg-consulta-cpf-forma-de-pagamento .box-forma-de-pagamento .opcoes-de-pagamento li .left .parcelas {
     color: var(--textcolor);

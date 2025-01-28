@@ -5,13 +5,16 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+
 using TgSharp.Core;
 using TgSharp.Core.Utils;
 using TgSharp.TL;
 using TgSharp.TL.Contacts;
 
+
 namespace FMC.FIS.Business.Code.Api.Telegram
 {
+
     public class TelegramAPI
     {
         TelegramClient Client;
@@ -44,22 +47,24 @@ namespace FMC.FIS.Business.Code.Api.Telegram
                     FirstName = firstName,
                     LastName = lastName
                 });
-                */
-                var phoneContact = new TLInputPhoneContact() { ClientId = new Random().Next(-208488460, 208488460), Phone = "+55" + phoneNumber, FirstName = firstName, LastName = lastName };
+                /////////////////////////////////////////////////////////////////////////////////
+    var phoneContact = new TLInputPhoneContact() { ClientId = new Random().Next(-208488460, 208488460), Phone = "+55" + phoneNumber, FirstName = firstName, LastName = lastName };
 
-                var tlVector = new TLVector<TLInputPhoneContact>();
-                tlVector.Add(phoneContact);
+    var tlVector = new TLVector<TLInputPhoneContact>();
+    tlVector.Add(phoneContact);
 
                 var requestImportContacts = new TgSharp.TL.Contacts.TLRequestImportContacts() { Contacts = tlVector };
 
-                var user = await Client.SendRequestAsync<TgSharp.TL.Contacts.TLImportedContacts>((TLMethod)requestImportContacts);
+    var user = await Client.SendRequestAsync<TgSharp.TL.Contacts.TLImportedContacts>((TLMethod)requestImportContacts);
                 if (user != null)
                     if (user.Users != null && user.Users.Count > 0)
                         return (user.Users.First() as TLUser);
                     else
                         return null;
                 else
+                */
                     return null;
+                
             }
             catch (Exception ex)
             {

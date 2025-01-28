@@ -2,11 +2,11 @@
 using Microsoft.Extensions.Configuration;
 using FMC.FIS.Business.BLL;
 using FMC.FIS.Business.Models.FIS;
-using FMC.FIS.EnvioEmailCredz;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using FMC.FIS.CREDZ.EnvioContatoUra;
 
 var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
 
@@ -23,7 +23,6 @@ try
             process.Kill();
         }
     }
-
     var builder = new ConfigurationBuilder()
                     .SetBasePath(Directory.GetCurrentDirectory())
                     .AddJsonFile("appsettings.json", optional: false);
@@ -36,13 +35,13 @@ try
 
     while (DateTime.Now.DayOfWeek != DayOfWeek.Sunday)
     {
-        DateTime dtIni = DateTime.Now.Hour < 12 ? DateTime.Today.AddDays(-2) : DateTime.Today;
+        DateTime dtIni = DateTime.Now.Hour < 12 ? DateTime.Today.AddDays(-1) : DateTime.Today;
         IList<Discount> Discounts = new DiscountBLL().GetByProductType(3).ToList();
-        IList<Person> listPerson = new PersonBLL().GetByMailSend(3, dtIni, 13000, 78, 150, 2).ToList();
-        Util.SaveFile("Foram encontrados " + listPerson.Count + " CPFs ");
+        IList<Product> listProduct = new ProductBLL().GetProductsURA().ToList();
+        Util.SaveFile("Foram encontrados " + listProduct.Count + " CPFs ");
         IList<EnviosBalance> enviosBalance = new List<EnviosBalance>();
 
-        if (listPerson.Count > 0)
+        if (listProduct.Count > 0)
         {
             string accout = "";
             var listEmail = new List<string>();
@@ -53,39 +52,60 @@ try
             smtpServers.Add(new KeyValuePair<string, int>("10.40.0.21", 25));
             smtpServers.Add(new KeyValuePair<string, int>("10.40.0.21", 25));
             smtpServers.Add(new KeyValuePair<string, int>("10.40.0.21", 25));
+
             //smtpServers.Add(new KeyValuePair<string, int>("10.40.0.92", 26));
             //smtpServers.Add(new KeyValuePair<string, int>("10.40.0.94", 26));
             //smtpServers.Add(new KeyValuePair<string, int>("10.40.0.82", 25));
 
-            //IList<string> smtpServers = new List<string> { "10.40.0.92", "10.40.0.92", "10.40.0.92" };
             int balance = 0;
             long idPerson = 0;
             int countYahoo = 0;
 
-            foreach (var person in listPerson.OrderBy(p => p.NrCNPJCPF).ToList())
+            foreach (var product in listProduct.OrderBy(p => p.Person.NrCNPJCPF).ToList())
             {
-                if (idPerson != person.IdPerson)
+                try
                 {
-                    idPerson = person.IdPerson;
+                    Console.Clear();
+                    Console.Write(product.DsProduct);
+                    var lead = product.Lead.Where(p => p.DtInsert >= dtIni).OrderByDescending(p => p.IdLead).FirstOrDefault();
 
-                    Console.WriteLine(idPerson);
-
-                    foreach (var product in person.Product.Where(p => p.Lead.Where(l => l.DtInsert >= DateTime.Today.AddDays(-1)).Any()))
+                    if (idPerson != product.IdPerson)
                     {
+                        idPerson = product.IdPerson;
+
+                        var envioRCS = new EnvioRCS
+                                   (
+                                       new RCS()
+                                       {
+                                           IdPerson = product.IdPerson,
+                                           IdProduct = product.IdProduct,
+                                           Nome = product.Person.DsName.Trim(),
+                                           //Phones = phones,
+                                           Atraso = lead.Age,
+                                           Desconto = Discounts.Where(p => (lead.Age >= p.MinAge && lead.Age <= p.MaxAge) && p.MaxParcel == 1).FirstOrDefault().MaxDiscount,
+                                           Lead = lead,
+                                           NomeCartao = product.ProductSpecification != null ? product.ProductSpecification.Description : "Cartão Credz",
+                                           NumeroCartao = product.DsProduct.StartsWith("000") ? product.DsProduct.Substring(3, 8) + "********" : product.DsProduct.Substring(0, 8),
+                                           UrlCartao = product.ProductSpecification != null ? product.ProductSpecification.UrlImage : ""
+                                       }
+                                   );
+                        envioRCS.Send();
+
+
                         if (accout != product.DsProduct)
                         {
                             accout = product.DsProduct;
                             listEmail.Clear();
                             listPhone.Clear();
                         }
-                        if (!listEmail.Where(p => person.Email.Where(e => e.DsEmail == p).Any()).Any())
+                        if (!listEmail.Where(p => product.Person.Email.Where(e => e.DsEmail == p).Any()).Any())
                         {
                             var emails = product.Person.Email.Where(p => p.flBloqueado == false && Util.IsEmail(p.DsEmail)).Select(p => p.DsEmail).Distinct().ToList();
-                            /*var emails = product.Person.Email.Where(p => Util.IsEmail(p.DsEmail)
-                                && (!p.DsEmail.Contains("outlook"))
-                                && (!p.DsEmail.Contains("hotmail"))
-                                && (!p.DsEmail.Contains("yahoo"))
-                            ).Select(p => p.DsEmail).ToList();*/
+                            if (emails.Count() == 0)
+                            {
+                                product.Person.Email.ToList().ForEach(p => Util.SaveFile(p.DsEmail));
+                                Util.SaveFile("update email set flbloqueado = 1 where idperson = " + product.IdPerson.ToString() + ";");
+                            }
 
                             countYahoo = countYahoo + emails.Where(p => p.Contains("yahoo")).Count();
                             if (countYahoo > 50)
@@ -95,7 +115,7 @@ try
                             {
                                 try
                                 {
-                                    var lead = product.Lead.Where(p => p.DtInsert >= dtIni).OrderByDescending(p => p.IdLead).FirstOrDefault();
+
 
                                     if (lead != null && lead.Age > 77)
                                     {
@@ -104,9 +124,9 @@ try
                                             (
                                                 new EnvioEmailSMS()
                                                 {
-                                                    IdPerson = person.IdPerson,
+                                                    IdPerson = product.IdPerson,
                                                     IdProduct = product.IdProduct,
-                                                    Nome = person.DsName.Trim(),
+                                                    Nome = product.Person.DsName.Trim(),
                                                     Email = emails,
                                                     Atraso = lead.Age,
                                                     Desconto = Discounts.Where(p => (lead.Age >= p.MinAge && lead.Age <= p.MaxAge) && p.MaxParcel == 1).FirstOrDefault().MaxDiscount,
@@ -137,6 +157,9 @@ try
                             }
                         }
                     }
+                }
+                catch (Exception ex)
+                {
                 }
             }
         }

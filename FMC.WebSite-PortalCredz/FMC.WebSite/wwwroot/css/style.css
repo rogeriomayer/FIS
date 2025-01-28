@@ -850,6 +850,7 @@ span.field-validation-error {
         visibility: hidden;
         font-size: 1em;
     }
+
     #pg-negociar-agora .carouselMobile {
         visibility: hidden;
     }
@@ -2383,7 +2384,8 @@ span.field-validation-error {
 #pg-consulta-cpf-forma-de-pagamento {
     /*margin-top: 20px;
     padding-bottom: 130px*/
-    padding-bottom: 30px
+    padding-bottom: 30px;
+    margin-bottom:100px;
 }
 
     #pg-consulta-cpf-forma-de-pagamento .form {
@@ -2408,26 +2410,26 @@ span.field-validation-error {
 
         #pg-consulta-cpf-forma-de-pagamento .box-forma-de-pagamento h1 {
             color: #066;
-            font-size: 2.5em;
+            font-size: 1.8em;
             font-weight: 700;
             line-height: 110%;
-            margin-bottom: 50px
+            margin-bottom: 25px
         }
 
         #pg-consulta-cpf-forma-de-pagamento .box-forma-de-pagamento h2 {
             color: #066;
-            font-size: 2.5em;
+            font-size: 1.8em;
             font-weight: 700;
             line-height: 110%;
             margin-bottom: 20px;
-            margin-top: 100px;
+            margin-top: 80px;
             clear: both
         }
 
         #pg-consulta-cpf-forma-de-pagamento .box-forma-de-pagamento .informacoes-do-cartao {
             background: #e6e8e8;
             padding: 45px 0 45px 280px;
-            margin: 60px 0 60px;
+            margin: 25px 0 25px;
             border-radius: 50px;
             position: relative
         }
@@ -2482,13 +2484,22 @@ span.field-validation-error {
         font-weight: bold;
     }
 
-    #pg-consulta-cpf-forma-de-pagamento .opcoes-de-pagamento h3 {
-        font-size: 20px;
-        width: 100%;
-        margin: 0 0 30px;
-        font-weight: 100;
-        color: #FF913A;
+    #pg-consulta-cpf-forma-de-pagamento .opcoes-de-pagamento {
+        margin-bottom: 10px;
     }
+
+        #pg-consulta-cpf-forma-de-pagamento .opcoes-de-pagamento ul {
+            margin-bottom: 10px;
+        }
+
+
+        #pg-consulta-cpf-forma-de-pagamento .opcoes-de-pagamento h3 {
+            font-size: 20px;
+            width: 100%;
+            margin: 0 0 30px;
+            font-weight: 100;
+            color: #FF913A;
+        }
 
     #pg-consulta-cpf-forma-de-pagamento .box-forma-de-pagamento .opcoes-de-pagamento li span {
         display: inline-block;
@@ -3091,20 +3102,24 @@ span.field-validation-error {
 .navBg {
     background-image: linear-gradient(0deg,#30cfd0 0,#330867);
     z-index: 1;
-    position: relative;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    margin-bottom: -30px;
 }
 
     .navBg a {
         color: #fff;
         font-size: 1.5em;
-        
     }
 
 .svgLogoFis {
-    height: 40px;
+    height: 30px;
     top: 0;
     position: relative;
     fill: #fff !important;
+    margin-top: 7px;
 }
 
 /** MOBILE VERSION MAX-WIDTH 1290PX **/
@@ -3135,6 +3150,11 @@ span.field-validation-error {
     .jconfirm {
         -webkit-perspective: 400px;
         width: 100%;
+    }
+
+    .navBg {
+        position: inherit;
+        margin-top: 50px;
     }
 
     span.field-validation-error {
@@ -4497,7 +4517,7 @@ span.field-validation-error {
             display: none;
         }
 
-    
+
 
     #pg-consulta-cpf-forma-de-pagamento .message-search {
         margin-bottom: 25px;

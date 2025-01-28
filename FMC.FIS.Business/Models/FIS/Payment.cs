@@ -36,7 +36,7 @@ namespace FMC.FIS.Business.Models.FIS
         public DateTime DtInsert { get; set; }
 
         [ForeignKey("IdAgreementParcel")]
-        public virtual AgreementParcel Agreement { get; set; }
+        public virtual AgreementParcel AgreementParcel { get; set; }
 
     }
 }

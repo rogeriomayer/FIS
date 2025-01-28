@@ -5,6 +5,10 @@ VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FMC.WebSite.PortalFis", "FMC.WebSite\FMC.WebSite.PortalFis.csproj", "{D6ACF644-E2A9-4827-AC4E-A8C53882F387}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FMC.FIS.Business", "..\FMC.FIS.Business\FMC.FIS.Business.csproj", "{55E3B278-9330-4791-A290-0EB0CE7D2AF3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FMC.FIS.API", "..\FMS.FIS.API\FMC.FIS.API.csproj", "{69B90ED2-08B5-4D24-BA15-05D361723425}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{D6ACF644-E2A9-4827-AC4E-A8C53882F387}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D6ACF644-E2A9-4827-AC4E-A8C53882F387}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D6ACF644-E2A9-4827-AC4E-A8C53882F387}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55E3B278-9330-4791-A290-0EB0CE7D2AF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55E3B278-9330-4791-A290-0EB0CE7D2AF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55E3B278-9330-4791-A290-0EB0CE7D2AF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55E3B278-9330-4791-A290-0EB0CE7D2AF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69B90ED2-08B5-4D24-BA15-05D361723425}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69B90ED2-08B5-4D24-BA15-05D361723425}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69B90ED2-08B5-4D24-BA15-05D361723425}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69B90ED2-08B5-4D24-BA15-05D361723425}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

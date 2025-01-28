@@ -1,9 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30011.22
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FMC.Fis", "FMC.WebSite\FMC.Fis.csproj", "{B95B1852-7147-4FB3-8E89-260931386181}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FMC.FIS.Business", "..\FMC.FIS.Business\FMC.FIS.Business.csproj", "{073021F3-6554-45AA-B788-BBF2ADFBE109}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FMC.FIS.API", "..\FMS.FIS.API\FMC.FIS.API.csproj", "{5F2FAF9D-3F9A-423F-84BF-9BF7B023EC48}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BoletoNetCore", "..\..\..\BoletoNetCore-master\BoletoNetCore-master\BoletoNetCore\BoletoNetCore.csproj", "{13B79B5E-1485-4757-8AEC-0C24C23C3A17}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BoletoNetCore.Pdf", "..\..\..\BoletoNetCore-master\BoletoNetCore-master\BoletoNetCore.Pdf\BoletoNetCore.Pdf.csproj", "{9D07E0FF-3F2B-4DF8-AC0A-9C96204ED883}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +23,22 @@ Global
 		{B95B1852-7147-4FB3-8E89-260931386181}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B95B1852-7147-4FB3-8E89-260931386181}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B95B1852-7147-4FB3-8E89-260931386181}.Release|Any CPU.Build.0 = Release|Any CPU
+		{073021F3-6554-45AA-B788-BBF2ADFBE109}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{073021F3-6554-45AA-B788-BBF2ADFBE109}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{073021F3-6554-45AA-B788-BBF2ADFBE109}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{073021F3-6554-45AA-B788-BBF2ADFBE109}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F2FAF9D-3F9A-423F-84BF-9BF7B023EC48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F2FAF9D-3F9A-423F-84BF-9BF7B023EC48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F2FAF9D-3F9A-423F-84BF-9BF7B023EC48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F2FAF9D-3F9A-423F-84BF-9BF7B023EC48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{13B79B5E-1485-4757-8AEC-0C24C23C3A17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13B79B5E-1485-4757-8AEC-0C24C23C3A17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13B79B5E-1485-4757-8AEC-0C24C23C3A17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13B79B5E-1485-4757-8AEC-0C24C23C3A17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D07E0FF-3F2B-4DF8-AC0A-9C96204ED883}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D07E0FF-3F2B-4DF8-AC0A-9C96204ED883}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D07E0FF-3F2B-4DF8-AC0A-9C96204ED883}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D07E0FF-3F2B-4DF8-AC0A-9C96204ED883}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

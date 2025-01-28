@@ -14,7 +14,8 @@ using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FMC.FIS.EnvioEmailCredz
+
+namespace FMC.FIS.CREDZ.EnvioContatoUra
 {
     public class EnvioRCS
     {
@@ -41,18 +42,17 @@ namespace FMC.FIS.EnvioEmailCredz
                     {
                         envioRCS.Phones.ToList().ForEach(p => phones += p + ";");
 
-                        new SendRcsBLL().Add
-                            (
-                                new Business.Models.CREDZ.SendRCS()
-                                {
-                                    IdPerson = envioRCS.IdPerson,
-                                    IdProduct = envioRCS.IdProduct,
-                                    Age = envioRCS.Atraso,
-                                    Phone = phones,
-                                    IdRCS = ret,
-                                    DtInsert = DateTime.Now
-                                }
-                            );
+                        new SendEmailUraBLL().Add
+                                (
+                                    new Business.Models.CREDZ.SendEmailUra()
+                                    {
+                                        idPerson = envioRCS.IdPerson,
+                                        IdProduct = envioRCS.IdProduct,
+                                        age = envioRCS.Atraso,
+                                        email = phones,
+                                        dtInsert = DateTime.Now
+                                    }
+                                );
 
                         return ret;
                     }
@@ -118,7 +118,7 @@ namespace FMC.FIS.EnvioEmailCredz
                                         type = "OPEN_URL",
                                         text = "CLIQUE AQUI E RENEGOCIE",
                                         url = "https://fmc.digital/rcs",
-                                        postbackData = "CLICK"
+                                        postbackData = "CLICK_URA"
                                     }
                                     }
                                 }
@@ -171,7 +171,7 @@ namespace FMC.FIS.EnvioEmailCredz
             {
                 var parcela = simulate.ParcelResponse.FirstOrDefault();
                 body.Append("Olá ").Append(nome).Append("\r\n\r\n");
-                body.Append("A Credz tem uma oferta especial para parcelamento do seu ");
+                body.Append("Recentemente você entrou em contato em nossa Central de Atendimento, por isso a Credz tem uma oferta especial para parcelamento do seu ");
                 body.Append(cartao).Append("").Append(nomeCartao).Append("");
                 body.Append(" pagando apenas uma entrada de R$").Append(parcela.ValueEntrace.ToString("N2"));
                 body.Append(" e ").Append(parcela.NrParcel).Append(" parcelas de R$");
@@ -207,10 +207,10 @@ namespace FMC.FIS.EnvioEmailCredz
                 var avista = simulate.ParcelResponse.OrderBy(p => p.NrParcel).FirstOrDefault();
                 //var body = new StringBuilder();
                 body.Append("Olá ").Append(nome).Append("\r\n\r\n");
-                body.Append("Aproveite essa oferta que a Credz lhe oferece apenas nesse mês e renegocie sua dívida com um super desconto de R$").Append((avista.VlDiscount - 1).ToString("N2")).Append("");
+                body.Append("Recentemente você entrou em contato em nossa Central de Atendimento, por isso a Credz lhe oferece apenas nesse mês um super desconto de R$").Append((avista.VlDiscount - 1).ToString("N2")).Append("");
                 body.Append(" para quitar seu ").Append(cartao).Append(" ").Append(nomeCartao).Append("");
                 body.Append(" por apenas R$").Append(avista.ValueEntrace.ToString("N2")).Append(" no pagamento a vista!");
-                if (avista.ValueEntrace > 400)
+                if (avista.ValueEntrace > 300)
                 {
                     decimal vlParcel = 50;
                     var parcela = 24;
@@ -224,13 +224,23 @@ namespace FMC.FIS.EnvioEmailCredz
                         }
                     }
                     simulate = GetValueAgreement(parcela, contrato);
-                    var parcelamento = simulate.ParcelResponse.OrderByDescending(p => p.NrParcel).FirstOrDefault();
-                    body.Append("\r\nTemos também opção de parcelamento com desconto de R$").Append(parcelamento.VlDiscount.ToString("N2"));
-                    body.Append(", pagando uma entrada de R$").Append(parcelamento.ValueEntrace.ToString("N2"));
-                    body.Append(" e ").Append(parcelamento.NrParcel).Append(" parcelas de R$");
-                    body.Append(parcelamento.VlParcel).Append(".");
-                    body.Append("\r\n\r\n");
-                    body.Append("Não perca essa oportunidade!");
+                    if (simulate != null)
+                    {
+                        var parcelamento = simulate.ParcelResponse.OrderByDescending(p => p.NrParcel).FirstOrDefault();
+                        body.Append("\r\nTemos também opção de parcelamento com desconto de R$").Append(parcelamento.VlDiscount.ToString("N2"));
+                        body.Append(", pagando uma entrada de R$").Append(parcelamento.ValueEntrace.ToString("N2"));
+                        body.Append(" e ").Append(parcelamento.NrParcel).Append(" parcelas de R$");
+                        body.Append(parcelamento.VlParcel).Append(".");
+                        body.Append("\r\n\r\n");
+                        body.Append("Não perca essa oportunidade!");
+                    }
+                    else
+                    {
+                        body.Append("\r\n\r\n");
+                        body.Append("Não perca essa oportunidade!");
+                        body.Append("\r\n");
+                        body.Append("Temos também opções de parcelamento com um desconto que vale a pena conferir!");
+                    }
                 }
                 else
                 {
@@ -240,7 +250,7 @@ namespace FMC.FIS.EnvioEmailCredz
                     body.Append("Temos também opções de parcelamento com um desconto que vale a pena conferir!");
                 }
                 body.Append("\r\n\r\n");
-                body.Append("Esta oferta é válida até ").Append(DateTime.Today.AddDays(2).ToString("dd/MM/yyyy")).Append(" para pagamento até ").Append(simulate.DateEntrace.ToString("dd/MM/yyyy")).Append(".");
+                body.Append("Esta oferta é válida até ").Append(DateTime.Today.AddDays(2).ToString("dd/MM/yyyy")).Append(" para pagamento até ").Append(avista.DtParcel.ToString("dd/MM/yyyy")).Append(".");
                 body.Append("\r\n\r\n");
                 body.Append("Em caso de dúvidas, pode entrar em contato com nossa central de atendimento");
                 body.Append(" nos telefones 4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(Demais Regiões).");
@@ -387,7 +397,13 @@ namespace FMC.FIS.EnvioEmailCredz
             }
             catch (Exception ex)
             {
-                return null;
+                if (nrParcel > 2)
+                {
+                    nrParcel--;
+                    return GetValueAgreement(nrParcel, contract);
+                }
+                else
+                    return null;
             }
         }
 
@@ -412,6 +428,7 @@ namespace FMC.FIS.EnvioEmailCredz
 
         public string UrlCartao { get; set; }
     }
+
     public class PhoneUra
     {
         [Key]

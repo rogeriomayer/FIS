@@ -29,25 +29,14 @@ namespace FMC.FIS.Business.DAO
             query.Append("       ,[A].[CdAgreement] ");
             query.Append("       ,[A].[IdAgreementStatus] ");
             query.Append("       ,[A].[DtInsert] ");
-            query.Append(" FROM Agreement A ");
-            query.Append(" WHERE A.IdAgreementStatus = 5 ");
-            query.Append(" AND EXISTS  ");
-            query.Append(" ( ");
-            query.Append(" 	SELECT IdAgreement ");
-            query.Append(" 	FROM AgreementParcel AP ");
-            query.Append(" 	WHERE A.IdAgreement = AP.IdAgreement ");
-            query.Append(" 	AND AP.DtParcel >= CONVERT(dATE, GETDATE() -9) ");
-            query.Append(" ) ");
-
-            /*query.Append("from agreement a ");
-            query.Append("where CdParcelPlan = '' ");
-            query.Append("and cdagreement in  ");
-            query.Append("( ");
-            query.Append("'4138064687') ");
-            */
+            query.Append(" from AgreementParcel ap ");
+            query.Append(" 	inner join Agreement a ");
+            query.Append(" 		on ap.IdAgreement = a.IdAgreement ");
+            query.Append(" 		and CdParcelPlan = '' ");
+            query.Append(" where ap.DtParcel between '2024-12-20' and '2025-01-05' ");
+            query.Append(" and a.IdAgreementStatus <> 2");
 
             return Context.FromSqlRaw(query.ToString()).ToList();
-
 
             query.Append(" SELECT DISTINCT [A].[IdAgreement] ");
             query.Append("       ,[A].[IdStatusLead] ");
@@ -65,11 +54,8 @@ namespace FMC.FIS.Business.DAO
             query.Append(" FROM [FIS].[dbo].[Agreement] A ");
             query.Append(" 		INNER JOIN [FIS].[dbo].[AgreementParcel] AP ");
             query.Append(" 			ON [A].[IdAgreement] = [AP].[IdAgreement] ");
-            //query.Append("      LEFT JOIN [FIS].[DBO].[PAYMENT] PAY ");
-            //query.Append(" 			ON [AP].[IdAgreementPARCEL] = [PAY].[IdAgreementPARCEL] ");
             query.Append("  WHERE [A].[IdAgreementStatus] not in (2,5)");
             query.Append("  and [A].[cdparcelplan]  in ('','API CREDZ')");
-            //query.Append("  AND [PAY].[IdPAYMENT] IS NULL ");
             query.Append("    AND   [AP].[DtParcel] BETWEEN '").Append(dtIni.ToString("yyyy-MM-dd")).Append("' AND '").Append(dtFim.ToString("yyyy-MM-dd")).Append(" 23:59'");
 
 

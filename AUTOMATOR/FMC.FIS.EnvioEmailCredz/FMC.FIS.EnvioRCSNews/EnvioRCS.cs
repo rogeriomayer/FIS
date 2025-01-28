@@ -8,6 +8,7 @@ using FMC.FIS.Business.Models.FIS;
 using FMC.FIS.Business.Models.RCS;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net.Mail;
 using System.Text;
@@ -204,11 +205,16 @@ namespace FMC.FIS.EnvioEmailCredz
             if (simulate != null && simulate.ParcelResponse != null && simulate.ParcelResponse.Count() > 0)
             {
                 var avista = simulate.ParcelResponse.OrderBy(p => p.NrParcel).FirstOrDefault();
+
+               /*if (avista.ValueEntrace > 1000)
+                    throw new Exception("Maior que 300");*/
+
                 //var body = new StringBuilder();
                 body.Append("Olá ").Append(nome).Append("\r\n\r\n");
                 body.Append("Aproveite essa oferta que a Credz lhe oferece apenas nesse mês e renegocie sua dívida com um super desconto de R$").Append((avista.VlDiscount - 1).ToString("N2")).Append("");
                 body.Append(" para quitar seu ").Append(cartao).Append(" ").Append(nomeCartao).Append("");
                 body.Append(" por apenas R$").Append(avista.ValueEntrace.ToString("N2")).Append(" no pagamento a vista!");
+               
                 if (avista.ValueEntrace > 400)
                 {
                     decimal vlParcel = 50;
@@ -223,13 +229,23 @@ namespace FMC.FIS.EnvioEmailCredz
                         }
                     }
                     simulate = GetValueAgreement(parcela, contrato);
-                    var parcelamento = simulate.ParcelResponse.OrderByDescending(p => p.NrParcel).FirstOrDefault();
-                    body.Append("\r\nTemos também opção de parcelamento com desconto de R$").Append(parcelamento.VlDiscount.ToString("N2"));
-                    body.Append(", pagando uma entrada de R$").Append(parcelamento.ValueEntrace.ToString("N2"));
-                    body.Append(" e ").Append(parcelamento.NrParcel).Append(" parcelas de R$");
-                    body.Append(parcelamento.VlParcel).Append(".");
-                    body.Append("\r\n\r\n");
-                    body.Append("Não perca essa oportunidade!");
+                    if (simulate != null)
+                    {
+                        var parcelamento = simulate.ParcelResponse.OrderByDescending(p => p.NrParcel).FirstOrDefault();
+                        body.Append("\r\nTemos também opção de parcelamento com desconto de R$").Append(parcelamento.VlDiscount.ToString("N2"));
+                        body.Append(", pagando uma entrada de R$").Append(parcelamento.ValueEntrace.ToString("N2"));
+                        body.Append(" e ").Append(parcelamento.NrParcel).Append(" parcelas de R$");
+                        body.Append(parcelamento.VlParcel).Append(".");
+                        body.Append("\r\n\r\n");
+                        body.Append("Não perca essa oportunidade!");
+                    }
+                    else
+                    {
+                        body.Append("\r\n\r\n");
+                        body.Append("Não perca essa oportunidade!");
+                        body.Append("\r\n");
+                        body.Append("Temos também opções de parcelamento com um desconto que vale a pena conferir!");
+                    }
                 }
                 else
                 {
@@ -239,7 +255,7 @@ namespace FMC.FIS.EnvioEmailCredz
                     body.Append("Temos também opções de parcelamento com um desconto que vale a pena conferir!");
                 }
                 body.Append("\r\n\r\n");
-                body.Append("Esta oferta é válida até ").Append(DateTime.Today.AddDays(2).ToString("dd/MM/yyyy")).Append(" para pagamento até ").Append(simulate.DateEntrace.ToString("dd/MM/yyyy")).Append(".");
+                body.Append("Esta oferta é válida até ").Append(DateTime.Today.AddDays(2).ToString("dd/MM/yyyy")).Append(" para pagamento até ").Append(avista.DtParcel.ToString("dd/MM/yyyy")).Append(".");
                 body.Append("\r\n\r\n");
                 body.Append("Em caso de dúvidas, pode entrar em contato com nossa central de atendimento");
                 body.Append(" nos telefones 4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(Demais Regiões).");
@@ -310,7 +326,17 @@ namespace FMC.FIS.EnvioEmailCredz
             var person = CobmaisAPI.GetPessoa(lead.Product.Person.NrCNPJCPF);
 
             var phones = new List<string>();
-            phones = person.telefones.Where(p => p.ativo && p.contato && Convert.ToInt32(p.numero.Substring(2, 1)) >= 6).Select(p => p.numero).ToList();
+
+            var phoneUra = new GenericQueryBLL<PhoneUra>().GetCollection("select top 1 CONVERT(varchar(11),telefone) telefone, dtLigacao from CREDZ.dbo.RetornoUra where SUBSTRING(CONVERT(varchar(11), telefone), 3,1) > 6 and  cpf = '" + lead.Product.Person.NrCNPJCPF + "' order by dtLigacao desc");
+
+            if (phoneUra.Count() > 0)
+                phones = phoneUra.Select(p => p.telefone).ToList();
+
+            if (phones == null || phones.Count <= 0)
+                phones = person.telefones.Where(p => p.ativo && p.contato && Convert.ToInt32(p.numero.Substring(2, 1)) >= 6).Select(p => p.numero).ToList();
+
+
+
             if (phones == null || phones.Count <= 0)
             {
                 var phone = person.telefones.Where(p => p.ativo && Convert.ToInt32(p.numero.Substring(2, 1)) >= 6).Select(p => p.numero).ToList().FirstOrDefault();
@@ -376,7 +402,13 @@ namespace FMC.FIS.EnvioEmailCredz
             }
             catch (Exception ex)
             {
-                return null;
+                if (nrParcel > 2)
+                {
+                    nrParcel--;
+                    return GetValueAgreement(nrParcel, contract);
+                }
+                else
+                    return null;
             }
         }
 
@@ -400,5 +432,11 @@ namespace FMC.FIS.EnvioEmailCredz
         public ICollection<string> Phones { get; set; }
 
         public string UrlCartao { get; set; }
+    }
+
+    public class PhoneUra
+    {
+        [Key]
+        public string telefone { get; set; }
     }
 }
