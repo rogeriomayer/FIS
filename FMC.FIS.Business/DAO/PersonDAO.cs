@@ -343,7 +343,7 @@ namespace FMC.FIS.Business.DAO
             query.Append(" 		on a.IdProduct = p.IdProduct ");
             query.Append(" 	inner join Person pe	WITH(NOLOCK)  ");
             query.Append(" 		on pe.IdPerson = p.IdPerson ");
-            query.Append(" 	left join CREDZ.dbo.RetornoUra ura ");
+            query.Append(" 	inner join CREDZ.dbo.RetornoUra ura ");
             query.Append(" 		on ura.cpf = pe.NRCNPJCPF ");
             
             query.Append(" where a.DtInsert >= CONVERT(date, getdate() -2 )  ");

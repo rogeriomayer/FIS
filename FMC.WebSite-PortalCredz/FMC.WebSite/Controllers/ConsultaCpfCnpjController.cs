@@ -847,6 +847,9 @@ namespace FMC.WebSite.FIS.Controllers
                 StatusLeadResponse statusLead = cache.Get<StatusLeadResponse>("NEW_STATUSLEAD");
                 PersonResponse pessoa = cache.Get<PersonResponse>("Pessoa");
                 BilletResponse boleto = null;
+                Navigation wsNavigation = cache.Get<Navigation>("Navigation");
+                Produto _produto = cache.Get<Produto>("produto");
+                var conta = pessoa.Cards.Where(p => p.Account.Contains(_produto.CodProduto)).FirstOrDefault();
 
                 if (statusLead != null)
                 {
@@ -877,13 +880,10 @@ namespace FMC.WebSite.FIS.Controllers
                         }
                     }
 
-
                     if (boleto != null)
                     {
                         cache.AddCache("boleto", boleto);
-                        Navigation wsNavigation = cache.Get<Navigation>("Navigation");
-                        Produto _produto = cache.Get<Produto>("produto");
-                        var conta = pessoa.Cards.Where(p => p.Account.Contains(_produto.CodProduto)).FirstOrDefault();
+
 
                         if (wsNavigation != null)
                         {
@@ -904,7 +904,7 @@ namespace FMC.WebSite.FIS.Controllers
                 }
 
                 //IList<object> data = new List<object> { model, boleto, statusLead.AgreementResponse, statusLead.AgreementResponse.AgreementParcelResponse.FirstOrDefault(), titulo };
-                IList<object> data = new List<object> { model, boleto, titulo, pessoa.Cards.Count() };
+                IList<object> data = new List<object> { model, boleto, titulo, pessoa.Cards.Count(), string.IsNullOrEmpty(statusLead.AgreementResponse.CdParcelPlan) };
 
                 return View(data);
             }
@@ -990,7 +990,7 @@ namespace FMC.WebSite.FIS.Controllers
                 }
 
                 //IList<object> data = new List<object> { model, boletoGerado, acordo, parcelaAtual, titulo };
-                IList<object> data = new List<object> { model, boletoGerado, titulo, pessoa.Cards.Count() };
+                IList<object> data = new List<object> { model, boletoGerado, titulo, pessoa.Cards.Count(), string.IsNullOrEmpty(acordo.CdParcelPlan) };
 
                 return View(data);
             }
@@ -1839,6 +1839,34 @@ namespace FMC.WebSite.FIS.Controllers
                             cache.Get<bool>("Validacao"))
                         {
                             cache.AddCache("Autenticated", true);
+                            if (pessoa.Cards.Count == 1)
+                            {
+                                var card = pessoa.Cards.FirstOrDefault();
+
+                                if (card.Age >= 78 && card.AvailableBilling)
+                                {
+                                    Navigation wsNavigation = cache.Get<Navigation>("Navigation");
+
+                                    var product = new Product()
+                                    {
+                                        IdNavigation = wsNavigation.IdNavigation,
+                                        Age = Convert.ToInt32(card.Age),
+                                        Account = card.Account,
+                                        VlFull = card.VlFull,
+                                        VlMinimum = card.VlMinimum,
+                                        DtInsert = DateTime.Now,
+                                        ProductType = card.IdProductType.ToString()
+                                    };
+                                    var wsProduct = AfinzAPI.SetProduct(product);
+
+                                    cache.AddCache("Product", new List<Product>() { wsProduct });
+
+                                    cache.AddCache("produto", new Produto() { CodProduto = pessoa.Cards.FirstOrDefault().Account, NomeProduto = "IBI" });
+
+                                    return RedirectToAction(nameof(FormaDePagamento));
+                                }
+                            }
+
                             return RedirectToAction(nameof(Index));
                         }
                         else

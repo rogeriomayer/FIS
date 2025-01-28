@@ -2293,7 +2293,8 @@ span.field-validation-error {
 
 #pg-consulta-cpf-resultados .resultado-dividas,
 #pg-consulta-cpf-resultados-nao-consta .resultado-dividas {
-    padding: 15px 0 50px
+    padding: 15px 0 50px;
+    margin-bottom: 100px;
 }
 
     #pg-consulta-cpf-resultados .resultado-dividas h1,
@@ -2485,11 +2486,11 @@ span.field-validation-error {
     }
 
     #pg-consulta-cpf-forma-de-pagamento .opcoes-de-pagamento {
-        margin-bottom: 10px;
+        margin-bottom: 50px;
     }
 
         #pg-consulta-cpf-forma-de-pagamento .opcoes-de-pagamento ul {
-            margin-bottom: 10px;
+            margin-bottom: 50px;
         }
 
 

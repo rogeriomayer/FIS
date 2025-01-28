@@ -35,7 +35,7 @@
             <p>Informe sua data de nascimento.</p>
             @using (Html.BeginForm("ValidacaoData", "ConsultaCpfCnpj", FormMethod.Post, new { @class = "form-cpf" }))
             {
-                <div class="date" >
+                <div class="date">
                     @Html.DropDownListFor(model => _validation.Day ,days, "Dia")
                     @Html.DropDownListFor(model => _validation.Month ,months, "Mês")
                     @Html.DropDownListFor(model => _validation.Year ,years, "Ano")
@@ -62,6 +62,21 @@
             form = $(this).parents('form');
             form.submit();
         });
+    });
+
+      $("form.form-cpf").submit(function (e) {
+        if ($(this).valid()) {
+                $('body').css("overflow", "hidden");
+                $('#load-page, #load-page .background-opacity').css({
+                    width: window.innerWidth,
+                    height: screen.height
+                });
+                $('#load-page').fadeIn(300);
+            } else {
+                $('#load-page').fadeOut(300);
+                $('body').css("overflow", "");
+                e.preventDefault();
+            }
     });
 </script>
 <script src="https://www.google.com/recaptcha/api.js?render=@ViewBag.publicKey"></script>

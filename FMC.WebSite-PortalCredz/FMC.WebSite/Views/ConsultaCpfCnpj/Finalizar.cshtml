@@ -5,8 +5,11 @@
     BilletResponse boletoGerado = (BilletResponse)Model.ElementAt(1);
     string titulo = (string)Model.ElementAt(2);
     long totalCartoes = (int)Model.ElementAt(3);
+    var liberarSMS = (bool)Model.ElementAt(4);
+
     string digitavel = boletoGerado != null ? boletoGerado.Line : "";
     var urlPDF = boletoGerado.URL;
+
 }
 <section id="pg-consulta-cpf-forma-de-pagamento" class="scroll-secao">
     <section class="barra-nova-consulta-cpf" style="display:none">
@@ -36,19 +39,22 @@
                     <a href="" title="@digitavel" class="copiar linha-digitavel" data-value="@digitavel">Copiar Código de Barra</a>
                 </div>
                 <div class="box-form" id="receberEmail">
-                    <label>Receber por e-mail</label>
+                    <label>Receber no e-mail</label>
                     <input type="text" name="email" class="send-email" placeholder="exemplo@exemplo.com.br" />
                     <button class="btn-enviar btn-email">Enviar</button>
                     <div class='loading'><img src="~/images/loading.gif"></div>
                     <div class='retorno'></div>
                 </div>
-                <div class="box-form" id="receberSMS">
-                    <label>Receber por sms</label>
-                    <input type="text" name="sms" class="mask-telefone number-phone" placeholder="(00) 0 0000 0000" />
-                    <button class="btn-enviar btn-sms">Enviar</button>
-                    <div class='loading'><img src="~/images/loading.gif"></div>
-                    <div class='retorno'></div>
-                </div>
+                @if (liberarSMS)
+                {
+                    <div class="box-form" id="receberSMS">
+                        <label>Receber no telefone</label>
+                        <input type="text" name="sms" class="mask-telefone number-phone" placeholder="(00) 0 0000 0000" />
+                        <button class="btn-enviar btn-sms">Enviar</button>
+                        <div class='loading'><img src="~/images/loading.gif"></div>
+                        <div class='retorno'></div>
+                    </div>
+                }
 
             </div> <!-- box termos -->
             <div>
