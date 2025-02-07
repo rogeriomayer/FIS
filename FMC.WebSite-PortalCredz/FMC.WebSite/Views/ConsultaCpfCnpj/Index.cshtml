@@ -42,7 +42,7 @@
                     }
                     if (agreement != null)
                     {
-                        agreementParcelResponse = @agreement.AgreementParcelResponse.Where(p => p.Status == "EmAberto" && p.DtParcel >= DateTime.Today.AddDays(-10)).FirstOrDefault();
+                        agreementParcelResponse = @agreement.AgreementParcelResponse.OrderBy(p=> p.NrParcel).Where(p => p.Status == "EmAberto" && p.DtParcel >= DateTime.Today.AddDays(-10)).FirstOrDefault();
                     }
                     string imageCard = "~/images/cartao/cardgenerico-v2.png";
                     if (!string.IsNullOrEmpty(conta.CardImage))

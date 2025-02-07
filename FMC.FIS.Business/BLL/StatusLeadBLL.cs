@@ -142,7 +142,7 @@ namespace FMC.FIS.BLL
                         agreementResponse.DtInsert = a.DtInsert;
                         agreementResponse.IdAgreementStatus = a.IdAgreementStatus;
                         agreementResponse.Status = a.AgreementStatus != null ? a.AgreementStatus.DsAgreementStatus : "EmAberto";
-                        foreach (var ap in a.AgreementParcel)
+                        foreach (var ap in a.AgreementParcel.OrderBy(p=> p.NrParcel).ToList())
                         {
                             var agreementParcelResponse = new AgreementParcelResponse();
                             agreementParcelResponse.IdAgreementParcel = ap.IdAgreementParcel;

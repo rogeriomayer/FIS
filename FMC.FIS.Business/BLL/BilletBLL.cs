@@ -10,6 +10,7 @@ using FMC.Generic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace FMC.FIS.Business.BLL
 {
@@ -293,10 +294,14 @@ namespace FMC.FIS.Business.BLL
 
             var product = new ProductBLL().GetBykey(billet.IdProduct);
 
+            if (product is null)
+                product = billet.AgreementParcel.Agreement.StatusLead.Lead.Product;
+
+
             if (product != null && product.ProductSpecification != null)
             {
                 Util.SendMail("BOLETO ACORDO" + product.ProductSpecification.Description.ToUpper(),
-                           Util.BodyEmail(dtPayment, vlBillet.ToString("N2"), line),
+                           BodyEmail(billet, product),
                            product.ProductSpecification.Description.ToUpper(),
                            Constants.HOST_SMTP,
                            25,
@@ -308,7 +313,7 @@ namespace FMC.FIS.Business.BLL
             else
             {
                 Util.SendMail("BOLETO ACORDO CREDZ VISA",
-                           Util.BodyEmail(dtPayment, vlBillet.ToString("N2"), line),
+                           BodyEmail(billet, product),
                            "BOLETO ACORDO CREDZ VISA",
                            Constants.HOST_SMTP,
                            25,
@@ -405,6 +410,93 @@ namespace FMC.FIS.Business.BLL
             }
             else
                 return null;
+        }
+
+
+        public static string BodyEmail(Billet billet, Product product)
+        {
+            StringBuilder body = new StringBuilder();
+            body.Append("<html>");
+            body.Append("<p>Olá ").Append(product.Person.DsName).Append("</p>");
+            body.Append("<br>");
+            if (billet.DtBillet < DateTime.Today)
+            {
+                body.Append("Não identificamos o pagamento ");
+            }
+            else
+            {
+                body.Append("<p>Segue o boleto para pagamento ");
+            }
+            if (billet.AgreementParcel.NrParcel == 0)
+                if (billet.AgreementParcel.Agreement.QtParcel == 0)
+                    body.Append("do seu acordo no valor de R$").Append(billet.VlBillet.ToString("N2"));
+                else
+                    body.Append("da entrada do seu acordo no valor de R$").Append(billet.VlBillet.ToString("N2"));
+            else
+                body.Append("da parcela ").Append(billet.AgreementParcel.NrParcel + 1).Append(" do seu acordo no valor de R$").Append(billet.VlBillet.ToString("N2"));
+
+            body.Append(" referente ao cartão ").Append(product.DsProduct.Substring(0, 6)).Append("********** ").Append(product.ProductSpecification != null ? product.ProductSpecification.Description : "CREDZ Visa").Append(" com vencimento em ").Append(billet.DtBillet.ToString("dd/MM/yyyy"));
+            body.Append("</p>");
+            if (billet.AgreementParcel.NrParcel == 0)
+                body.Append("<p>Lembrando que só ocorrerá a efetivação do acordo e a retirada da negativação do seu CPF dos orgão de proteção de crédito após constar o pagamento deste boleto. </p>");
+            else
+                body.Append("<p>Realize o pagamento da parcela e evite a quebra do seu acordo e com isso lançamento de novos encargos e nova negativação do seu CPF. </p>");
+
+            body.Append("<p><b>Caso não consiga realizar o pagamento do boleto até a data de vencimento este mesmo boleto é válido para pagamento até o dia ").Append(billet.DtBillet.AddDays(8).ToString("dd/MM/yyyy"));
+            body.Append(" sem acréscimo de juros. </b></p>");
+
+            body.Append("<br>");
+
+            body.Append("<p><b>O boleto pode levar até 24 horas para ser registrado junto ao banco emissor, se ocorrer algum erro no pagamento favor aguardar 2 horas ou até o próximo dia útil para nova tentativa de pagamento do boleto. Caso o erro persiste favor entrar em contato.</b></p>");
+
+            body.Append("<p><b>Lembramos CREDZ foi adquirida pela DM CARD, a partir de agora os boletos serão emitidos em nome da DM FINANCEIRA S.A. - CRÉDITO, FINANCIAMENTO E INVESTIMENTO CNPJ: 91.669.747/0001-92.</b></p>");
+
+            body.Append("<br>");
+
+            body.Append("<p>Linha digitável para pagamento: </p> <b>").Append(billet.Line);
+            body.Append("<br>");
+            body.Append("<br> ");
+            body.Append("<p>Segue também em anexo o seu boleto para pagamento.</p>");
+            body.Append("<br>");
+            body.Append("<br>");
+
+
+            body.Append("<p>Você também pode retirar a segunda no nosso potal.</p>");
+            body.Append("<p>Acesse agora: <a href='https://fmc.digital/ecredz'>www.negociadorcredz.fmcbrasil.com.br</a> </p>");
+            body.Append("<p>ou diretamente no link abaixo.</p>");
+            body.Append("<p>").Append("<a href='" + billet.URL + "'>" + billet.URL + "</a>").Append("</p>");
+            body.Append("<br>");
+            body.Append("<br>");
+            body.Append("<br>");
+            body.Append("<p>Caso já tenha efetuado o pagamento favor desconsiderar este e-mail.</p>");
+            body.Append("<br>");
+            body.Append("<br>");
+            body.Append("<p><b>Equipe Negociador Credz</b></p>");
+            body.Append("<p><b>4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(demais regiões)</b></p>");
+            body.Append("<p><img alt=\"\" style=\"width:100px\" src=\"https://negociadorcredz.fmcbrasil.com.br/images/topo/credz-logo-new.png\"></p>");
+            if (product.ProductSpecification != null)
+                body.Append("<p><img alt=\"\" style=\"width:150px\" src=\"").Append(product.ProductSpecification.UrlImage).Append("\">  </p>");
+            body.Append("<br>");
+            body.Append("<br>");
+            body.Append("<a href=\"http://fmcbrasil.com.br/descadastrar\" target=\"_blank\" rel=\"noopener noreferrer\" data-auth=\"NotApplicable\" style=\"color:#e60014; text-decoration:none\" data-linkindex=\"2\">Descadastre-se! <em>(Unsubscribe)</em></a>");
+            body.Append("<br>");
+            body.Append("<p><b>Evite fraudes com pagamento online:</b></p>");
+            body.Append("<p>1.Observe se os seus dados (nome,  CPF,  endereço) constantes no boleto estão corretos e se há algum erro de português ou formatação.</p>");
+            body.Append("<p>2.Verifique se os últimos números do código de barras correspondem ao valor do documento. Se forem diferentes, há uma grande chance de se tratar de uma fraude.");
+            body.Append("<p>3.Confira se os 3 primeiros números do código de barras correspondem ao banco cuja logomarca aparece no boleto.");
+            body.Append("<p>4.Sempre opte por pagar o boleto utilizando o leitor de códigos de barras disponível no aplicativo do seu banco. Em regra, boletos falsos possuem códigos de barras incompatíveis com esses leitores e obrigam a vítima a digitar o código número por número, manualmente, para efetivar o golpe.");
+            body.Append("<p>5.Ao fazer a leitura do código de barras, verifique se o nome o beneficiário é realmente da empresa/pessoa contratada.");
+            body.Append("<p>6.Sempre que possível, faça o download do boleto diretamente no site da empresa credora, utilizando, para tanto, uma conexão segura. Evite Wi-fi público. Se houver alguma suspeita, sempre entre em contato com a empresa.");
+
+            body.Append("<br>");
+            body.Append("<br>");
+
+            body.Append("<p>AVISO LEGAL ...Esta mensagem é destinada exclusivamente para a(s) pessoa(s) a quem é dirigida, podendo conter informação confidencial e/ou legalmente privilegiada.</p>");
+            body.Append("<p>Se você não for destinatário desta mensagem, desde já fica notificado de abster-se a divulgar, copiar, distribuir, examinar ou, de qualquer forma, utilizar a informação contida nesta mensagem, por ser ilegal. Caso você tenha recebido esta mensagem por engano, pedimos que nos retorne este E-Mail, promovendo, desde logo, a eliminação do seu conteúdo em sua base de dados, registros ou sistema de controle.</p>");
+            body.Append("<p>Fica desprovida de eficácia e validade a mensagem que contiver vínculos obrigacionais, expedida por quem não detenha poderes de representação. </p>");
+            body.Append("</html>");
+            return body.ToString();
+
         }
 
         /*

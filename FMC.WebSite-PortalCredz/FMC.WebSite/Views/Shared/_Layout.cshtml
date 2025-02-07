@@ -96,7 +96,7 @@
             <div class="consultar-cpf">
 
                 <form action="@Url.Action("Index","Home")" method="post">
-                    <input type="text" name="CpfCnpj" id="CpfCnpj" placeholder="Consultar CPF/CNPJ:" class="mask-cpf" />
+                    <input type="text" name="CpfCnpj" id="CpfCnpj" placeholder="Consultar CPF/CNPJ:" class="mask-cpf" maxlength = "14"  />
                     <button type="submit" class="btn-consultar-cpf">
                         <span>Ok</span>
                     </button>

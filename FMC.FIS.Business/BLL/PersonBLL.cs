@@ -20,6 +20,9 @@ namespace FMC.FIS.Business.BLL
             {
                 var person = persistence.GetByCPF(cpf);
 
+                if (person == null)
+                    return null;
+
                 var products = person.Product.Where(p => p.IdProductType == Convert.ToByte(productType)).Select(p => p.DsProduct).ToList();
 
                 var personResponse = this.CreatePersonResponse(person, products);

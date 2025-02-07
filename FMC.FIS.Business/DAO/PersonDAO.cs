@@ -337,13 +337,13 @@ namespace FMC.FIS.Business.DAO
         {
             var query = new StringBuilder();
 
-            query.Append(" select distinct pe.* ");
+            query.Append(" select distinct  pe.* ");
             query.Append(" from Lead a  WITH(NOLOCK) ");
             query.Append(" 	inner join Product p WITH(NOLOCK) ");
             query.Append(" 		on a.IdProduct = p.IdProduct ");
             query.Append(" 	inner join Person pe	WITH(NOLOCK)  ");
             query.Append(" 		on pe.IdPerson = p.IdPerson ");
-            query.Append(" 	inner join CREDZ.dbo.RetornoUra ura ");
+            query.Append(" 	left join CREDZ.dbo.RetornoUra ura ");
             query.Append(" 		on ura.cpf = pe.NRCNPJCPF ");
             
             query.Append(" where a.DtInsert >= CONVERT(date, getdate() -2 )  ");
@@ -378,7 +378,7 @@ namespace FMC.FIS.Business.DAO
             query.Append(" 	SELECT * ");
             query.Append(" 	FROM CREDZ.SendRCS rcs WITH(NOLOCK) ");
             query.Append(" 	WHERE rcs.idPerson = Pe.idPerson ");
-            query.Append(" 	AND rcs.DTINSERT >= GETDATE() -5 ");
+            query.Append(" 	AND rcs.DTINSERT >= GETDATE() - 5 ");
             query.Append(" ) ");
 
              
@@ -389,7 +389,7 @@ namespace FMC.FIS.Business.DAO
             query.Append(" 	SELECT * ");
             query.Append(" 	FROM CREDZ.DBO.NAVIGATION NAV WITH(NOLOCK) ");
             query.Append(" 	WHERE NAV.CPF = Pe.NRCNPJCPF ");
-            query.Append(" 	AND NAV.dtINSERT >= GETDATE() - 2 ");
+            query.Append(" 	AND NAV.dtINSERT >= GETDATE() - 90 ");
             query.Append(" ) ");
            
             

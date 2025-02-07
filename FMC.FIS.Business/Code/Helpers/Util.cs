@@ -180,6 +180,7 @@ public class Util
 
     public static string BodyEmail(DateTime dataPagamento, string valor, string linhaDigitavel)
     {
+
         StringBuilder body = new StringBuilder();
         body.AppendLine("<p>Segue o boleto para pagamento do seu Cartão com vencimento ").Append(dataPagamento.ToString("dd/MM/yyyy")).Append(" no valor de R$ ").Append(valor).Append(", e é muito importante cumprí-lo na data acordada.</p> ");
         body.AppendLine("<br> ");
@@ -209,7 +210,7 @@ public class Util
     }
 
     public static string pathLog = AppDomain.CurrentDomain.BaseDirectory + "LOG";
-public static void SaveFile(string message)
+    public static void SaveFile(string message)
     {
         string fileName = pathLog + "\\LOG_" + Environment.CurrentManagedThreadId.ToString() + "_" + DateTime.Now.ToString("ddMMyyyyHH") + ".log";
         StreamWriter logExecution = null;
@@ -228,7 +229,7 @@ public static void SaveFile(string message)
             throw ex;
         }
     }
-    
+
 
 }
 

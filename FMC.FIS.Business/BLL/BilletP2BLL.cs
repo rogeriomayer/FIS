@@ -18,7 +18,7 @@ namespace FMC.FIS.BLL
 
         public BilletResponse GetBillet(BilletRequest billetRequest)
         {
-            //var url = "http://10.40.0.110/ibi/ura.svc";
+            var url = "http://10.40.0.110/ibi/ura.svc";
             //var url = "http://localhost:34072/URA.svc";
 
             if (!billetRequest.Account.StartsWith("000"))
@@ -45,8 +45,8 @@ namespace FMC.FIS.BLL
                     CodEmpresa = "FISCE"
                 };
 
-                //  billet = RestApi.Post<BilletResponse, BilletRequest>(url, "GetBilletFISP2", billetRequest, "");
-                billet = GetBilletFISP2(billetParameter, "FISP2", true);
+                billet = RestApi.Post<BilletResponse, BilletRequest>(url, "GetBilletFISP2", billetRequest, "");
+                //billet = GetBilletFISP2(billetParameter, "FISP2", true);
             }
             if (billet != null)
             {

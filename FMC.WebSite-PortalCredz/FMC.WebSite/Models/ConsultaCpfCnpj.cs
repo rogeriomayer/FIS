@@ -9,7 +9,7 @@ namespace FMC.WebSite.FIS.Models
     public class ConsultaCpfCnpj
     {
         [Required(AllowEmptyStrings = false, ErrorMessage = "É obrigatório preencher o número do CPF.")]
-        [StringLength(maximumLength: 14, MinimumLength = 14, ErrorMessage = "No mínimo 14 dígitos.")]
+        [StringLength(maximumLength: 14, MinimumLength = 14, ErrorMessage = "No mínimo 11 dígitos.")]
         public string CpfCnpj { get; set; }
     }
 }

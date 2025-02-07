@@ -13,7 +13,7 @@
         </h1>
         @using (Html.BeginForm("Index", "Segunda-Via", FormMethod.Post, new { @class = "form-cpf" }))
         {
-            @Html.TextBoxFor(model => _model.CpfCnpj, null, new { @class = "mask-cpf", placeholder = "Digite seu CPF ou CNPJ", maxlength = "18" })
+            @Html.TextBoxFor(model => _model.CpfCnpj, null, new { @class = "mask-cpf", placeholder = "Digite seu CPF ou CNPJ", maxlength = "14" })
             @Html.ValidationMessageFor(model => _model.CpfCnpj)
             <button type="submit" class="btn-negociar-agora">Consultar</button>
         }

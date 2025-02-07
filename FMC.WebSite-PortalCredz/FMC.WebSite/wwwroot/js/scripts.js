@@ -9,7 +9,7 @@ $(document).ready(function() {
         }
     };
 	
-	//$("input.mask-cpf").mask("999.999.999-99");
+    $("input.mask-cpf").mask("000.000.000-00#");
 	$("input.mask-telefone").mask(SPMaskBehavior, spOptions);
     $("input.mask-cep").mask("00.000-000");
     $("input.mask-data").mask("00r00r0000", {
@@ -21,13 +21,15 @@ $(document).ready(function() {
             placeholder: "__/__/____"
         }
     });
+    /*
     var options = {
         onKeyPress: function (cpf, ev, el, op) {
-            var masks = ['000.000.000-000', '00.000.000/0000-00'];
+            var masks = ['000.000.000-000'];
             $('input.mask-cpf').mask((cpf.length > 14) ? masks[1] : masks[0], op);
         }
     }
     $('input.mask-cpf').length > 11 ? $('input.mask-cpf').mask('00.000.000/0000-00', options) : $('input.mask-cpf').mask('000.000.000-00#', options);
+    */
     $('input.entrada').mask('#.##0,00', { reverse: true });
     //Funcoes para navegacao # nossa historia
     $(document).on('click', '.timeline li h2', function (e) {

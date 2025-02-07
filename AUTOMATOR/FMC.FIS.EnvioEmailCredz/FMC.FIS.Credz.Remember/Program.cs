@@ -176,7 +176,7 @@ try
 
 
                                                     Ag ag = RestApi.Get<Ag>("https://10.40.0.30/credz/api", "agreement/" + product.DsProduct);
-                                                    IList<string> origem = new List<string> { "1", "/", "ura", "ope", "rcs","d=d", "9"};
+                                                    IList<string> origem = new List<string> { "1", "/", "ura", "ope", "rcs", "d=d", "9" };
                                                     if (origem.Contains(ag.Product.Navigation.DsOrigem) || product.Person.Email.Count == 0)
                                                     {
                                                         objectSend.Phone = SendRemember.GetPhone(product.Person);
@@ -247,17 +247,7 @@ try
                             {
                                 var envios = new EmailRememberBLL().GetEmailRemember(currentParcel.IdAgreementParcel);
 
-                                //var dtParcel = new List<DateTime> { DateTime.Today, DateTime.Today.AddDays(2), DateTime.Today.AddDays(-3), DateTime.Today.AddDays(-5), DateTime.Today.AddDays(-7) };
-
-                                var dtParcel = new List<DateTime>();
-
-                                for (int i = 1; i <= 17; i++)
-                                    dtParcel.Add(DateTime.Today.AddDays(i));
-
-                                if (envios.Where(p => p.DtInsert >= DateTime.Today).Count() == 0)
-                                {
-
-                                }
+                                var dtParcel = new List<DateTime> { DateTime.Today, DateTime.Today.AddDays(2), DateTime.Today.AddDays(-3), DateTime.Today.AddDays(-5), DateTime.Today.AddDays(-7) };
 
                                 if (envios.Count == 0 || (envios.Where(p => p.DtInsert >= DateTime.Today).Count() == 0 && dtParcel.Contains(currentParcel.DtParcel)))
                                 {

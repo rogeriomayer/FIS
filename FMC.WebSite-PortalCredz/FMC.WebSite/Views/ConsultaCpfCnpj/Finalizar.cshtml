@@ -17,7 +17,7 @@
             <h1>Faça uma nova consulta</h1>
             @using (Html.BeginForm("Index", "Home", FormMethod.Post, new { @class = "form-cpf" }))
             {
-                @Html.TextBoxFor(model => _model.CpfCnpj, null, new { @class = "mask-cpf", placeholder = "Digite seu CPF ou CNPJ", maxlength = "18" })
+                @Html.TextBoxFor(model => _model.CpfCnpj, null, new { @class = "mask-cpf", placeholder = "Digite seu CPF ou CNPJ", maxlength = "14" })
                 @Html.ValidationMessageFor(model => _model.CpfCnpj)
                 <button type="submit" class="btn-nova-consulta">Consultar</button>
             }

@@ -264,9 +264,11 @@ textarea::placeholder {
     }
 
     #pg-negociar-agora .btn-negociar-agora {
-        background: #3b82bb;
+        background: #14D8E0;
         width: 180px;
         border-radius: 4px;
+        font-weight: 700;
+        font-size: 2.5em;
     }
 
     #pg-negociar-agora .btn-cartoes-credz {
@@ -1009,9 +1011,11 @@ textarea::placeholder {
 
 
         #pg-negociar-agora .btn-negociar-agora {
-            background: #3B82BB;
+            background: #14D8E0;
             width: 180px;
             border-radius: 4px;
+            font-weight: 700;
+            font-size: 2.5em;
         }
 
         #pg-negociar-agora.segunda-via {

@@ -209,12 +209,12 @@ namespace FMC.FIS.EnvioEmailCredz
             body.Append("<p>Caso já tenha efetuado o pagamento favor desconsiderar este e-mail.</p>");
 
 
-            /*else if (envioEmail.Atraso <= 89)
+            else if (envioEmail.Atraso <= 89)
                 body = GetBody78_89(envioEmail.Nome, envioEmail.NomeCartao, envioEmail.NumeroCartao);
             else if (envioEmail.Atraso <= 100)
                 body = GetBody90_100(envioEmail.Nome, envioEmail.NomeCartao, envioEmail.NumeroCartao);
             else if (envioEmail.Atraso <= 119)
-                body = GetBody101_181(envioEmail.Nome, envioEmail.NomeCartao, envioEmail.NumeroCartao); */
+                body = GetBody101_181(envioEmail.Nome, envioEmail.NomeCartao, envioEmail.NumeroCartao); 
 
 
             if (body == null)
