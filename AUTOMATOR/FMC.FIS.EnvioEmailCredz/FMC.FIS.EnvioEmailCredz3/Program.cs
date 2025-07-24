@@ -91,7 +91,6 @@ try
                                 try
                                 {
                                     var lead = product.Lead.Where(p => p.DtInsert >= dtIni).OrderByDescending(p => p.IdLead).FirstOrDefault();
-
                                     if (lead != null && lead.Age > 77)
                                     {
 

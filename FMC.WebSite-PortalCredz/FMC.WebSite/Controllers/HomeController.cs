@@ -43,7 +43,10 @@ namespace FMC.WebSite.FIS.Controllers
 
         public IActionResult Index(string id, string d, string u, string cpf)
         {
-            string routeName = ControllerContext.RouteData.Routers[1].ToString();
+            //string routeName = ControllerContext.RouteData.Routers[1].ToString();
+
+            var routeName = (string)RouteData.Values.FirstOrDefault().Value;
+
             string buckt = d;
 
             if (!string.IsNullOrEmpty(cpf))
@@ -70,6 +73,7 @@ namespace FMC.WebSite.FIS.Controllers
                 else if (!string.IsNullOrEmpty(d))
                     _contextAccessor.HttpContext.Session.SetString("portal", d);
             }
+
 
             IList<object> list = new List<object> { new ConsultaCpfCnpj(), routeName };
             return View(list);

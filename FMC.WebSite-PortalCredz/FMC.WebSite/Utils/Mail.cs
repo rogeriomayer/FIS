@@ -12,8 +12,8 @@ namespace FMC.WebSite.FIS.Utils
         public static SmtpClient Smtp(string email, string password)
         {
             SmtpClient client = new SmtpClient();
-            client.Port = AppSettings.PortHost;
-            client.Host = AppSettings.Host;
+            client.Port = 25;
+            client.Host = "mail.fmccobranca.com.br";
             client.EnableSsl = false;
             //client.Timeout = 10000;
             //client.DeliveryMethod = SmtpDeliveryMethod.Network;

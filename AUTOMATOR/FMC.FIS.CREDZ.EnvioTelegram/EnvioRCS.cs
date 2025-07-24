@@ -131,6 +131,19 @@ namespace FMC.FIS.CREDZ.EnvioContatoUra
                                     sender = "fmcbrasil",
                                     text = FailOver(envioRCS.Nome, envioRCS.NumeroCartao, envioRCS.NomeCartao, contrato)
                                 }
+                            },
+
+                            new Webhooks()
+                            {
+                                callbackData = "CREDZ-URA",
+                                delivery = new Delivery()
+                                {
+                                    url = "http://fmcbrasil.com.br/infobip/rcs/webhook/delivery",
+                                    intermediateReport = true,
+                                    notify = true,
+                                    receiveTriggeredFailoverReports = true
+                                },
+                                seen = new Seen() { url = "http://fmcbrasil.com.br/infobip/rcs/webhook/seen" }
                             }
                         );
                     return ret.messages.FirstOrDefault().messageId;
@@ -207,8 +220,17 @@ namespace FMC.FIS.CREDZ.EnvioContatoUra
                 var avista = simulate.ParcelResponse.OrderBy(p => p.NrParcel).FirstOrDefault();
                 //var body = new StringBuilder();
                 body.Append("Olá ").Append(nome).Append("\r\n\r\n");
-                body.Append("Recentemente você entrou em contato em nossa Central de Atendimento, por isso a Credz lhe oferece apenas nesse mês um super desconto de R$").Append((avista.VlDiscount - 1).ToString("N2")).Append("");
-                body.Append(" para quitar seu ").Append(cartao).Append(" ").Append(nomeCartao).Append("");
+                if (avista.VlDiscount > 5)
+                {
+                    body.Append("Recentemente você entrou em contato em nossa Central de Atendimento, por isso a Credz lhe oferece apenas nesse mês um desconto de R$").Append((avista.VlDiscount - 1).ToString("N2")).Append("");
+                    body.Append(" para quitar seu ").Append(cartao).Append(" ").Append(nomeCartao).Append("");
+                }
+                else
+                {
+                    body.Append("Recentemente você entrou em contato em nossa Central de Atendimento, por isso a Credz lhe oferece a oportunidade");
+                    body.Append(" para quitar seu ").Append(cartao).Append(" ").Append(nomeCartao).Append("");
+                }
+
                 body.Append(" por apenas R$").Append(avista.ValueEntrace.ToString("N2")).Append(" no pagamento a vista!");
                 if (avista.ValueEntrace > 300)
                 {
@@ -227,8 +249,10 @@ namespace FMC.FIS.CREDZ.EnvioContatoUra
                     if (simulate != null)
                     {
                         var parcelamento = simulate.ParcelResponse.OrderByDescending(p => p.NrParcel).FirstOrDefault();
-                        body.Append("\r\nTemos também opção de parcelamento com desconto de R$").Append(parcelamento.VlDiscount.ToString("N2"));
-                        body.Append(", pagando uma entrada de R$").Append(parcelamento.ValueEntrace.ToString("N2"));
+                        if (parcelamento.VlDiscount > 5)
+                            body.Append("\r\nTemos também opção de parcelamento com desconto de R$").Append(parcelamento.VlDiscount.ToString("N2"));
+                        else
+                            body.Append("\r\nTemos também opção de parcelamento pagando uma entrada de R$").Append(parcelamento.ValueEntrace.ToString("N2"));
                         body.Append(" e ").Append(parcelamento.NrParcel).Append(" parcelas de R$");
                         body.Append(parcelamento.VlParcel).Append(".");
                         body.Append("\r\n\r\n");
@@ -415,6 +439,8 @@ namespace FMC.FIS.CREDZ.EnvioContatoUra
         {
             Phones = new HashSet<string>();
         }
+
+        public long IdUra { get; set; }
         public long IdPerson { get; set; }
         public long IdProduct { get; set; }
         public string Nome { get; set; }

@@ -29,28 +29,6 @@ namespace FMC.FIS.Business.DAO
             query.Append("       ,[A].[CdAgreement] ");
             query.Append("       ,[A].[IdAgreementStatus] ");
             query.Append("       ,[A].[DtInsert] ");
-            query.Append(" from AgreementParcel ap ");
-            query.Append(" 	inner join Agreement a ");
-            query.Append(" 		on ap.IdAgreement = a.IdAgreement ");
-            query.Append(" 		and CdParcelPlan = '' ");
-            query.Append(" where ap.DtParcel between '2024-12-20' and '2025-01-05' ");
-            query.Append(" and a.IdAgreementStatus <> 2");
-
-            return Context.FromSqlRaw(query.ToString()).ToList();
-
-            query.Append(" SELECT DISTINCT [A].[IdAgreement] ");
-            query.Append("       ,[A].[IdStatusLead] ");
-            query.Append("       ,[A].[VlEntrace] ");
-            query.Append("       ,[A].[DtEntrace] ");
-            query.Append("       ,[A].[PcDiscount] ");
-            query.Append("       ,[A].[QtParcel] ");
-            query.Append("       ,[A].[VlParcel] ");
-            query.Append("       ,[A].[VlAgreement] ");
-            query.Append("       ,[A].[CdPaymentOption] ");
-            query.Append("       ,[A].[CdParcelPlan] ");
-            query.Append("       ,[A].[CdAgreement] ");
-            query.Append("       ,[A].[IdAgreementStatus] ");
-            query.Append("       ,[A].[DtInsert] ");
             query.Append(" FROM [FIS].[dbo].[Agreement] A ");
             query.Append(" 		INNER JOIN [FIS].[dbo].[AgreementParcel] AP ");
             query.Append(" 			ON [A].[IdAgreement] = [AP].[IdAgreement] ");

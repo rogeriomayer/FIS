@@ -49,7 +49,7 @@ try
 
             foreach (var person in listPerson.OrderBy(p => p.NrCNPJCPF).ToList())
             {
-                if (count > 2000)
+                if (count > 1800)
                     break;
                 else
                     Console.WriteLine("Total: " + count);
@@ -59,7 +59,7 @@ try
 
                     Console.WriteLine(idPerson);
 
-                    var product = person.Product.Where(p => p.Lead.Where(l => l.DtInsert >= DateTime.Today.AddDays(-1)).Any()).FirstOrDefault();
+                    var product = person.Product.Where(p => p.Lead.Where(l => l.DtInsert >= DateTime.Today).Any()).FirstOrDefault();
 
                     if (product != null && !listPhone.Where(p => person.Phone.Where(e => e.NrPhone == p).Any()).Any())
                     {
@@ -71,7 +71,7 @@ try
                         {*/
                         try
                         {
-                            var lead = product.Lead.Where(p => p.DtInsert >= DateTime.Today.AddDays(-1)).OrderByDescending(p => p.IdLead).FirstOrDefault();
+                            var lead = product.Lead.Where(p => p.DtInsert >= DateTime.Today).OrderByDescending(p => p.IdLead).FirstOrDefault();
 
                             if (lead != null && lead.Age > 77)
                             {

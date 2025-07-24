@@ -8,7 +8,21 @@ using System.Threading.Tasks;
 
 public class FisAPI
 {
-    private static string Url_FIS_API = AppSettings.URL_API_FIS; 
+
+    /*
+     <!--Celerix-->
+		<add key="URL_API_FIS" value="https://160.19.243.92/fis/api" />
+		<add key ="URL_API_AFINZ" value="https://160.19.243.92/credz/api"/>
+<!--
+<!--Embratel-->
+		<add key="URL_API_FIS" value="https://200.243.238.232/fis/api" />
+		<add key ="URL_API_AFINZ" value="https://200.243.238.232/credz/api"/>
+
+    */
+
+    private static string Url_FIS_API = "https://160.19.243.92/fis/api"; 
+    
+    
     /*
     public static ICollection<ParameterResponse> GetParameters(long idProduct)
     {
@@ -39,7 +53,14 @@ public class FisAPI
 
     public static PersonResponse GetPerson(string cpf, int idProductType)
     {
-        return RestAPI.Get<PersonResponse>(Url_FIS_API, "Person/" + cpf + "/" + idProductType, null);
+        try
+        {
+            return RestAPI.Get<PersonResponse>(Url_FIS_API, "Person/" + cpf + "/" + idProductType, null);
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
     }
 
     public static ICollection<ProductSpecification> GetProductSpecification(int idProductType)

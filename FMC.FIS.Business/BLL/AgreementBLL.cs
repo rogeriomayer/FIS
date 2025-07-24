@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FMC.FIS.Business.Models.OneB2K;
+using System.Globalization;
 
 namespace FMC.FIS.Business.BLL
 {
@@ -130,6 +131,7 @@ namespace FMC.FIS.Business.BLL
             return agreementSimulate;
         }
 
+
         private AgreementSimulateResponse GetAgreementSimulateCredz(AgreementSimulateRequest agreementSimulateRequest)
         {
             try
@@ -140,6 +142,7 @@ namespace FMC.FIS.Business.BLL
 
                 for (int i = 1; i <= agreementSimulateRequest.NrParcel; i++)
                 {
+
                     try
                     {
                         var vlFull = (agreementSimulate != null && agreementSimulate.VlDue > 0) ? agreementSimulate.VlDue : 0;
@@ -168,7 +171,8 @@ namespace FMC.FIS.Business.BLL
 
                             //alteração porque está mostrando valor diferente no totla da API ao corrigir voltar
                             //agreementSimulate.VlFull = paymentOptions.acordo.parcelas_originais.FirstOrDefault().total;
-                            agreementSimulate.VlFull = paymentOptions.acordo.parcelas_novas.Sum(p => p.valor) + agreementSimulate.PctDiscount;
+                            if (i == 1)
+                                agreementSimulate.VlFull = paymentOptions.acordo.parcelas_novas.Sum(p => p.valor) + agreementSimulate.PctDiscount;
 
                             agreementSimulate.PctInterest = (paymentOptions.acordo.parcelas_originais.FirstOrDefault().juros > 0 ? paymentOptions.acordo.parcelas_originais.FirstOrDefault().juros : 0) +
                                                             (paymentOptions.acordo.parcelas_originais.FirstOrDefault().multa > 0 ? paymentOptions.acordo.parcelas_originais.FirstOrDefault().multa : 0) +
@@ -198,7 +202,7 @@ namespace FMC.FIS.Business.BLL
                                         DtParcel = dtParcel,
                                         VlDiscount = vlDiscount,
                                         VlParcel = vlParcel,
-                                        VlFull = paymentOptions.acordo.valorTotal,
+                                        VlFull = paymentOptions.acordo.parcelas_novas.Sum(p => p.valor),
                                         //PctMonthCET = Convert.ToDecimal(pctMonthCET),
                                         //PctYearCET = Convert.ToDecimal(pctYearCET),
                                         //VlMonthCET = Convert.ToDecimal(vlMonthCET),
@@ -310,6 +314,7 @@ namespace FMC.FIS.Business.BLL
             try
             {
                 var vlEntrace = agreementSimulateRequest.VlEntrace;
+
                 if (vlEntrace > 0 && vlFull > 0 && nrParcel > 1 && !agreementSimulateRequest.FixedEntraceValue)
                     vlEntrace = (vlFull - vlFull * (discount / Convert.ToDecimal(100.00))) / nrParcel;
 
@@ -358,6 +363,24 @@ namespace FMC.FIS.Business.BLL
                 if (ex.Message.Contains("Entrada do Parcelamento não configurada"))
                 {
                     agreementSimulateRequest.VlEntrace = 0;
+                    return GetSimulacaoAcordoCredz(agreementSimulateRequest, nrParcel, discount, vlFull);
+                }
+                else if (ex.Message.Contains("Valor de Parcela abaixo do valor mínimo permitido"))
+                {
+                    var match = System.Text.RegularExpressions.Regex.Match(ex.Message, @"R\$ ?(\d+[\.,]?\d*)");
+
+                    if (match.Success)
+                    {
+                        decimal vlEntrace = decimal.Parse(match.Groups[1].Value.Replace(",", "."), CultureInfo.InvariantCulture);
+                        if (agreementSimulateRequest.VlEntrace >= vlEntrace)
+                            throw ex;
+
+                        agreementSimulateRequest.VlEntrace = vlEntrace;
+                    }
+                    else
+                    {
+                        agreementSimulateRequest.VlEntrace = 70;
+                    }
                     return GetSimulacaoAcordoCredz(agreementSimulateRequest, nrParcel, discount, vlFull);
                 }
                 else

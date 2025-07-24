@@ -1640,7 +1640,6 @@
 
   <ItemGroup>
     <PackageReference Include="BuildBundlerMinifier" Version="2.8.391" />
-    <PackageReference Include="Foolproof" Version="0.9.4518" />
     <PackageReference Include="jQuery.Validation" Version="1.17.0" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.CookiePolicy" Version="2.2.0" />
@@ -1662,7 +1661,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
 
@@ -1747,12 +1745,6 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <Content Update="Views\SegundaVia\NadaConsta.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-    <Content Update="Views\TrabalheConosco\CadastrarCurriculo.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-    <Content Update="Views\TrabalheConosco\Index.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
     <Content Update="Views\RenegociarPeloWhatsapp\Index.cshtml">

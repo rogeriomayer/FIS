@@ -131,6 +131,18 @@ namespace FMC.FIS.EnvioEmailCredz
                                     sender = "fmcbrasil",
                                     text = FailOver(envioRCS.Nome, envioRCS.NumeroCartao, envioRCS.NomeCartao, contrato)
                                 }
+                            },
+                            new Webhooks()
+                            {
+                                callbackData = "CREDZ",
+                                delivery = new Delivery()
+                                {
+                                    url = "http://fmcbrasil.com.br/infobip/rcs/webhook/delivery",
+                                    intermediateReport = true,
+                                    notify = true,
+                                    receiveTriggeredFailoverReports = true
+                                },
+                                seen = new Seen() { url = "http://fmcbrasil.com.br/infobip/rcs/webhook/seen" }
                             }
                         );
                     return ret.messages.FirstOrDefault().messageId;
@@ -152,7 +164,7 @@ namespace FMC.FIS.EnvioEmailCredz
             AgreementSimulateResponse simulate = null;
             if (contrato != null)
             {
-                decimal vlParcel = 50;
+                decimal vlParcel = 70;
                 var parcela = 24;
                 for (int i = 24; i > 0; i--)
                 {

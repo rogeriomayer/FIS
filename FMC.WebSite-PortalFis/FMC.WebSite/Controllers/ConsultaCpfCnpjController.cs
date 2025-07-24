@@ -1880,7 +1880,17 @@ namespace FMC.WebSite.FIS.Controllers
 
                 PersonResponse pessoa;
                 if (cache.Get<PersonResponse>("Pessoa") == null || cache.Get<PersonResponse>("Pessoa").CPF != cpf)
-                    pessoa = FisAPI.GetPerson(cpf, 1);
+                    try
+                    {
+                        pessoa = FisAPI.GetPerson(cpf, 1);
+                    }
+                    catch (Exception ex)
+                    {
+
+                        //return RedirectToAction("Encerrado", "ConsultaCpfCnpj");
+                        return View("Encerrado", new List<object> { new ConsultaCpfCnpj(), ex.Message.ToString() });
+                    }
+
                 else
                     pessoa = cache.Get<PersonResponse>("Pessoa");
 
@@ -1929,7 +1939,16 @@ namespace FMC.WebSite.FIS.Controllers
 
                 PersonResponse pessoa;
                 if (cache.Get<PersonResponse>("Pessoa") == null || cache.Get<PersonResponse>("Pessoa").CPF != cpf)
-                    pessoa = FisAPI.GetPerson(cpf, 1);
+                    try
+                    {
+                        pessoa = FisAPI.GetPerson(cpf, 1);
+                    }
+                    catch (Exception ex)
+                    {
+
+                        //return RedirectToAction("Encerrado", "ConsultaCpfCnpj");
+                        return View("Encerrado", new List<object> { new ConsultaCpfCnpj(), ex.Message.ToString() });
+                    }
                 else
                     pessoa = cache.Get<PersonResponse>("Pessoa");
 
@@ -1967,11 +1986,12 @@ namespace FMC.WebSite.FIS.Controllers
             catch (Exception ex)
             {
                 if (ex.Message.Contains("CPF não encontrado"))
-                {
                     return RedirectToAction("NadaConsta", "ConsultaCpfCnpj");
-                }
+                else
+                
+                    return View("Encerrado", new List<object> { new ConsultaCpfCnpj(), ex.Message });
             }
-            return RedirectToAction("Encerrado", "ConsultaCpfCnpj");
+            return View("Encerrado", new List<object> { new ConsultaCpfCnpj(), "x" });
         }
 
         [HttpGet]

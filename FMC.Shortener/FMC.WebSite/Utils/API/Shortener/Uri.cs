@@ -8,7 +8,9 @@ namespace FMC.Shortener.Utils.API.Shortener
 {
     public class Uri
     {
-        public static string URL { get { return "https://200.243.238.232/fis/api/"; } }
+        //public static string URL { get { return "https://200.243.238.232/fis/api/"; } }
+        public static string URL { get { return "https://160.19.243.92/fis/api/"; } }
+
         //public static string URL { get { return "https://10.40.0.30/fis/api/"; } }
 
         #region GET
@@ -20,6 +22,7 @@ namespace FMC.Shortener.Utils.API.Shortener
         {
             return string.Concat(URL, "Customer/Agreement/", card);
         }
+
 
         public static string GetByCode(string code, string ip)
         {

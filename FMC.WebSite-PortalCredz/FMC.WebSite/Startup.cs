@@ -69,44 +69,72 @@ namespace FMC.WebSite.FIS
 
             app.UseCookiePolicy();
             app.UseSession();
-            app.UseMvc(routes =>
+
+            /*
+            app.UseRouting();
+
+            app.UseEndpoints(endpoints =>
             {
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                    name: "negociar-agora",
-                   template: "negociar-agora",
+                   pattern: "negociar-agora",
                    defaults: new { controller = "NegociarAgora", action = "Index" }
                 );
 
-                routes.MapRoute(
-                   name: "cartoes-bradescard",
-                   template: "cartoes-bradescard",
-                   defaults: new { controller = "NegociarAgora", action = "Index" }
-                );
-                routes.MapRoute(
-                   name: "bradescard",
-                   template: "bradescard",
-                   defaults: new { controller = "NegociarAgora", action = "Index" }
-                );
+                
 
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                     name: "negocie",
-                    template: "negocie",
+                    pattern: "negocie",
                     defaults: new { controller = "NegociarAgora", action = "Index" }
-                 );
-                routes.MapRoute(
-                    name: "campaing",
-                    template: "{id?}",
-                    defaults: new { controller = "Home", action = "Index" }
-                    );
-                routes.MapRoute(
-                    name: "relatorio",
-                    template: "relatorio",
-                    defaults: new { controller = "Relatorio", action = "Index" }
-                    );
-                routes.MapRoute(
+                );
+
+                endpoints.MapControllerRoute(
                     name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
-            });
+                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                });
+
+
+           */
+            app.UseMvc(routes =>
+{
+routes.MapRoute(
+name: "negociar-agora",
+template: "negociar-agora",
+defaults: new { controller = "NegociarAgora", action = "Index" }
+);
+
+routes.MapRoute(
+name: "cartoes-bradescard",
+template: "cartoes-bradescard",
+defaults: new { controller = "NegociarAgora", action = "Index" }
+);
+routes.MapRoute(
+name: "bradescard",
+template: "bradescard",
+defaults: new { controller = "NegociarAgora", action = "Index" }
+);
+
+routes.MapRoute(
+name: "negocie",
+template: "negocie",
+defaults: new { controller = "NegociarAgora", action = "Index" }
+);
+routes.MapRoute(
+name: "campaing",
+template: "{id?}",
+defaults: new { controller = "Home", action = "Index" }
+);
+routes.MapRoute(
+name: "relatorio",
+template: "relatorio",
+defaults: new { controller = "Relatorio", action = "Index" }
+);
+routes.MapRoute(
+name: "default",
+template: "{controller=Home}/{action=Index}/{id?}");
+});
         }
+
     }
 }

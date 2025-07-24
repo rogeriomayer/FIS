@@ -216,7 +216,18 @@ namespace FMC.EnvioDadosServidorFMC
         {
             try
             {
-                var clicks = new GenericQueryBLL<TotalCredz>().GetSingle("select MAX(dtinsert) as ultimo, COUNT(distinct A.IdShortAccess) as total from FIS.DBO.ShortAccess A where DtInsert >= CONVERT(date, getdate())");
+                var clicks = new GenericQueryBLL<TotalCredz>().GetSingle("select max(ultimo) as ultimo, SUM( total ) as total " +
+                                                                            "from " +
+                                                                            "( " +
+                                                                            "select  MAX(dtinsert) as ultimo, COUNT(distinct n.IdNavigation) as total " +
+                                                                            "from CREDZ.dbo.Navigation n " +
+                                                                            "where DtInsert >= CONVERT(Date, getdate()) " +
+                                                                            "and DsOrigem not in (select REPLACE(url, 'https://negociadorcredz.fmcbrasil.com.br?d=', '') collate Latin1_General_CI_AI from ShortURL) " +
+                                                                            "union " +
+                                                                            "select MAX(dtinsert) as ultimo, COUNT(distinct A.IdShortAccess) as total " +
+                                                                            "from FIS.DBO.ShortAccess A " +
+                                                                            "where DtInsert >= CONVERT(date, getdate()) " +
+                                                                            ") as x");
                 var navigation = new GenericQueryBLL<TotalCredz>().GetSingle("select MAX(dtinsert) as ultimo, COUNT(distinct CPF) as total from CREDZ.dbo.Navigation where DtInsert >= CONVERT(date, getdate())");
                 var simulate = new GenericQueryBLL<TotalCredz>().GetSingle("select MAX(dtinsert) as ultimo, COUNT(distinct IdProduct) as total from CREDZ.dbo.Simulate where DtInsert >= CONVERT(date, getdate())");
                 var agreement = new GenericQueryBLL<TotalCredz>().GetSingle("select MAX(dtinsert) as ultimo, COUNT(distinct IdAgreement) as total from CREDZ.dbo.Agreement where DtInsert >= CONVERT(date, getdate())");

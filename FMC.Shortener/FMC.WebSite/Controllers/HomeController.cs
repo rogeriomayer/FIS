@@ -41,31 +41,84 @@ namespace FMC.Shortener.Controllers
         [Route("/{code?}")]
         public IActionResult Index(string code)
         {
-            if (!string.IsNullOrEmpty(code))
+            string ip = "Desconhecido|Desconhecido";
+            try
             {
-                try
-                {
-                    if (code.Contains("robots.txt"))
-                        return new RedirectResult("https://negociadorcredz.fmcbrasil.com.br");
+                string navegador = "Desconhecido";
+                string sistemaOperacional = "Desconhecido";
 
-                    string ip = "1.1.1.1";
-                    Short shortener = HttpHelper.GET<Utils.API.Shortener.Short>(Utils.API.Shortener.Uri.GetByCode(code, ip));
-                    if (shortener != null && !string.IsNullOrEmpty(shortener.URL))
-                    {
-                        var uri = new System.Uri(shortener.URL);
-                        return new RedirectResult(uri.AbsoluteUri);
-                    }
-                }
-                catch
+                foreach (var header in Request.Headers.ToList())
                 {
-                    return new RedirectResult("https://negociadorcredz.fmcbrasil.com.br?d=9");
-                    //return View();
+                    if (header.Key.ToString().Contains("User-Agent"))
+                    {
+
+                        var userAgent = header.Value.ToString();
+
+                        // Navegador
+                        if (userAgent.Contains("Chrome") && !userAgent.Contains("Edge") && !userAgent.Contains("Edg"))
+                            navegador = "Chrome";
+                        else if (userAgent.Contains("Firefox"))
+                            navegador = "Firefox";
+                        else if (userAgent.Contains("Safari") && !userAgent.Contains("Chrome"))
+                            navegador = "Safari";
+                        else if (userAgent.Contains("Edg") || userAgent.Contains("Edge"))
+                            navegador = "Edge";
+                        else if (userAgent.Contains("MSIE") || userAgent.Contains("Trident"))
+                            navegador = "Internet Explorer";
+
+                        // Sistema Operacional
+                        if (userAgent.Contains("Windows NT 10.0"))
+                            sistemaOperacional = "Windows 10";
+                        else if (userAgent.Contains("Windows NT 6.3"))
+                            sistemaOperacional = "Windows 8.1";
+                        else if (userAgent.Contains("Windows NT 6.1"))
+                            sistemaOperacional = "Windows 7";
+                        else if (userAgent.Contains("iPhone") || userAgent.Contains("iPad"))
+                            sistemaOperacional = "iOS";
+                        else if (userAgent.Contains("Macintosh") || userAgent.Contains("Mac OS X"))
+                            sistemaOperacional = "macOS";
+                        else if (userAgent.Contains("Android"))
+                            sistemaOperacional = "Android";
+                        else if (userAgent.Contains("iPhone") || userAgent.Contains("iPad"))
+                            sistemaOperacional = "iOS";
+                        else if (userAgent.Contains("Linux"))
+                            sistemaOperacional = "Linux";
+                    }
+
+                    ip = sistemaOperacional + "|" + navegador;
+
                 }
             }
-            else
+            catch { }
+            if (string.IsNullOrEmpty(code))
+                code = "-";
+
+            try
             {
-                return new RedirectResult("https://negociadorcredz.fmcbrasil.com.br/d=d");
+                if (code.Contains("robots.txt"))
+                    return new RedirectResult("https://negociadorcredz.fmcbrasil.com.br");
+
+                ip += "|" + Request.QueryString.ToString().Replace("?", "");
+
+                Short shortener = HttpHelper.GET<Utils.API.Shortener.Short>(Utils.API.Shortener.Uri.GetByCode(code, string.IsNullOrEmpty(ip) ? "Desconhecido|Desconhecido" : ip.Trim()));
+                if (shortener != null && !string.IsNullOrEmpty(shortener.URL))
+                {
+                    var uri = new System.Uri(shortener.URL);
+                    return new RedirectResult(uri.AbsoluteUri);
+                }
             }
+            catch (Exception ex)
+            {
+                var log = ex.Message;
+                return new RedirectResult("https://negociadorcredz.fmcbrasil.com.br?d=9" + log);
+                //IList<object> list = new List<object> { log };
+                //return View(list);
+            }
+            //}
+            //else
+            //{
+            //    return new RedirectResult("https://negociadorcredz.fmcbrasil.com.br/d=d");
+            //}
             return View();
         }
 

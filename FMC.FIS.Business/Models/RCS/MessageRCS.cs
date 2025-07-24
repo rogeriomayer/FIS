@@ -55,6 +55,34 @@ namespace FMC.FIS.Business.Models.RCS
         public string height { get; set; }
     }
 
+    public class Webhooks
+    {
+        public Delivery delivery { get; set; }
+        public string contentType { get { return "application/json"; } }
+
+        public string callbackData { get; set; }
+
+        public Seen seen { get; set; }
+
+
+    }
+
+    public class Delivery
+    {
+        public string url { get; set; }
+
+        public bool intermediateReport { get; set; }
+
+        public bool notify { get; set; }
+
+        public bool receiveTriggeredFailoverReports { get; set; }
+    }
+
+    public class Seen
+    {
+        public string url { get; set; }
+    }
+
     public class Message
     {
         public string sender { get; set; }
@@ -62,6 +90,8 @@ namespace FMC.FIS.Business.Models.RCS
         public ContentRoot content { get; set; }
 
         public Options options { get; set; }
+
+        public Webhooks webhooks { get; set; }
     }
 
 

@@ -31,7 +31,7 @@ public class RestAPI
             if (response.StatusCode == HttpStatusCode.OK)
                 return JsonConvert.DeserializeObject<Resp>(response.Content);
             else
-                throw new Exception("Falha no metodo GET " + response.StatusCode.ToString() + " " + response.Content);
+                throw new Exception("Falha no metodo GET " + response.StatusCode.ToString() + " " + response.Content + " " + response.ErrorMessage + " " + response.ErrorException);
         }
         catch (Exception ex)
         {
@@ -66,7 +66,7 @@ public class RestAPI
             if (response.StatusCode == HttpStatusCode.OK)
                 return JsonConvert.DeserializeObject<Resp>(response.Content);
             else
-                throw new Exception("Falha no metodo GET " + response.StatusCode.ToString() + " " + response.Content);
+                throw new Exception("Falha no metodo GET " + response.StatusCode.ToString() + " " + response.Content + " " + response.ErrorMessage + " " + response.ErrorException);
         }
         catch (Exception ex)
         {
@@ -113,7 +113,7 @@ public class RestAPI
             else if (response.ErrorException != null)
                 throw response.ErrorException;
             else
-                throw new Exception("Falha no metodo POST " + response.StatusCode.ToString() + " " + response.Content);
+                throw new Exception("Falha no metodo POST " + response.StatusCode.ToString() + " " + response.Content + " " + response.ErrorMessage + " " + response.ErrorException);
         }
         catch (Exception ex)
         {
@@ -248,7 +248,7 @@ public class RestAPI
             if (response.StatusCode == HttpStatusCode.OK)
                 return JsonConvert.DeserializeObject<Resp>(response.Content);
             else
-                throw new Exception("Falha no metodo POST " + response.StatusCode.ToString() + " " + response.Content);
+                throw new Exception("Falha no metodo GET " + response.StatusCode.ToString() + " " + response.Content + " " + response.ErrorMessage + " " + response.ErrorException);
         }
         catch (Exception ex)
         {

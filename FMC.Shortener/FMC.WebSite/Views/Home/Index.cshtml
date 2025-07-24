@@ -1,11 +1,13 @@
-﻿@model Login
-@{ 
+﻿@model IEnumerable<object>
+@{
     //Layout = "_LayoutFis";
+    string log = (string)Model.ElementAt(0);
 }
 <section id="pg-shortener" class="scroll-secao fis-login">
     <div class="container">
         <div class="shortener-logo">
             <img src="~/images/topo/logo-fmc.png" alt="FMC" />
+            @Html.Label("",log)
         </div>
     </div> <!-- container -->
 </section>

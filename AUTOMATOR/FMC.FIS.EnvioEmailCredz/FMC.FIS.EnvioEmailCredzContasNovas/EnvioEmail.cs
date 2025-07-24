@@ -49,7 +49,7 @@ namespace FMC.FIS.EnvioEmailCredz
                         */
 
                         string title = "OFERTA " + envioEmail.NomeCartao;
-                        if (new List<int>() { 151, 181, 211, 281, 721 }.Contains(envioEmail.Atraso))
+                        if (new List<int>() { 281, 361, 721, 1081, 1800 }.Contains(envioEmail.Atraso))
                             title = "NOVO DESCONTO LIBERADO " + envioEmail.NomeCartao;
 
                         if (SendMail(null, title, body, envioEmail.NomeCartao, smtp, email, senha, porta, envioEmail.Email))
@@ -98,7 +98,6 @@ namespace FMC.FIS.EnvioEmailCredz
         {
             MailMessage mail = new MailMessage();
 
-            userSMTP = smtpServer == "10.40.0.82" ? "credz@fmcatendimento.com.br" : "credz@fmccobranca.com.br";
             mail.From = new MailAddress(userSMTP, smtpName);
 
             if (emails.Count() > 1)
@@ -108,18 +107,19 @@ namespace FMC.FIS.EnvioEmailCredz
                 mail.To.Add(emails.FirstOrDefault());
 
             mail.IsBodyHtml = true;
-            mail.Priority = MailPriority.High;
-            //mail.DeliveryNotificationOptions = DeliveryNotificationOptions.OnSuccess;
+
+
 
             mail.Subject = subject;
 
             mail.Body = body;
+            // smtpServers.Add(new KeyValuePair<string, int>("10.40.0.21", 25));
+            SmtpClient smtp = new SmtpClient("10.40.0.21");
+            smtp.Port = 25;
 
-            SmtpClient smtp = new SmtpClient(smtpServer);
-            smtp.Port = portSMTP;
             smtp.EnableSsl = false;
 
-            smtp.Credentials = new System.Net.NetworkCredential(userSMTP, passSMTP);
+            smtp.Credentials = new System.Net.NetworkCredential();
 
             try
             {
@@ -129,7 +129,7 @@ namespace FMC.FIS.EnvioEmailCredz
                     System.IO.Stream stream = new System.IO.MemoryStream(billet);
                     System.Net.Mime.ContentType ct = new System.Net.Mime.ContentType();
                     ct.MediaType = System.Net.Mime.MediaTypeNames.Application.Pdf;
-                    ct.Name = "boletoCredz.pdf";
+                    ct.Name = "boletoCrez.pdf";
                     mail.Attachments.Add(new Attachment(stream, ct));
                 }
 
@@ -284,8 +284,13 @@ namespace FMC.FIS.EnvioEmailCredz
                     //var body = new StringBuilder();
                     body.Append("<html>");
                     body.Append("<p>Olá ").Append(nome).Append("</p>");
-                    body.Append("<p>Aproveite essa oferta que a Credz lhe oferece apenas nesse mês e renegocie sua dívida com um super desconto de <b>R$").Append((avista.VlDiscount - 1).ToString("N2")).Append("</b>");
-                    body.Append(" para quitar seu <b>").Append(cartao).Append(" ").Append(nomeCartao).Append("</b>");
+                    if (avista.VlDiscount > 5)
+                    {
+                        body.Append("<p>Aproveite essa oferta que a Credz lhe oferece apenas nesse mês e renegocie sua dívida com um desconto de <b>R$").Append((avista.VlDiscount - 1).ToString("N2")).Append("</b>");
+                        body.Append(" para quitar seu <b>").Append(cartao).Append(" ").Append(nomeCartao).Append("</b>");
+                    }
+                    else
+                        body.Append("<p>Aproveite esta oportunidade e quite seu <b>").Append(cartao).Append(" ").Append(nomeCartao).Append("</b>");
 
 
                     if (avista.ValueEntrace <= 200)

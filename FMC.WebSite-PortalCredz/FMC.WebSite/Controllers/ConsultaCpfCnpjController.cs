@@ -100,7 +100,14 @@ namespace FMC.WebSite.FIS.Controllers
                 {
                     cache.Remove("Pessoa");
                     cache.Remove("Agreement");
-                    pessoa = FisAPI.GetPerson(cpfCnpj, 3);
+                    try
+                    {
+                        pessoa = FisAPI.GetPerson(cpfCnpj, 3);
+                    }
+                    catch (Exception ex)
+                    {
+                        return RedirectToAction("Encerrado", "ConsultaCpfCnpj");
+                    }
                     cache.AddCache<PersonResponse>("Pessoa", pessoa);
                 }
 
@@ -508,12 +515,15 @@ namespace FMC.WebSite.FIS.Controllers
                 //if (Convert.ToDateTime(simula.DataEntrada) > DateTime.Today.AddDays(20))
                 //    simula.DataEntrada = DateTime.Today.DayOfWeek == DayOfWeek.Sunday ? DateTime.Today.AddDays(19).ToString("dd/MM/yyyy") : DateTime.Today.AddDays(20).ToString("dd/MM/yyyy");
 
-                if (simula == null || simula.DataEntrada == null || simula.Entrada == null)
+                if (simula == null || simula.DataEntrada == null)
                 {
                     ViewData["Message"] = new List<string> { "Informe uma valor de entrada e uma data de entrada válidos!" };
                     simula.DataEntrada = DateTime.Today.AddDays(1).ToString("dd/MM/yyyy");
                     return View(data);
                 }
+                if (string.IsNullOrEmpty(simula.Entrada))
+                    simula.Entrada = "0";
+
                 if (!Utils.Util.IsNumeric(simula.Entrada))
                 {
                     ViewData["Message"] = new List<string> { "Valor de entrada inválido!" };
@@ -593,13 +603,13 @@ namespace FMC.WebSite.FIS.Controllers
 
 
                     //decimal vlEntrada = Convert.ToInt32((conta.VlFull - (conta.VlFull * (pctDiscount / 100))) / 2);
-                    decimal vlEntrada = 50;
+                    decimal vlEntrada = 70;
                     DateTime dtEntrada = DateTime.Today.AddDays(7);
 
                     simulaParcelamento = new SimulaParcelamento()
                     {
                         DataEntrada = dtEntrada.DayOfWeek == DayOfWeek.Sunday ? dtEntrada.AddDays(1).ToString("dd/MM/yyyy") : dtEntrada.ToString("dd/MM/yyyy"),
-                        Entrada = vlEntrada < 50 ? Convert.ToDecimal(50).ToString("N2") : vlEntrada.ToString("N2"),
+                        Entrada = vlEntrada < 70 ? Convert.ToDecimal(70).ToString("N2") : vlEntrada.ToString("N2"),
                         FixedEntraceValue = true
                         //Parcela = "0"
                     };
@@ -625,7 +635,7 @@ namespace FMC.WebSite.FIS.Controllers
                     message.Add("A data de entrada foi ajustada para a data mínima permitida " + simulaParcelamento.DataEntrada + " !");
                 }
 
-                if (Convert.ToInt32(conta.Age) < 2)
+                if (Convert.ToInt32(conta.Age) < 78)
                     return RedirectToAction(nameof(CentralCobranca));
 
                 #region VERIFICAR ACORDO REALIZADO HOJE
@@ -647,7 +657,7 @@ namespace FMC.WebSite.FIS.Controllers
                     CPF = pessoa.CPF,
                     Age = conta.Age,
                     Product = conta.AccountNumber, //conta.Account,
-                    PctDiscount = AppSettings.Desconto,
+                    PctDiscount = 0,
                     NrParcel = 25
                 };
 
@@ -742,7 +752,7 @@ namespace FMC.WebSite.FIS.Controllers
 
                     //if (wsAgreement == null)
                     //{
-                    if (termo.ValueEntrance > 0 && termo.Age > AppSettings.MaxPromisse)
+                    if (termo.ValueEntrance > 0)
                         dtFirstParcel = termo.DateParcel;
 
                     var agreement = new Agreement()
@@ -751,10 +761,10 @@ namespace FMC.WebSite.FIS.Controllers
                         IdAccount = _produto.IdAccount,
                         VlEntrace = termo.ValueEntrance,
                         DtEntrace = Convert.ToDateTime(termo.DateEntranceParcel),
-                        NrParcel = termo.Age <= AppSettings.MaxPromisse ? 0 : termo.NrParcel,
+                        NrParcel = termo.NrParcel,
                         VlParcel = termo.ValueParcel,
                         DtFirstParcel = dtFirstParcel,
-                        FlPromisse = termo.Age <= AppSettings.MaxPromisse ? true : false,
+                        FlPromisse = false,
                         FlAccept = true,
                         VlDiscount = vlDiscount,
                         DtInsert = DateTime.Now,
@@ -1527,7 +1537,7 @@ namespace FMC.WebSite.FIS.Controllers
                         DateParcel = parcela != null ? parcela.DtParcel : DateTime.Today
                     };
 
-                    if (parcelamento != null && conta.Age > AppSettings.MaxPromisse)
+                    if (parcelamento != null)
                     {
                         if (parcela != null)
                         {
@@ -1575,7 +1585,7 @@ namespace FMC.WebSite.FIS.Controllers
                     int NrParcelLog = termo.NrParcel;
                     bool FlPromisseLog = false;
 
-                    if (termo.Age <= AppSettings.MaxPromisse)
+                    if (termo.Age <= 77)
                     {
                         if (termo.NrParcel == 0)
                             termo.ValueEntrance = conta.VlMinimum;
@@ -1590,7 +1600,7 @@ namespace FMC.WebSite.FIS.Controllers
 
                     string html = "<div class=\"content-lightbox padding-top-40 box-forma-de-pagamento\" id=\"consulta-cpf-termos-e-condicoes\">";
                     html += "<div class=\"box-termos\">";
-                    if (termo.Age > AppSettings.MaxPromisse)
+                    if (termo.Age > 77)
                     {
                         /*
                         //termo do acordo
@@ -1909,7 +1919,7 @@ namespace FMC.WebSite.FIS.Controllers
                 //    return RedirectToAction("Encerrado", "ConsultaCpfCnpj");
 
                 //ViewBag.Recaptcha = ReCaptcha.GetHtml(AppSettings.ReCaptchaSecretKey);
-                ViewBag.publicKey = AppSettings.ReCaptchaPublicKey;
+                ViewBag.publicKey = "6LdsjH8bAAAAAC248VJtwh_h_x1cinRmeUzIFqc4"; // AppSettings.ReCaptchaPublicKey;
                 string cpf = Regex.Replace(model.CpfCnpj, @"[^\d]", "");
 
                 PersonResponse pessoa;
@@ -1958,12 +1968,21 @@ namespace FMC.WebSite.FIS.Controllers
                 //    return RedirectToAction("Encerrado", "ConsultaCpfCnpj");
 
                 //ViewBag.Recaptcha = ReCaptcha.GetHtml(AppSettings.ReCaptchaSecretKey);
-                ViewBag.publicKey = AppSettings.ReCaptchaPublicKey;
+                ViewBag.publicKey = "6LdsjH8bAAAAAC248VJtwh_h_x1cinRmeUzIFqc4"; // AppSettings.ReCaptchaPublicKey;
                 string cpf = Regex.Replace(model.CpfCnpj, @"[^\d]", "");
 
                 PersonResponse pessoa;
                 //if (cache.Get<PersonResponse>("Pessoa") == null || cache.Get<PersonResponse>("Pessoa").CPF != cpf)
-                pessoa = FisAPI.GetPerson(cpf, 3);
+                try
+                {
+                    pessoa = FisAPI.GetPerson(cpf, 3);
+                }
+                catch (Exception ex)
+                {
+
+                    //return RedirectToAction("Encerrado", "ConsultaCpfCnpj");
+                    return View("Encerrado", new List<object> { new ConsultaCpfCnpj(), ex.Message.ToString() });
+                }
                 //else
                 //    pessoa = cache.Get<PersonResponse>("Pessoa");
                 if (pessoa.Cards.Any(x => x.Age > 77) || pessoa.Cards.Any(c => c.StatusLeadResponse.Any(p => p.AgreementResponse.Status.Contains("EmAndamento") || p.AgreementResponse.Status.Contains("EmAberto"))))
@@ -2007,6 +2026,7 @@ namespace FMC.WebSite.FIS.Controllers
             return RedirectToAction("Encerrado", "ConsultaCpfCnpj");
         }
 
+        /*
         [HttpGet]
         [Route("TokenVerify")]
         private async Task<bool> IsCaptchaValid(string response)
@@ -2031,6 +2051,7 @@ namespace FMC.WebSite.FIS.Controllers
                 return false;
             }
         }
+        */
 
         [HttpPost]
         [Route("CartoesCredz")]

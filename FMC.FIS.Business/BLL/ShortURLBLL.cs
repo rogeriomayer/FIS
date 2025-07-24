@@ -10,7 +10,7 @@ namespace FMC.FIS.Business.BLL
 {
     public class ShortURLBLL : BLL<ShortURL, ShortURLDAO>
     {
-        public ShortURL GetByCode(string code, string ip)
+        public ShortURL GetByCode(string code, string queryString)
         {
             var shortUrl = persistence.GetByCode(code);
 
@@ -25,7 +25,7 @@ namespace FMC.FIS.Business.BLL
                         new ShortAccess()
                         {
                             IdShortURL = shortUrl.IdShortURL,
-                            IP = ip,
+                            IP = queryString,
                             DtInsert = DateTime.Now
                         }
                     );

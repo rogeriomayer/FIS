@@ -107,7 +107,7 @@
         @if (conta != null)
         {
             //ACORDO
-            if (Convert.ToInt32(conta.Age) > FMC.WebSite.FIS.Utils.AppSettings.MaxPromisse)
+            if (Convert.ToInt32(conta.Age) > 77)
             {
             //PARA ACORDOS
                 <h1 class="txt-simulation">Você pode alterar o <b>Valor e Data de entrada</b> e clicar <b>Calcular</b> para simular outras opções de parcelamento!</h1>
@@ -223,144 +223,7 @@
                     }
                 </ul>  <!-- opcoes de pagamento -->
             }
-            else if (conta.Age <= FMC.WebSite.FIS.Utils.AppSettings.MaxPromisse)
-            {
-                //PROMESSA
-
-                <br />
-                <h1>
-                    @Html.Raw("Selecione uma das opções disponíveis para pagamento")
-                </h1>
-
-                <ul class="opcoes-de-pagamento">
-                    @if (conta != null)
-                    {
-                        <h3>
-                            @if (simula != null && simula.DataEntrada != null)
-                            {
-                                @Html.Raw("Pagamento programado para o dia <strong>")  @simula.DataEntrada  @Html.Raw("</strong>.")
-                            }
-                        </h3>
-                        <li>
-                            <div class="left">
-                                <span class="parcelas">
-                                    PAGAMENTO MÍNIMO DA FATURA
-                                </span>
-                            </div> <!-- left -->
-
-                <div class="right">
-                                <span class="juros">
-                                    TOTAL: R$@conta.VlMinimum.ToString("N2")
-                                </span>
-                                @using (Html.BeginForm("TermosECondicoes", "ConsultaCpfCnpj", FormMethod.Post))
-                                {
-                                    @Html.Hidden("TotalParcel", 0)
-                                    <button class="btn-contratar" type="submit">Contratar</button>
-                                }
-                            </div> <!-- right -->
-                <div class="clearfix"></div>
-                        </li>
-                        <li>
-                            <div class="left">
-                                <span class="parcelas">
-                                    PAGAMENTO TOTAL DA FATURA
-                                </span>
-                            </div> <!-- left -->
-
-                <div class="right">
-                                <span class="juros">
-                                    TOTAL: R$@conta.VlFull.ToString("N2")
-                                </span>
-                                @using (Html.BeginForm("TermosECondicoes", "ConsultaCpfCnpj", FormMethod.Post))
-                                {
-                                    @Html.Hidden("TotalParcel", 1)
-                                    <button class="btn-contratar" type="submit">Contratar</button>
-                                }
-                            </div> <!-- right -->
-                <div class="clearfix"></div>
-                        </li>
-                    }
-                    else
-                    {
-                    }
-                </ul>  <!-- opcoes de pagamento -->
-                <br />
-                <h2 style="margin-top:20px">Parcelamento de Fatura</h2>
-
-                <div class="form">
-                    @using (Html.BeginForm("FormaDePagamento", "ConsultaCpfCnpj", FormMethod.Post))
-                    {
-                        <div class="box-input">
-                            <span>Valor Entrada</span>
-                            @Html.TextBoxFor(model => simula.Entrada, null, new { @class = "entrada", placeholder = "Valor da entrada parcelamento", maxlength = "10" })
-                            <span class="loading"><img src="~/images/loading.gif" /></span>
-                        </div>
-                        <div class="box-input">
-                            <span>Data Entrada</span>
-                            @Html.TextBoxFor(model => simula.DataEntrada, null, new { disabled = "disabled"})
-                        </div>
-
-                        <div class="box-input box-button">
-                            <span>&nbsp;</span>
-                            <button class="btn-enviar" type="submit">Calcular</button>
-                        </div>
-                        @if (message != null)
-                        {
-                            foreach (string msg in message)
-                            {
-                                <div class="message-search">&bull; @msg</div>
-                            }
-                        }
-                    }
-                    <div style="clear: both"></div>
-                </div>
-                <br />
-                <br />
-                <br />
-                @if (simula != null && simula.Entrada != null && parcelamentoFaturaResponse != null && parcelamentoFaturaResponse.responseData != null && parcelamentoFaturaResponse.responseData.listaParcelamentoOpcao.Count > 0)
-                {
-                    <ul class="opcoes-de-pagamento">
-                        @foreach (var parcel in parcelamentoFaturaResponse.responseData.listaParcelamentoOpcao)
-                        {
-                            <li>
-                                <div class="left">
-                                    <span class="parcelas">
-                                        @if (simula != null && simula.Entrada != null && Convert.ToDecimal(simula.Entrada.Replace(",", "").Replace(".", "")) / 100 > 0)
-                                        {
-                                            if (Convert.ToInt32(parcel.quantidadeParcelas) > 0)
-                                            {
-                                                @Html.Raw("R$ ")  @parcelamentoFaturaResponse.responseData.valorAdesao.Trim()  @Html.Raw(" + ")
-                                            }
-                                            else
-                                            {
-                                                @Html.Raw(" 1x ") @Html.Raw("R$ ")  @parcelamentoFaturaResponse.responseData.valorAdesao.Trim()
-                                            }
-                                        }
-                                        @if (Convert.ToInt32(parcel.quantidadeParcelas) > 0)
-                                        {
-                                            @(parcel.quantidadeParcelas.Trim()) @Html.Raw("x R$ ") @parcel.valorParcela
-                                        }
-                                    </span>
-                                </div> <!-- left -->
-
-                <div class="right">
-                                    <span class="juros">
-                                        TOTAL: R$ @Html.Raw(Convert.ToDecimal(Convert.ToDecimal(parcel.quantidadeParcelas) *
-                        Convert.ToDecimal(parcel.valorParcela) +
-                        Convert.ToDecimal(parcelamentoFaturaResponse.responseData.valorAdesao)).ToString("N2"))
-                                    </span>
-                                    @using (Html.BeginForm("TermosECondicoes", "ConsultaCpfCnpj", FormMethod.Post))
-                                    {
-                                        @Html.Hidden("TotalParcel", parcel.quantidadeParcelas.Trim())
-                                        <button class="btn-contratar" type="submit">Contratar</button>
-                                    }
-                                </div> <!-- right -->
-                <div class="clearfix"></div>
-                            </li>
-                        }
-                    </ul>
-                }
-            }
+            
         }
     </section> <!-- box forma de pagamentos -->
 

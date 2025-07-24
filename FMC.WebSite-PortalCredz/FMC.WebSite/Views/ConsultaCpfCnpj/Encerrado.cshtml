@@ -1,7 +1,8 @@
 ﻿@model IEnumerable<object>
 @{
     ConsultaCpfCnpj _model = (ConsultaCpfCnpj)Model.ElementAt(0);
-    IList<string> message = (IList<string>)ViewData["Message"];
+    //IList<string> message = (IList<string>)ViewData["Message"];
+    string message = (string)Model.ElementAt(1);
 }
 <section id="pg-consulta-cpf-obrigado" class="scroll-secao">
 
@@ -22,7 +23,7 @@
     </section>
     <div class="obrigado container">
         <h2>Desculpe!</h2>
-        @if (message == null || message.Count == 0)
+        @if (string.IsNullOrEmpty(message))
         {
             <p>
                 <br /><br />
@@ -35,11 +36,10 @@
         else
         {
             <p>
-                @foreach (string msg in message)
-                {
-                    @Html.Raw(msg)  <br />
-                    ;
-                }
+
+                @Html.Raw(message)  <br />
+                ;
+
 
             </p>
             <p></p>

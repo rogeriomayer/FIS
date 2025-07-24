@@ -1,10 +1,12 @@
 ﻿using FMC.FIS.BLL;
 using FMC.FIS.Business.BLL;
 using FMC.FIS.Business.Code.Api.Cobmais;
+using FMC.FIS.Business.Code.Api.RCS;
 using FMC.FIS.Business.Models.BvTelecom;
 using FMC.FIS.Business.Models.Cobmais;
 using FMC.FIS.Business.Models.Customer;
 using FMC.FIS.Business.Models.FIS;
+using FMC.FIS.Business.Models.RCS;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -54,22 +56,27 @@ namespace FMC.FIS.Credz.Remember
                     );
         }
 
-        internal void SendSMS()
+        internal static string SmsText()
         {
             StringBuilder message = new StringBuilder();
             message.Append("CREDZ: ").Append(_objectSend.Name.Split(' ').FirstOrDefault());
 
             if (_objectSend.DtParcel <= DateTime.Today)
-                message.Append(" evite novas negativações no CPF e encargos no cartão, pague agora mesmo: ").Append(_objectSend.Line);
+                message.Append(" evite novas negativações no CPF e encargos no cartão, pague agora mesmo seu acordo: ").Append(_objectSend.Line);
             else
                 message.Append(" segue a linha digitavel para pagamento do seu acordo: ").Append(_objectSend.Line);
 
+            return message.ToString();
+        }
+
+        internal void SendSMS()
+        {
             var ret = new BvSmsBLL().SmsSingle
                            (
                                new SingleRequest()
                                {
                                    celular = _objectSend.Phone,
-                                   mensagem = message.ToString(),
+                                   mensagem = SmsText(),
                                    carteiraId = 1064,
                                    parceiroId = "credZ" + DateTime.Now.ToString("ddMMyyyyHHmmss")
                                }
@@ -83,7 +90,7 @@ namespace FMC.FIS.Credz.Remember
                             IdAgreement = _objectSend.IdAgreement,
                             IdAgreementParcel = _objectSend.IdAgreementParcel,
                             IdPerson = _objectSend.Product.IdPerson,
-                            Email = _objectSend.Phone,
+                            Email = "SMS:" + _objectSend.Phone,
                             DtInsert = DateTime.Now
                         }
                     );
@@ -340,6 +347,51 @@ namespace FMC.FIS.Credz.Remember
             return body.ToString();
         }
 
+        private string RcsBody()
+        {
+            StringBuilder body = new StringBuilder();
+            body.Append("Olá ").Append(_objectSend.Name.Split(' ').FirstOrDefault()).Append("\r\n\r\n");
+            if (_objectSend.DtParcel < DateTime.Today)
+            {
+                body.Append("Não identificamos o pagamento ");
+            }
+            else
+            {
+                body.Append("Segue o boleto para pagamento ");
+            }
+            if (_objectSend.Parcel == 0)
+                if (_objectSend.aVista)
+                    body.Append("do seu acordo no valor de R$").Append(_objectSend.Value.ToString("N2"));
+                else
+                    body.Append("da entrada do seu acordo no valor de R$").Append(_objectSend.Value.ToString("N2"));
+            else
+                body.Append("da parcela ").Append(_objectSend.Parcel + 1).Append(" do seu acordo no valor de R$").Append(_objectSend.Value.ToString("N2"));
+
+            body.Append(" referente ao cartão ").Append(_objectSend.CardNumber).Append(" ").Append(_objectSend.CardName).Append(" com vencimento em ").Append(_objectSend.DtParcel.ToString("dd/MM/yyyy"));
+            body.Append("\r\n\r\n");
+            if (_objectSend.Parcel == 0)
+                body.Append("Lembrando que só ocorrerá a efetivação do acordo e a retirada da negativação do seu CPF dos orgão de proteção de crédito após constar o pagamento deste boleto. \r\n\r\n");
+            else
+                body.Append("Realize o pagamento da parcela e evite a quebra do seu acordo e com isso lançamento de novos encargos e nova negativação do seu CPF. \r\n\r\n");
+
+            body.Append("Este boleto é válido para pagamento até o dia ").Append(_objectSend.DtParcel.AddDays(8).ToString("dd/MM/yyyy"));
+            body.Append(" sem acréscimo de juros. \r\n\r\n");
+
+            if (_objectSend.Line != null)
+            {
+                body.Append("Linha digitável para pagamento: ").Append(_objectSend.Line);
+                body.Append("\r\n\r\n");
+            }
+
+            body.Append("Central de atendimento 4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(Demais Regiões).");
+            body.Append("\r\n\r\n");
+            body.Append("Caso já tenha efetuado o pagamento favor desconsiderar esta mensagem.");
+            body.Append("\r\n\r\n");
+            body.Append("Digite PARAR para cancelar o recebimento.");
+
+            return body.ToString();
+        }
+
 
 
         private bool SendMail(byte[] billet, string subject, string body, string smtpName, string userSMTP, string passSMTP, IList<string> emails)
@@ -429,6 +481,90 @@ namespace FMC.FIS.Credz.Remember
             }
             return false;
         }
+
+
+        public void SendRCS()
+        {
+            if (!string.IsNullOrEmpty(_objectSend.Phone))
+            {
+                string description = RcsBody();
+
+                try
+                {
+                    var ret = InfobipRcsAPI.SendSingle
+                        (
+                            new List<string>() { _objectSend.Phone },
+                            new ContentRoot()
+                            {
+                                alignment = "LEFT",
+                                orientation = "VERTICAL",
+                                type = "CARD",
+                                content = new ContentChild()
+                                {
+                                    title = "BOLETO ACORDO " + _objectSend.CardName,
+                                    description = description,
+                                    media = new Media()
+                                    {
+                                        file = new File() { url = _objectSend.CardUrl },
+                                        thumbnail = new Thumbnail() { url = "https://negociadorcredz.fmcbrasil.com.br/images/topo/credz-logo-new.png" },
+                                        height = "TALL"
+                                    },
+                                    suggestions = new List<Suggestion>()
+                                    {
+                                    new Suggestion()
+                                    {
+                                        type = "OPEN_URL",
+                                        text = "CLICK E RETIRE O BOLETO",
+                                        url = _objectSend.BilletUrl,
+                                        postbackData = "CLICK_BILLET"
+                                    }
+                                    }
+                                }
+
+                            },
+                            new Options()
+                            {
+                                smsFailover = new SmsFailover()
+                                {
+                                    sender = "fmcbrasil",
+                                    text = SmsText()
+                                }
+                            },
+                            new Webhooks()
+                            {
+                                callbackData = "CREDZ-BILLET",
+                                delivery = new Delivery()
+                                {
+                                    url = "http://fmcbrasil.com.br/infobip/rcs/webhook/delivery",
+                                    intermediateReport = true,
+                                    notify = true,
+                                    receiveTriggeredFailoverReports = true
+                                },
+                                seen = new Seen() { url = "http://fmcbrasil.com.br/infobip/rcs/webhook/seen" }
+                            }
+                        );
+                    if (!string.IsNullOrEmpty(ret.messages.FirstOrDefault().messageId))
+                    {
+                        new EmailRememberBLL().Add
+                            (
+                                new Business.Models.CREDZ.EmailRemember()
+                                {
+                                    IdAgreement = _objectSend.IdAgreement,
+                                    IdAgreementParcel = _objectSend.IdAgreementParcel,
+                                    IdPerson = _objectSend.Product.IdPerson,
+                                    Email = "RCS:" + _objectSend.Phone,
+                                    DtInsert = DateTime.Now
+                                }
+                            );
+                    }
+                }
+                catch (Exception ex)
+                {
+
+                }
+            }
+        }
+
         private string GetBodyQuebra()
         {
             var body = new StringBuilder();
@@ -526,8 +662,10 @@ namespace FMC.FIS.Credz.Remember
                         {
                             if (parcelamento != null)
                             {
-                                body.Append("Você pode refazer seu acordo com desconto de <b>R$").Append(parcelamento.VlDiscount.ToString("N2"));
-                                body.Append("</b>, pagando uma entrada de <b>R$").Append(parcelamento.ValueEntrace.ToString("N2"));
+                                if (parcelamento.VlDiscount > 5)
+                                    body.Append("Você pode refazer seu acordo com desconto de <b>R$").Append(parcelamento.VlDiscount.ToString("N2"));
+                                else
+                                    body.Append("Você pode refazer seu acordo, pagando uma entrada de <b>R$").Append(parcelamento.ValueEntrace.ToString("N2"));
                                 body.Append("</b> e ").Append(parcelamento.NrParcel).Append(" parcelas de <b>R$");
                                 body.Append(parcelamento.VlParcel).Append(" </b>.");
                             }
@@ -648,30 +786,36 @@ namespace FMC.FIS.Credz.Remember
 
         public static string GetPhone(Person person)
         {
-            var phones = person.Phone.Where(p => p.IdPhoneStatus == 1).ToList();
+            var phones = person.Phone.Where(p => p.IdPhoneStatus == 1).Select(p => p.NrPhone).ToList();
 
-            if (phones.Count == 1)
-                return phones.FirstOrDefault().NrPhone;
+            if (phones.Count == 1 && (Convert.ToInt32(phones.FirstOrDefault().Substring(2, 1)) >= 6))
+
+                return phones.FirstOrDefault();
             else
             {
                 var phoneBillet = new GenericQueryBLL<PhoneUra>().GetSingle("select top 1 b.Phone telefone, * from CREDZ.dbo.Billet b where cpf = '" + person.NrCNPJCPF + "' and CONVERT(int, SUBSTRING( CONVERT(varchar(11), b.Phone),3,1)) > 6  order by DtInsert desc");
 
-                if (phoneBillet != null)
+                if (phoneBillet != null && (Convert.ToInt32(phones.FirstOrDefault().Substring(2, 1)) >= 6))
                     return phoneBillet.telefone;
 
                 var phoneUra = new GenericQueryBLL<PhoneUra>().GetSingle("select top 1 CONVERT(varchar(11),telefone) telefone, dtLigacao from CREDZ.dbo.RetornoUra where SUBSTRING(CONVERT(varchar(11), telefone), 3,1) > 6 and  cpf = '" + person.NrCNPJCPF + "' order by dtLigacao desc");
 
-                if (phoneUra != null)
+                if (phoneUra != null && (Convert.ToInt32(phoneUra.telefone.Substring(2, 1)) >= 6))
                     return phoneUra.telefone;
+
+                var phoneRCS = new GenericQueryBLL<PhoneUra>().GetSingle("select top 1 CONVERT(varchar(11),phone) telefone from CREDZ.SendRCS r inner join Person p on p.IdPerson = r.IdPerson inner join CREDZ.dbo.Navigation n	on n.CPF = p.NrCNPJCPF	and n.DsOrigem = 'rcs' where NrCNPJCPF = '" + person.NrCNPJCPF + "' order by r.DtInsert desc");
+                if (phoneRCS != null && (Convert.ToInt32(phoneRCS.telefone.Substring(2, 1)) >= 6))
+                    return phoneRCS.telefone.Split(';').FirstOrDefault();
 
                 var pessoa = CobmaisAPI.GetPessoa(person.NrCNPJCPF);
                 var phoneCobmais = pessoa.telefones.Where(p => p.ativo && p.contato && Convert.ToInt32(p.numero.Substring(2, 1)) >= 6).OrderByDescending(p => p.observacao).Select(p => p.numero).FirstOrDefault();
 
                 if (phoneCobmais != null)
                     return phoneCobmais;
+
+                return phones.FirstOrDefault();
             }
 
-            return null;
         }
     }
 
@@ -690,7 +834,6 @@ namespace FMC.FIS.Credz.Remember
     public class ObjectSend
     {
         public IList<string> Email { get; set; }
-
         public string Phone { get; set; }
         public string Name { get; set; }
         public long IdAgreement { get; set; }

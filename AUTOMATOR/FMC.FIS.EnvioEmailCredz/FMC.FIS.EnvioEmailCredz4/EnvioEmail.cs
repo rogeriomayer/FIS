@@ -48,13 +48,13 @@ namespace FMC.FIS.EnvioEmailCredz
                         }
                         */
 
-                        string title = "OFERTA " + envioEmail.NomeCartao;
+                        string title = "OFERTA " + envioEmail.NomeCartao.Replace("CREDZ", "");
                         if (body.Contains("A Credz tem uma oportunidade exclusiva para ajudar você a limpar seu nome e sair dos órgãos de proteção, como Serasa e SPC"))
                             title = "COM ENTRADA DE APENAS R$50,00 RENEGOCIE SEU " + envioEmail.NomeCartao;
                         if (new List<int>() { 151, 181, 182, 211, 212, 281, 282, 721, 722 }.Contains(envioEmail.Atraso))
                             title = "NOVO DESCONTO LIBERADO " + envioEmail.NomeCartao;
 
-                        if (SendMail(null, title, body, envioEmail.NomeCartao, smtp, email, senha, porta, envioEmail.Email))
+                        if (SendMail(null, title, body, envioEmail.NomeCartao.Replace("CREDZ", ""), smtp, email, senha, porta, envioEmail.Email))
                         {
                             string emails = "";
                             envioEmail.Email.ToList().ForEach(p => emails += p + ";");
@@ -100,7 +100,6 @@ namespace FMC.FIS.EnvioEmailCredz
         {
             MailMessage mail = new MailMessage();
 
-            userSMTP = smtpServer == "10.40.0.82" ? "credz@fmcatendimento.com.br" : "credz@fmccobranca.com.br";
             mail.From = new MailAddress(userSMTP, smtpName);
 
             if (emails.Count() > 1)
@@ -110,18 +109,19 @@ namespace FMC.FIS.EnvioEmailCredz
                 mail.To.Add(emails.FirstOrDefault());
 
             mail.IsBodyHtml = true;
-            mail.Priority = MailPriority.High;
-            //mail.DeliveryNotificationOptions = DeliveryNotificationOptions.OnSuccess;
+
+
 
             mail.Subject = subject;
 
             mail.Body = body;
+            // smtpServers.Add(new KeyValuePair<string, int>("10.40.0.21", 25));
+            SmtpClient smtp = new SmtpClient("10.40.0.21");
+            smtp.Port = 25;
 
-            SmtpClient smtp = new SmtpClient(smtpServer);
-            smtp.Port = portSMTP;
             smtp.EnableSsl = false;
 
-            smtp.Credentials = new System.Net.NetworkCredential(userSMTP, passSMTP);
+            smtp.Credentials = new System.Net.NetworkCredential();
 
             try
             {
@@ -131,7 +131,7 @@ namespace FMC.FIS.EnvioEmailCredz
                     System.IO.Stream stream = new System.IO.MemoryStream(billet);
                     System.Net.Mime.ContentType ct = new System.Net.Mime.ContentType();
                     ct.MediaType = System.Net.Mime.MediaTypeNames.Application.Pdf;
-                    ct.Name = "boletoCredz.pdf";
+                    ct.Name = "boletoCrez.pdf";
                     mail.Attachments.Add(new Attachment(stream, ct));
                 }
 
@@ -171,12 +171,13 @@ namespace FMC.FIS.EnvioEmailCredz
             body.Append("<br>");
             body.Append("<br>");
             body.Append("<br>");
-            body.Append("<p><b>Equipe Negociador Credz</b></p>");
+            body.Append("<p><b>Equipe Negociador DM</b></p>");
 
             body.Append("<p><b>4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(demais regiões)</b></p>");
             body.Append("<p>");
             body.Append("<a href='https://fmc.digital/ecredz'>");
-            body.Append("<img alt=\"\" style=\"width:100px\" src=\"https://negociadorcredz.fmcbrasil.com.br/images/topo/credz-logo-new.png\">");
+            //body.Append("<img alt=\"\" style=\"width:100px\" src=\"https://negociadorcredz.fmcbrasil.com.br/images/topo/credz-logo-new.png\">");
+            body.Append("<img alt=\"\" style=\"width:60px\" src=\"https://www.vocedm.com.br/portal/assets/logo.webp\">");
             body.Append("</a>");
             body.Append("</p>");
 
@@ -217,6 +218,8 @@ namespace FMC.FIS.EnvioEmailCredz
             StringBuilder body = new StringBuilder();
             var contrato = GetContratos();
 
+            nomeCartao = nomeCartao.Replace("CREDZ", "");
+
             AgreementSimulateResponse simulate = null;
             if (contrato != null)
             {
@@ -240,7 +243,7 @@ namespace FMC.FIS.EnvioEmailCredz
                 var parcela = simulate.ParcelResponse.FirstOrDefault();
                 body.Append("<html>");
                 body.Append("<p>Olá ").Append(nome).Append("</p>");
-                body.Append("<p>A Credz tem uma oferta especial para parcelamento do seu ");
+                body.Append("<p>A CREDZ agora é DM e tem uma oferta especial para parcelamento do seu ");
                 body.Append("<b>").Append(cartao).Append(" ").Append(nomeCartao).Append("</b>");
                 body.Append(" pagando apenas uma entrada de <b>R$").Append(parcela.ValueEntrace.ToString("N2"));
                 body.Append("</b> e ").Append(parcela.NrParcel).Append(" parcelas de <b>R$");
@@ -272,6 +275,7 @@ namespace FMC.FIS.EnvioEmailCredz
                 StringBuilder body = new StringBuilder();
                 AgreementSimulateResponse simulate = null;
 
+                cartao = cartao.Replace("CREDZ", "");
                 var contrato = GetContratos();
                 if (contrato != null)
                     simulate = GetValueAgreement(0, contrato);
@@ -283,9 +287,13 @@ namespace FMC.FIS.EnvioEmailCredz
                     //var body = new StringBuilder();
                     body.Append("<html>");
                     body.Append("<p>Olá ").Append(nome).Append("</p>");
-                    body.Append("<p>Aproveite essa oferta que a Credz lhe oferece apenas nesse mês e renegocie sua dívida com um super desconto de <b>R$").Append((avista.VlDiscount - 1).ToString("N2")).Append("</b>");
-                    body.Append(" para quitar seu <b>").Append(cartao).Append(" ").Append(nomeCartao).Append("</b>");
-
+                    if (avista.VlDiscount > 5)
+                    {
+                        body.Append("<p>A CREDZ agora é DM e lhe oferece apenas nesse mês a renegociação de sua dívida com um desconto de <b>R$").Append((avista.VlDiscount - 1).ToString("N2")).Append("</b>");
+                        body.Append(" para quitar seu <b>").Append(cartao).Append(" ").Append(nomeCartao).Append("</b>");
+                    }
+                    else
+                        body.Append("<p>Aproveite esta oportunidade e quite seu <b>").Append(cartao).Append(" ").Append(nomeCartao).Append("</b>");
 
                     if (avista.ValueEntrace <= 200)
                     {
@@ -327,6 +335,7 @@ namespace FMC.FIS.EnvioEmailCredz
                     body.Append("<br>");
                     body.Append("<br>");
                     body.Append("<p>Caso já tenha efetuado o pagamento favor desconsiderar este e-mail.</p>");
+
                 }
                 else
                 {

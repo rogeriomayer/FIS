@@ -66,6 +66,7 @@ namespace FMC.FIS.CREDZ.EnvioContatoUra
                                         dtInsert = DateTime.Now
                                     }
                                 );
+
                         }
                         else
                         {
@@ -96,7 +97,6 @@ namespace FMC.FIS.CREDZ.EnvioContatoUra
         {
             MailMessage mail = new MailMessage();
 
-            userSMTP = smtpServer == "10.40.0.82" ? "credz@fmcatendimento.com.br" : "credz@fmccobranca.com.br";
             mail.From = new MailAddress(userSMTP, smtpName);
 
             if (emails.Count() > 1)
@@ -106,18 +106,19 @@ namespace FMC.FIS.CREDZ.EnvioContatoUra
                 mail.To.Add(emails.FirstOrDefault());
 
             mail.IsBodyHtml = true;
-            mail.Priority = MailPriority.High;
-            //mail.DeliveryNotificationOptions = DeliveryNotificationOptions.OnSuccess;
+
+
 
             mail.Subject = subject;
 
             mail.Body = body;
+            // smtpServers.Add(new KeyValuePair<string, int>("10.40.0.21", 25));
+            SmtpClient smtp = new SmtpClient("10.40.0.21");
+            smtp.Port = 25;
 
-            SmtpClient smtp = new SmtpClient(smtpServer);
-            smtp.Port = portSMTP;
             smtp.EnableSsl = false;
 
-            smtp.Credentials = new System.Net.NetworkCredential(userSMTP, passSMTP);
+            smtp.Credentials = new System.Net.NetworkCredential();
 
             try
             {
@@ -127,7 +128,7 @@ namespace FMC.FIS.CREDZ.EnvioContatoUra
                     System.IO.Stream stream = new System.IO.MemoryStream(billet);
                     System.Net.Mime.ContentType ct = new System.Net.Mime.ContentType();
                     ct.MediaType = System.Net.Mime.MediaTypeNames.Application.Pdf;
-                    ct.Name = "boletoCredz.pdf";
+                    ct.Name = "boletoCrez.pdf";
                     mail.Attachments.Add(new Attachment(stream, ct));
                 }
 
@@ -282,8 +283,12 @@ namespace FMC.FIS.CREDZ.EnvioContatoUra
                     //var body = new StringBuilder();
                     body.Append("<html>");
                     body.Append("<p>Olá ").Append(nome).Append("</p>");
-                    body.Append("<p>Recentemente você entrou em contato com nossa Central de Atendimento, para melhor lhe atender Credz tem uma oferta especial, oferecemos um super desconto de <b>R$").Append((avista.VlDiscount - 1).ToString("N2")).Append("</b>");
-                    body.Append(" para quitar seu <b>").Append(cartao).Append(" ").Append(nomeCartao).Append("</b>");
+                    if (avista.VlDiscount > 5)
+                        body.Append("<p>Recentemente você entrou em contato com nossa Central de Atendimento, para melhor lhe atender Credz tem uma oferta especial, oferecemos um desconto de <b>R$").Append((avista.VlDiscount - 1).ToString("N2")).Append("</b>");
+                    else
+                        body.Append("<p>Recentemente você entrou em contato com nossa Central de Atendimento, para melhor lhe atender Credz tem uma oferta especial!</p>");
+
+                    body.Append("<p> Quite seu <b>").Append(cartao).Append(" ").Append(nomeCartao).Append("</b>");
 
 
                     if (avista.ValueEntrace <= 200)
@@ -311,8 +316,10 @@ namespace FMC.FIS.CREDZ.EnvioContatoUra
                             return null;
                         var parcelamento = simulate.ParcelResponse.OrderByDescending(p => p.NrParcel).FirstOrDefault();
                         body.Append(" por apenas <b>R$").Append(avista.ValueEntrace.ToString("N2")).Append("</b> no pagamento <b>a vista</b>!</p>");
-                        body.Append("<p> Temos também opção de parcelamento com desconto de <b>R$").Append(parcelamento.VlDiscount.ToString("N2"));
-                        body.Append("</b>, pagando uma entrada de <b>R$").Append(parcelamento.ValueEntrace.ToString("N2"));
+                        if (parcelamento.VlDiscount > 5)
+                            body.Append("<p> Temos também opção de parcelamento com desconto de <b>R$").Append(parcelamento.VlDiscount.ToString("N2"));
+                        else
+                            body.Append("<p> Temos também opção de parcelamento pagando uma entrada de <b>R$").Append(parcelamento.ValueEntrace.ToString("N2"));
                         body.Append("</b> e ").Append(parcelamento.NrParcel).Append(" parcelas de <b>R$");
                         body.Append(parcelamento.VlParcel).Append(" </b>.");
                         body.Append("</p><br>");
@@ -411,6 +418,7 @@ namespace FMC.FIS.CREDZ.EnvioContatoUra
 
     public class EnvioEmailSMS
     {
+        public long IdUra { get; set; }
         public long IdPerson { get; set; }
         public long IdProduct { get; set; }
         public string Nome { get; set; }

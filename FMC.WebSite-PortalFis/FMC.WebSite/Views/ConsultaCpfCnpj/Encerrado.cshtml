@@ -1,7 +1,8 @@
 ﻿@model IEnumerable<object>
 @{
     ConsultaCpfCnpj _model = (ConsultaCpfCnpj)Model.ElementAt(0);
-    IList<string> message = (IList<string>)ViewData["Message"];
+    //IList<string> message = (IList<string>)ViewData["Message"];
+    string message = (string)Model.ElementAt(1);
 }
 <section id="pg-consulta-cpf-obrigado" class="scroll-secao">
 
@@ -12,7 +13,7 @@
             <h1>Faça uma nova consulta</h1>
             @using (Html.BeginForm("Index", "Home", FormMethod.Post, new { @class = "form-cpf" }))
             {
-                @Html.TextBoxFor(model => _model.CpfCnpj, null, new { @class = "mask-cpf", placeholder = "Digite seu CPF ou CNPJ", maxlength = "18" })
+                @Html.TextBoxFor(model => _model.CpfCnpj, null, new { @class = "mask-cpf", placeholder = "Digite seu CPF ou CNPJ", maxlength = "14" })
                 @Html.ValidationMessageFor(model => _model.CpfCnpj)
                 <button type="submit" class="btn-nova-consulta">Consultar</button>
             }
@@ -22,11 +23,11 @@
     </section>
     <div class="obrigado container">
         <h2>Desculpe!</h2>
-        @if (message == null || message.Count == 0)
+        @if (string.IsNullOrEmpty(message))
         {
             <p>
                 <br /><br />
-                Neste momento nosso sistema encontra-se indisponível para negociação! <br />
+                Ops!Neste momento nosso sistema encontra-se indisponível para negociação! <br />
                 Por gentileza tente mais tarde.<br /><br />
                 Agradecemos sua compreensão!
             </p>
@@ -35,11 +36,10 @@
         else
         {
             <p>
-                @foreach (string msg in message)
-                {
-                    @Html.Raw(msg)  <br />
-                    ;
-                }
+
+                @Html.Raw(message)  <br />
+                ;
+
 
             </p>
             <p></p>

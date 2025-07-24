@@ -8,6 +8,7 @@ using FMC.FIS.Business.Models.FIS;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -29,6 +30,7 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
             Constants.PassCobmaisCredz = config.GetValue<string>("PassCobmaisCredz");
             Constants.UrlApiCobmaisCredz = config.GetValue<string>("UrlApiCobmaisCredz");
 
+
             try
             {
                 foreach (var process in System.Diagnostics.Process.GetProcessesByName(currentProcess.ProcessName))
@@ -45,12 +47,14 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
 
                 DateTime dtLead = DateTime.Now.Hour > 11 ? DateTime.Today : DateTime.Today.AddDays(-1);
                 //IList<Person> listPerson = new PersonBLL().GetPersonSendSMS(dtLead).ToList();
-                IList<Person> listPerson = new PersonBLL().GetPersonSendRCS(dtLead).ToList();
+                IList<Person> listPerson = new PersonBLL().GetPersonSendRCSNews().ToList();
+
+                IList<Discount> discounts = new DiscountBLL().GetByProductType(3).ToList();
 
                 if (listPerson.Count > 0)
                 {
                     string cpf = "";
-                    IList<Contrato> contracts = null;
+                    Contrato contract = null;
 
                     IList<SingleRequest> listSend = new List<SingleRequest>();
                     IList<SMS> listSMS = new List<SMS>();
@@ -58,32 +62,32 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                     foreach (var person in listPerson.OrderBy(p => p.IdPerson).Distinct().ToList())
                     {
                         Console.WriteLine(person.NrCNPJCPF);
-                        var phones = person.Phone.Where(p => p.IdPhoneStatus == 1 && Convert.ToInt32(p.NrPhone.Substring(2, 1)) >= 6).Select(p => p.NrPhone).ToList();
-                        if (phones == null || phones.Count == 0)
-                        {
-                            phones = new List<string>();
-                            phones.Add(person.Phone.Where(p => p.Blacklist == false && p.IdPhoneStatus < 4 && Convert.ToInt32(p.NrPhone.Substring(2, 1)) >= 6).Select(p => p.NrPhone).FirstOrDefault());
-                        }
+                        //var phones = person.Phone.Where(p => p.IdPhoneStatus == 1 && Convert.ToInt32(p.NrPhone.Substring(2, 1)) >= 6).Select(p => p.NrPhone).ToList();
+                        //if (phones == null || phones.Count == 0)
+                        //{
+                        //    phones = new List<string>();
+                        //    phones.Add(person.Phone.Where(p => p.Blacklist == false && p.IdPhoneStatus < 4 && Convert.ToInt32(p.NrPhone.Substring(2, 1)) >= 6).Select(p => p.NrPhone).FirstOrDefault());
+                        //}
                         try
                         {
+                            var lead = person.Product.Where(pr => pr.Lead.Where(p => p.DtInsert >= DateTime.Today.AddDays(-2)).Any()).FirstOrDefault().Lead.OrderByDescending(p => p.IdLead).FirstOrDefault();
 
                             if (cpf != person.NrCNPJCPF)
                             {
                                 cpf = person.NrCNPJCPF;
-                                if (phones.Count > 0)
-                                    contracts = CobmaisAPI.GetContratos(cpf, "0", "0");
+                                    contract = GetContratos(lead);
                             }
 
-                            var lead = person.Product.Where(pr => pr.Lead.Where(p => p.DtInsert >= DateTime.Today.AddDays(-1)).Any()).FirstOrDefault().Lead.OrderByDescending(p => p.IdLead).FirstOrDefault();
+                            
 
-                            if (lead != null && phones.Count() > 0 && contracts != null && contracts.Count > 0)
+                            if (lead != null && phones.Count() > 0 && contract != null )
                             {
                                 var product = person.Product.FirstOrDefault();
                                 var products = person.Product.Select(p => p.DsProduct).ToList();
                                 var phone = phones.FirstOrDefault();
-                                if (contracts.Where(p => products.Contains(p.numero_contrato)).Count() > 0)
+                                if (contract != null)
                                 {
-                                    var obj = SendSMS(lead, phone, contracts.Where(p => products.Contains(p.numero_contrato)).FirstOrDefault());
+                                    var obj = SendSMS(lead, phone, contract, discounts);
                                     if (obj != null)
                                     {
                                         listSend.Add(obj);
@@ -98,7 +102,7 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                                                 }
                                             );
                                         Console.WriteLine(listSend.Count);
-                                        if (listSend.Count > 500)
+                                        if (listSend.Count > 20)
                                         {
                                             if (new BvSmsBLL().SmsBulk(new BulkRequest() { bulk = listSend }) == "OK")
                                             {
@@ -152,13 +156,32 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                 Util.SaveFile("Erro:" + erro);
             }
         }
-        private static SingleRequest SendSMS(Lead lead, string phone, Contrato contract)
+        private static SingleRequest SendSMS(Lead lead, string phone, Contrato contract, IList<Discount> discounts)
         {
             StringBuilder message = new StringBuilder();
 
             //if (lead.Age > 281)
             //{
-            var simulate = GetValueAgreement(lead, contract);
+            var contrato = GetContratos(lead);
+
+            AgreementSimulateResponse simulate = null;
+            var discount = discounts.Where(p => (lead.Age >= p.MinAge && lead.Age <= p.MaxAge) && p.MaxParcel == 1).FirstOrDefault().MaxDiscount;
+            if (contrato != null)
+            {
+                /*
+                decimal vlParcel = 50;
+                var parcela = 24;
+                for (int i = 24; i > 0; i--)
+                {
+                    parcela = i;
+                    vlParcel = (contrato.parcelas.FirstOrDefault().valor - (contrato.parcelas.FirstOrDefault().valor * (discount / 100))) / i;
+                    if (vlParcel > 70)
+                    {
+                        break;
+                    }
+                }*/
+                simulate = GetValueAgreement(0, contrato, lead);
+            }
 
             if (simulate != null && simulate.ParcelResponse != null && simulate.ParcelResponse.Count > 0)
             {
@@ -229,35 +252,103 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
             }
         }
 
-        private static AgreementSimulateResponse GetValueAgreement(Lead lead, Contrato contract)
+        static IList<string> phones = new List<string>();
+        private static Contrato GetContratos(Lead lead)
         {
 
-            ICollection<ComplementData> complementData = new HashSet<ComplementData>();
+           
+            var person = CobmaisAPI.GetPessoa(lead.Product.Person.NrCNPJCPF);
+
+            
+            var phoneUra = new GenericQueryBLL<PhoneUra>().GetCollection("select top 1 CONVERT(varchar(11),telefone) telefone, dtLigacao from CREDZ.dbo.RetornoUra where SUBSTRING(CONVERT(varchar(11), telefone), 3,1) > 6 and  cpf = '" + lead.Product.Person.NrCNPJCPF + "' order by dtLigacao desc");
+
+            if (phoneUra.Count() > 0)
+                phones = phoneUra.Select(p => p.telefone).ToList();
+
+            if (phones == null || phones.Count <= 0)
+                phones = person.telefones.Where(p => p.ativo && p.contato && Convert.ToInt32(p.numero.Substring(2, 1)) >= 6).Select(p => p.numero).ToList();
 
 
-            complementData.Add(new ComplementData() { Name = "negociacao_id", Value = contract.negociacao_id.ToString() });
-            complementData.Add(new ComplementData() { Name = "id", Value = contract.parcelas.OrderBy(p => p.vencimento).FirstOrDefault().id.ToString() });
-            complementData.Add(new ComplementData() { Name = "numero", Value = contract.parcelas.OrderBy(p => p.vencimento).FirstOrDefault().numero.ToString() });
-            complementData.Add(new ComplementData() { Name = "vencimento", Value = contract.parcelas.OrderBy(p => p.vencimento).FirstOrDefault().vencimento.ToString("yyyy-MM-dd") });
-            complementData.Add(new ComplementData() { Name = "valor", Value = contract.parcelas.OrderBy(p => p.vencimento).FirstOrDefault().valor.ToString("N2") });
 
-            return new AgreementBLL().GetAgreementSimulate
-                (
-                    new Business.Models.Customer.AgreementSimulateRequest()
-                    {
-                        Age = lead.Age,
-                        CPF = lead.Product.Person.NrCNPJCPF,
-                        DtEntrace = DateTime.Today.AddDays(7),
-                        PctDiscount = 0,
-                        NrParcel = 1,
-                        VlEntrace = 0,
-                        Product = lead.Product.DsProduct,
-                        CdSimulate = "",
-                        ComplementData = complementData
-                    }
-                    , Constants.ProductType.CREDZ
-                );
+            if (phones == null || phones.Count <= 0)
+            {
+                var phone = person.telefones.Where(p => p.ativo && Convert.ToInt32(p.numero.Substring(2, 1)) >= 6).Select(p => p.numero).ToList().FirstOrDefault();
+                if (phone != null)
+                    phones.Add(phone);
+            }
+
+            if (phones.Count > 0)
+            {
+                
+                var contracts = CobmaisAPI.GetContratos(lead.Product.Person.NrCNPJCPF, "0", "0");
+
+                if (contracts != null)
+                {
+                    var contract = contracts.Where(p => p.numero_contrato == lead.Product.DsProduct).FirstOrDefault();
+
+                    return contract;
+                }
+            }
+            return null;
         }
 
+
+        private static AgreementSimulateResponse GetValueAgreement(int nrParcel, Contrato contract, Lead lead)
+        {
+            try
+            {
+               
+                ICollection<ParcelaCredz> complementData = new HashSet<ParcelaCredz>();
+
+
+                complementData = contract.parcelas.Select(p =>
+                        new ParcelaCredz()
+                        {
+                            id_parcela_original = p.id,
+                            negociacao_id = contract.negociacao_id,
+                            numero_parcela_original = p.numero,
+                            vencimento = p.vencimento,
+                            valor = p.valor
+                        }
+
+                    ).ToList();
+
+
+                return new AgreementBLL().GetOnlyOneSimulateCredz
+                    (
+                        new Business.Models.Customer.AgreementSimulateRequest()
+                        {
+                            Age = lead.Age,
+                            CPF = lead.Product.Person.NrCNPJCPF,
+                            DtEntrace = DateTime.Today.AddDays(7),
+                            PctDiscount = 0,
+                            NrParcel = nrParcel,
+                            VlEntrace = 0,
+                            Product = lead.Product.DsProduct,
+                            CdSimulate = "",
+                            ParcelaCredz = complementData,
+                            FixedEntraceValue = false
+                        }
+                    );
+
+            }
+            catch (Exception ex)
+            {
+                if (nrParcel > 1 && ex.ToString().Contains("Valor de Parcela abaixo do valor mínimo permitido"))
+                {
+                    nrParcel = nrParcel - 2;
+                    return GetValueAgreement(nrParcel, contract,lead);
+                }
+                else
+                    return null;
+            }
+        }
+
+    }
+
+    public class PhoneUra
+    {
+        [Key]
+        public string telefone { get; set; }
     }
 }

@@ -19,10 +19,12 @@ namespace FMC.FIS.EnvioEmailCredz
     public class EnvioRCS
     {
         RCS envioRCS;
+        AgreementSimulateResponse simulate = null;
 
         public EnvioRCS(RCS envio)
         {
             envioRCS = envio;
+            simulate = null;
 
         }
 
@@ -90,29 +92,30 @@ namespace FMC.FIS.EnvioEmailCredz
             if (envioRCS.Phones.Count() > 0)
             {
                 string description = envioRCS.Atraso < 181 ? Get78_180(envioRCS.Nome, envioRCS.NumeroCartao, envioRCS.NomeCartao, contrato) : Get181_9999(envioRCS.Nome, envioRCS.NumeroCartao, envioRCS.NomeCartao, envioRCS.Desconto.ToString("N0"), contrato);
-
-                try
+                if (!string.IsNullOrEmpty(description))
                 {
-                    var ret = InfobipRcsAPI.SendSingle
-                        (
-                            envioRCS.Phones.ToList(),
-                            new ContentRoot()
-                            {
-                                alignment = "LEFT",
-                                orientation = "VERTICAL",
-                                type = "CARD",
-                                content = new ContentChild()
+                    try
+                    {
+                        var ret = InfobipRcsAPI.SendSingle
+                            (
+                                envioRCS.Phones.ToList(),
+                                new ContentRoot()
                                 {
-                                    title = "PORTAL NEGOCIAÇÃO " + envioRCS.NomeCartao,
-                                    description = description,
-                                    media = new Media()
+                                    alignment = "LEFT",
+                                    orientation = "VERTICAL",
+                                    type = "CARD",
+                                    content = new ContentChild()
                                     {
-                                        file = new File() { url = envioRCS.UrlCartao },
-                                        thumbnail = new Thumbnail() { url = "https://negociadorcredz.fmcbrasil.com.br/images/topo/credz-logo-new.png" },
-                                        height = "TALL"
-                                    },
-                                    suggestions = new List<Suggestion>()
-                                    {
+                                        title = "PORTAL NEGOCIAÇÃO " + envioRCS.NomeCartao,
+                                        description = description,
+                                        media = new Media()
+                                        {
+                                            file = new File() { url = envioRCS.UrlCartao },
+                                            thumbnail = new Thumbnail() { url = "https://negociadorcredz.fmcbrasil.com.br/images/topo/credz-logo-new.png" },
+                                            height = "TALL"
+                                        },
+                                        suggestions = new List<Suggestion>()
+                                        {
                                     new Suggestion()
                                     {
                                         type = "OPEN_URL",
@@ -120,25 +123,40 @@ namespace FMC.FIS.EnvioEmailCredz
                                         url = "https://fmc.digital/rcs",
                                         postbackData = "CLICK_NEW"
                                     }
+                                        }
                                     }
-                                }
 
-                            },
-                            new Options()
-                            {
-                                smsFailover = new SmsFailover()
+                                },
+                                new Options()
                                 {
-                                    sender = "fmcbrasil",
-                                    text = FailOver(envioRCS.Nome, envioRCS.NumeroCartao, envioRCS.NomeCartao, contrato)
+                                    smsFailover = new SmsFailover()
+                                    {
+                                        sender = "fmcbrasil",
+                                        text = FailOver(envioRCS.Nome, envioRCS.NumeroCartao, envioRCS.NomeCartao, contrato)
+                                    }
+                                },
+                                new Webhooks()
+                                {
+                                    callbackData = "CREDZ",
+                                    delivery = new Delivery()
+                                    {
+                                        url = "http://fmcbrasil.com.br/infobip/rcs/webhook/delivery",
+                                        intermediateReport = true,
+                                        notify = true,
+                                        receiveTriggeredFailoverReports = true
+                                    },
+                                    seen = new Seen() { url = "http://fmcbrasil.com.br/infobip/rcs/webhook/seen" }
                                 }
-                            }
-                        );
-                    return ret.messages.FirstOrDefault().messageId;
+                            );
+                        return ret.messages.FirstOrDefault().messageId;
+                    }
+                    catch (Exception ex)
+                    {
+                        return string.Empty;
+                    }
                 }
-                catch (Exception ex)
-                {
+                else
                     return string.Empty;
-                }
             }
             else
                 return String.Empty;
@@ -149,7 +167,7 @@ namespace FMC.FIS.EnvioEmailCredz
         {
             StringBuilder body = new StringBuilder();
 
-            AgreementSimulateResponse simulate = null;
+            simulate = null;
             if (contrato != null)
             {
                 decimal vlParcel = 50;
@@ -197,7 +215,7 @@ namespace FMC.FIS.EnvioEmailCredz
         private string Get181_9999(string nome, string cartao, string nomeCartao, string desconto, Contrato contrato)
         {
             StringBuilder body = new StringBuilder();
-            AgreementSimulateResponse simulate = null;
+            simulate = null;
 
             if (contrato != null)
                 simulate = GetValueAgreement(0, contrato);
@@ -206,15 +224,18 @@ namespace FMC.FIS.EnvioEmailCredz
             {
                 var avista = simulate.ParcelResponse.OrderBy(p => p.NrParcel).FirstOrDefault();
 
-               /*if (avista.ValueEntrace > 1000)
-                    throw new Exception("Maior que 300");*/
+                /*if (avista.ValueEntrace > 1000)
+                     throw new Exception("Maior que 300");*/
 
                 //var body = new StringBuilder();
                 body.Append("Olá ").Append(nome).Append("\r\n\r\n");
-                body.Append("Aproveite essa oferta que a Credz lhe oferece apenas nesse mês e renegocie sua dívida com um super desconto de R$").Append((avista.VlDiscount - 1).ToString("N2")).Append("");
-                body.Append(" para quitar seu ").Append(cartao).Append(" ").Append(nomeCartao).Append("");
+
+                if (avista.VlDiscount > 5)
+                    body.Append("Aproveite essa oferta que a Credz lhe oferece apenas nesse mês e renegocie sua dívida com um super desconto de R$").Append((avista.VlDiscount - 1).ToString("N2")).Append("");
+                else
+                    body.Append("Aproveite essa oferta que a Credz lhe oferece apenas nesse mês e renegocie seu ").Append(cartao).Append(" ").Append(nomeCartao).Append("");
                 body.Append(" por apenas R$").Append(avista.ValueEntrace.ToString("N2")).Append(" no pagamento a vista!");
-               
+
                 if (avista.ValueEntrace > 400)
                 {
                     decimal vlParcel = 50;
@@ -232,8 +253,9 @@ namespace FMC.FIS.EnvioEmailCredz
                     if (simulate != null)
                     {
                         var parcelamento = simulate.ParcelResponse.OrderByDescending(p => p.NrParcel).FirstOrDefault();
-                        body.Append("\r\nTemos também opção de parcelamento com desconto de R$").Append(parcelamento.VlDiscount.ToString("N2"));
-                        body.Append(", pagando uma entrada de R$").Append(parcelamento.ValueEntrace.ToString("N2"));
+                        //body.Append("\r\nTemos também opção de parcelamento com desconto de R$").Append(parcelamento.VlDiscount.ToString("N2"));
+                        body.Append("\r\nTemos também opção de parcelamento você poderá renegociar ");
+                        body.Append("pagando apenas uma entrada de R$").Append(parcelamento.ValueEntrace.ToString("N2"));
                         body.Append(" e ").Append(parcelamento.NrParcel).Append(" parcelas de R$");
                         body.Append(parcelamento.VlParcel).Append(".");
                         body.Append("\r\n\r\n");
@@ -274,34 +296,70 @@ namespace FMC.FIS.EnvioEmailCredz
         private string FailOver(string nome, string cartao, string nomeCartao, Contrato contrato)
         {
             StringBuilder message = new StringBuilder();
-            AgreementSimulateResponse simulate = null;
+            /*AgreementSimulateResponse simulate = null;
 
 
             if (contrato != null)
-                simulate = GetValueAgreement(0, contrato);
+            {
+                decimal vlParcel = 50;
+                var parcela = 24;
+                for (int i = 24; i > 0; i--)
+                {
+                    parcela = i;
+                    vlParcel = (contrato.parcelas.FirstOrDefault().valor - (contrato.parcelas.FirstOrDefault().valor * (envioRCS.Desconto / 100))) / i;
+                    if (vlParcel > 70)
+                    {
+                        break;
+                    }
+                }
+                simulate = GetValueAgreement(parcela, contrato);
+            }*/
 
             if (simulate != null && simulate.ParcelResponse != null && simulate.ParcelResponse.Count > 0)
             {
-                decimal vlPgt = simulate.ParcelResponse.Where(p => p.NrParcel == 0).FirstOrDefault().VlParcel;
-
+                decimal vlPgtVista = simulate.ParcelResponse.FirstOrDefault().VlFull;
                 message.Append(nome.Split(' ').FirstOrDefault());
-                message.Append(" quite o seu ");
-                message.Append(nomeCartao);
-                message.Append(" por apenas R$");
-                message.Append((simulate.ParcelResponse.FirstOrDefault().VlFull).ToString("N2"));
-                message.Append(" a vista ");
-                message.Append(" ou parcele");
-                message.Append(" em http://fmc.digital/credz ou ligue 40034031");
-                if (message.Length > 160)
+
+                if (vlPgtVista < 300)
                 {
-                    message.Clear();
-                    message.Append(nome.Split(' ').FirstOrDefault());
                     message.Append(" quite o seu ");
-                    message.Append(nomeCartao.Replace("CREDZ", "").Replace("VISA", ""));
+                    message.Append(nomeCartao);
                     message.Append(" por apenas R$");
-                    message.Append((simulate.ParcelResponse.FirstOrDefault().VlFull).ToString("N2"));
-                    message.Append(" a vista, ou parcele");
+                    message.Append(vlPgtVista.ToString("N2"));
+                    message.Append(" a vista ");
+                    message.Append(" ou parcele");
                     message.Append(" em http://fmc.digital/credz ou ligue 40034031");
+                    if (message.Length > 160)
+                    {
+                        message.Clear();
+                        message.Append(nome.Split(' ').FirstOrDefault());
+                        message.Append(" quite o seu ");
+                        message.Append(nomeCartao.Replace("CREDZ", "").Replace("VISA", ""));
+                        message.Append(" por apenas R$");
+                        message.Append(vlPgtVista.ToString("N2"));
+                        message.Append(" a vista, ou parcele");
+                        message.Append(" em http://fmc.digital/credz ou ligue 40034031");
+                    }
+                }
+                else
+                {
+                    var parcel = simulate.ParcelResponse.OrderByDescending(p => p.NrParcel).FirstOrDefault();
+                    message.Append(" quite o seu ");
+                    message.Append(nomeCartao);
+                    message.Append(" com uma entrada R$").Append(parcel.ValueEntrace.ToString("N2"));
+                    message.Append(" + ").Append(parcel.NrParcel).Append("x de R$");
+                    message.Append(parcel.VlParcel.ToString("N2"));
+                    message.Append(" em http://fmc.digital/credz ou ligue 40034031");
+                    if (message.Length > 160)
+                    {
+                        message.Clear();
+                        message.Append(" quite o seu ");
+                        message.Append(nomeCartao.Replace("CREDZ", "").Replace("VISA", ""));
+                        message.Append(" com uma entrada R$").Append(parcel.ValueEntrace.ToString("N2"));
+                        message.Append(" + ").Append(parcel.NrParcel).Append("x de R$");
+                        message.Append(parcel.VlParcel.ToString("N2"));
+                        message.Append(" em http://fmc.digital/credz ou ligue 40034031");
+                    }
                 }
 
             }

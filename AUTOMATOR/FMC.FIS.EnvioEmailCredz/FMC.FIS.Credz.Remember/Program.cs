@@ -233,7 +233,7 @@ try
                             if (product.Lead.Where(p => p.DtInsert >= DateTime.Today.AddDays(-1)).Count() > 0)
                             {
                                 Util.SaveFile("Enviando email quebra");
-                                //emails = product.Person.Email.Where(p => p.flBloqueado == false && Util.IsEmail(p.DsEmail)).Select(p => p.DsEmail).Distinct().ToList();
+                                objectSend.Email = product.Person.Email.Where(p => p.flBloqueado == false && Util.IsEmail(p.DsEmail)).Select(p => p.DsEmail).Distinct().ToList();
                                 var age = product.Lead.OrderByDescending(p => p.IdLead).FirstOrDefault().Age;
                                 objectSend.Discount = discounts.Where(p => (age >= p.MinAge && age <= p.MaxAge) && p.MaxParcel <= 1).FirstOrDefault();
                                 var envioEmailThread = new SendRemember(objectSend);
@@ -249,9 +249,9 @@ try
 
                                 var dtParcel = new List<DateTime> { DateTime.Today, DateTime.Today.AddDays(2), DateTime.Today.AddDays(-3), DateTime.Today.AddDays(-5), DateTime.Today.AddDays(-7) };
 
-                                if (envios.Count == 0 || (envios.Where(p => p.DtInsert >= DateTime.Today).Count() == 0 && dtParcel.Contains(currentParcel.DtParcel)))
+                                if (envios.Where(p => p.DtInsert >= DateTime.Today).Count() == 0 && dtParcel.Contains(currentParcel.DtParcel))
                                 {
-                                    Util.SaveFile("Enviando sms");
+                                    Util.SaveFile("Enviando sms/rcs");
                                     Billet billet = null;
 
                                     if (currentParcel.Billet != null && currentParcel.Billet.Count > 0)
@@ -275,16 +275,34 @@ try
                                         {
                                             Ag ag = RestApi.Get<Ag>("https://10.40.0.30/credz/api", "agreement/" + product.DsProduct);
                                             IList<string> origem = new List<string> { "1", "/", "ura", "ope", "rcs" };
-                                            if (origem.Contains(ag.Product.Navigation.DsOrigem))
+                                            if (origem.Contains(ag.Product.Navigation.DsOrigem) || emails.Count == 0)
                                             {
-                                                objectSend.Line = billet.Line;
-                                                objectSend.DtParcel = billet.DtBillet;
-                                                objectSend.Phone = SendRemember.GetPhone(product.Person);
-
-                                                if (!string.IsNullOrEmpty(objectSend.Phone))
+                                                if (string.IsNullOrEmpty(currentParcel.Agreement.CdParcelPlan) &&
+                                                    currentParcel.Agreement.IdAgreementStatus == 1 &&
+                                                    currentParcel.NrParcel == 0 && envios.Count == 0)
                                                 {
+                                                    objectSend.DtParcel = billet.DtBillet;
+                                                    objectSend.Line = billet.Line;
+                                                    objectSend.BilletUrl = billet.URL;
+                                                    objectSend.Value = billet.VlBillet;
+                                                    objectSend.Product = product;
+
+                                                    objectSend.Phone = SendRemember.GetPhone(product.Person);
                                                     var envioEmailThread = new SendRemember(objectSend);
-                                                    envioEmailThread.SendSMS();
+                                                    envioEmailThread.SendRCS();
+
+                                                }
+                                                else
+                                                {
+                                                    objectSend.Line = billet.Line;
+                                                    objectSend.DtParcel = billet.DtBillet;
+                                                    objectSend.Phone = SendRemember.GetPhone(product.Person);
+
+                                                    if (!string.IsNullOrEmpty(objectSend.Phone))
+                                                    {
+                                                        var envioEmailThread = new SendRemember(objectSend);
+                                                        envioEmailThread.SendSMS();
+                                                    }
                                                 }
                                             }
                                         }

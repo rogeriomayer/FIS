@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace FMC.WebSite.FIS.Utils
 {
+    /*
     public class AppSettings
     {
         public static string KeyGoogleMaps
@@ -178,4 +179,5 @@ namespace FMC.WebSite.FIS.Utils
             }
         }
     }
+    */
 }

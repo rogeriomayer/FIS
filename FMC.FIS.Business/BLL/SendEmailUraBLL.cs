@@ -19,5 +19,6 @@ namespace FMC.FIS.BLL
     public class SendEmailUraBLL : BLL<SendEmailUra, SendEmailUraDAO>
     {
 
+
     }
 }

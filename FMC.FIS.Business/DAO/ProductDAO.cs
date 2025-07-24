@@ -128,9 +128,9 @@ namespace FMC.FIS.Business.DAO
             query.Append(" 		on l.IdProduct = pr.IdProduct ");
             query.Append(" 		and l.DtInsert >= CONVERT(Date, getdate()-1) ");
             query.Append(" where  ru.dtLigacao >= CONVERT(Date, getdate() -15) ");
-            query.Append(" and pr.IdProduct not in (select IdProduct from CREDZ.SendEmailUra seu where seu.dtInsert > GETDATE() -2 and seu.IdProduct = pr.IdProduct ) ");
-            query.Append(" and pr.IdProduct not in (select IdProduct from CREDZ.SendRCS sr where sr.dtInsert > GETDATE() -2 and sr.IdProduct = pr.IdProduct) ");
-            query.Append(" and pe.NrCNPJCPF not in (select cpf from CREDZ.dbo.Navigation where DtInsert >= GETDATE() -1) ");
+            query.Append(" and pr.IdProduct not in (select IdProduct from CREDZ.SendEmailUra seu where seu.dtInsert > GETDATE() -15 and seu.IdProduct = pr.IdProduct ) ");
+            //query.Append(" and pr.IdProduct not in (select IdProduct from CREDZ.SendRCS sr where sr.dtInsert > GETDATE() -2 and sr.IdProduct = pr.IdProduct) ");
+            //query.Append(" and pe.NrCNPJCPF not in (select cpf from CREDZ.dbo.Navigation where DtInsert >= GETDATE() -1) ");
             query.Append(" order by Age desc ");
             return Context.FromSqlRaw(query.ToString()).ToList();
 

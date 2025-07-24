@@ -10,7 +10,7 @@ namespace FMC.Fis.Utils.API.Fis
     {
         //public static string URL { get { return "https://10.40.0.30/fis/api/"; } }
         //public static string URL { get { return "https://200.243.238.232/fis/api/"; } }
-        public static string URL { get { return "http://localhost:5831/api/"; } }
+        public static string URL { get { return "https://160.19.243.92/fis/api/"; } }
 
 
 

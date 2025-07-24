@@ -97,6 +97,8 @@ try
                                 {
                                     var lead = product.Lead.Where(p => p.DtInsert >= dtIni).OrderByDescending(p => p.IdLead).FirstOrDefault();
 
+                                    //if (product.Lead.Count > 1 && product.Lead.Where(p => p.DtInsert >= DateTime.Today.AddDays(-8)).Count() > 1)
+                                    //{
                                     if (lead != null && lead.Age > 77)
                                     {
 
@@ -121,7 +123,7 @@ try
                                         balance++;
                                         if (balance >= smtpServers.Count()) balance = 0;
                                     }
-
+                                    //}
                                 }
                                 catch (Exception ex)
                                 {

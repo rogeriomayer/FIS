@@ -6,7 +6,7 @@ namespace FMC.FIS.Business.Code.Api.RCS
 {
     public class InfobipRcsAPI
     {
-        public static SendRCSResponse SendSingle(IList<string> phones, ContentRoot content, Options options)
+        public static SendRCSResponse SendSingle(IList<string> phones, ContentRoot content, Options options, Webhooks webhooks)
         {
             var destinations = new List<Destination>();
             phones.ToList().ForEach(p => destinations.Add(new Destination() { to = "+55" + p }));
@@ -20,7 +20,8 @@ namespace FMC.FIS.Business.Code.Api.RCS
                         sender = "UDI2FMC",
                         destinations = destinations,
                         content = content,
-                        options = options
+                        options = options,
+                        webhooks = webhooks
                     }
                 );
 

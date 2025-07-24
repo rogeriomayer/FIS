@@ -16,7 +16,7 @@
 
         @using (Html.BeginForm(FormMethod.Post, new { @class = "form-cpf" }))
         {
-            <div class="portal-negociacao"><div class="logo-portal"><img src="~/images/negociar-agora/logo.png" /></div><div class="texto">PORTAL DE NEGOCIAÇÃO AUTORIZADO</div></div>
+            <div class="portal-negociacao"><div class="logo-portal"><img src="http://fmcbrasil.com.br/images/topo/logo-verde.png" /></div><div class="texto">PORTAL DE NEGOCIAÇÃO AUTORIZADO</div></div>
             @Html.TextBoxFor(p => _model.CpfCnpj, null, new { @class = "mask-cpf", placeholder = "Digite seu CPF ou CNPJ", maxlength = "18" })
             @Html.ValidationMessageFor(p => _model.CpfCnpj)
             <button type="submit" class="btn-negociar-agora">Consultar</button>

@@ -52,7 +52,7 @@ try
             smtpServers.Add(new KeyValuePair<string, int>("10.40.0.21", 25));
             smtpServers.Add(new KeyValuePair<string, int>("10.40.0.21", 25));
             smtpServers.Add(new KeyValuePair<string, int>("10.40.0.21", 25));
-            
+
             //smtpServers.Add(new KeyValuePair<string, int>("10.40.0.92", 26));
             //smtpServers.Add(new KeyValuePair<string, int>("10.40.0.94", 26));
             //smtpServers.Add(new KeyValuePair<string, int>("10.40.0.82", 25));
@@ -118,7 +118,6 @@ try
                                         balance++;
                                         if (balance >= smtpServers.Count()) balance = 0;
                                     }
-
                                 }
                                 catch (Exception ex)
                                 {

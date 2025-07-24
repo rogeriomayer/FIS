@@ -26,7 +26,7 @@ namespace FMC.FIS.API.Controllers
         {
             try
             {
-                var result = new ShortURLBLL().GetByCode(code, ip);
+                var result = new ShortURLBLL().GetByCode(code, Request.QueryString.Value.ToString());
 
                 if (result != null)
                 {

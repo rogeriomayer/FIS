@@ -16,14 +16,8 @@ namespace FMC.WebSite.FIS.Controllers.Class
         {
             try
             {
-                if (Convert.ToInt32(cardResponse.Age) > AppSettings.MaxPromisse)
-                {
-                    return Acordo(cardResponse, agreementSimulateRequest, simulaParcelamento, message, cache);
-                }
-                else
-                {
-                    return Promessa(cardResponse, agreementSimulateRequest, simulaParcelamento, message, cache);
-                }
+                return Acordo(cardResponse, agreementSimulateRequest, simulaParcelamento, message, cache);
+
             }
             catch (Exception ex)
             {
@@ -40,18 +34,18 @@ namespace FMC.WebSite.FIS.Controllers.Class
                 decimal vlEntrada = simulaParcelamento.Entrada.Contains(".") || simulaParcelamento.Entrada.Contains(",") ? Convert.ToDecimal(simulaParcelamento.Entrada.Replace(",", "").Replace(".", "")) / 100 : Convert.ToDecimal(simulaParcelamento.Entrada);
                 DateTime dataEntrada = (simulaParcelamento != null && simulaParcelamento.DataEntrada != null) ? Convert.ToDateTime(simulaParcelamento.DataEntrada) : DateTime.Today;
 
-                if (vlEntrada > 0 && vlEntrada < AppSettings.ValueEntranceParcel)
+                if (vlEntrada > Convert.ToDecimal(0.01) && vlEntrada < 70)
                 {
-                    message.Add("O valor da entrada não pode ser inferior a R$ " + AppSettings.ValueEntranceParcel.ToString("N2") + " por este motivo ele foi ajustado para o valor de entrada mínimo.");
-                    vlEntrada = AppSettings.ValueEntranceParcel;
-                    simulaParcelamento.Entrada = AppSettings.ValueEntranceParcel.ToString("N2");
+                    message.Add("O valor da entrada não pode ser inferior a R$70,00 por este motivo ele foi ajustado para o valor de entrada mínimo.");
+                    vlEntrada = 70;
+                    simulaParcelamento.Entrada = "50";
                 }
 
-                if (vlEntrada > 0 && vlEntrada > cardResponse.VlFull)
+                if (vlEntrada > Convert.ToDecimal(0.01) && vlEntrada > cardResponse.VlFull)
                 {
                     message.Add("O valor da entrada não pode ser superior a R$ " + cardResponse.VlFull.ToString("N2") + " por este motivo ele foi ajustado para o valor de entrada mínimo.");
-                    vlEntrada = AppSettings.ValueEntranceParcel;
-                    simulaParcelamento.Entrada = AppSettings.ValueEntranceParcel.ToString("N2");
+                    vlEntrada = 70;
+                    simulaParcelamento.Entrada = "70";
                 }
 
                 if (dataEntrada > DateTime.Today.AddDays(30))
@@ -132,7 +126,7 @@ namespace FMC.WebSite.FIS.Controllers.Class
                     DtEntrace = Convert.ToDateTime(simulaParcelamento.DataEntrada),
                     NrParcel = agreementSimulate.ParcelResponse != null ? agreementSimulate.ParcelResponse.Count : 0,//Convert.ToInt32(simulaParcelamento.Parcela),
                     FlPromisse = false,
-                    VlDiscount = AppSettings.Desconto,
+                    VlDiscount = 0,
                     DtFirstParcel = dtFirstParcel,
                     DtInsert = DateTime.Now,
                     FlProcess = false

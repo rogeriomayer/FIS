@@ -13,7 +13,7 @@ namespace FMC.WebSite.FIS.Utils
         {
             try
             {
-                string url = string.Format("https://maps.googleapis.com/maps/api/geocode/xml?key={0}&address={1}&sensor=false&language=pt", AppSettings.KeyGoogleMaps, cep.Trim());
+                string url = string.Format("https://maps.googleapis.com/maps/api/geocode/xml?key={0}&address={1}&sensor=false&language=pt", "AIzaSyDNQ2zh5zS8Kx-Zw8e6fUVZ8WtKvhgwKAE", cep.Trim());//AppSettings.KeyGoogleMaps, cep.Trim());
                 WebRequest request = WebRequest.Create(url);
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                 if (response.StatusCode == HttpStatusCode.OK)
@@ -26,7 +26,7 @@ namespace FMC.WebSite.FIS.Utils
                     string latitude = xd.Descendants("result").Descendants("geometry").Descendants("location").Elements("lat").FirstOrDefault().Value;
                     string longitude = xd.Descendants("result").Descendants("geometry").Descendants("location").Elements("lng").FirstOrDefault().Value;
 
-                    string url2 = string.Format("https://maps.googleapis.com/maps/api/geocode/xml?key={0}&latlng={1},{2}&sensor=true&language=pt", AppSettings.KeyGoogleMaps, latitude, longitude);
+                    string url2 = string.Format("https://maps.googleapis.com/maps/api/geocode/xml?key={0}&latlng={1},{2}&sensor=true&language=pt", "AIzaSyDNQ2zh5zS8Kx-Zw8e6fUVZ8WtKvhgwKAE", latitude, longitude);//AppSettings.KeyGoogleMaps, latitude, longitude);
                     WebRequest request2 = WebRequest.Create(url2);
                     HttpWebResponse response2 = (HttpWebResponse)request2.GetResponse();
                     if (response2.StatusCode == HttpStatusCode.OK)

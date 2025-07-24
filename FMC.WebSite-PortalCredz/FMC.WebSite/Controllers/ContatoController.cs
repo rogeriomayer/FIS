@@ -36,33 +36,6 @@ namespace FMC.WebSite.FIS.Controllers
             }
         }
 
-        [HttpPost]
-        [Route("Fale-Conosco")]
-        public JsonResult FaleConosco(Contato contato)
-        {
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    Utils.SendMail.ContactMail(contato);
-                    return Json(true);
-                }
-                else
-                {
-                    return Json(false);
-                }
-            }
-            catch (Exception e)
-            {
-                string erro = e.Message;
-                while(e.InnerException != null)
-                {
-                    e = e.InnerException;
-                    erro += Environment.NewLine + e.Message;
-                }
-                return Json(erro);
-            }
-        }
 
     }
 }
