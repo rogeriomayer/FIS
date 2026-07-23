@@ -30,7 +30,7 @@ namespace FMC.FIS.CREDZ.EnvioContatoUra
                 if (envioEmail.Email.Where(p => Util.IsEmail(p)).Count() > 0)
                 {
 
-                    if (envioEmail.Atraso >= 78)
+                    if (envioEmail.Atraso >= 84)
                     {
                         string body = GetBody(envioEmail);
 
@@ -174,7 +174,7 @@ namespace FMC.FIS.CREDZ.EnvioContatoUra
             body.Append("<br>");
             body.Append("<p><b>Equipe Negociador Credz</b></p>");
 
-            body.Append("<p><b>4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(demais regiões)</b></p>");
+            body.Append("<p><b>Whatsapp: <a href='https://wa.me/553496400333'>34 99640-0333</a> </b> </p>");
             body.Append("<p>");
             body.Append("<a href='https://fmc.digital/ecredz'>");
             body.Append("<img alt=\"\" style=\"width:100px\" src=\"https://negociadorcredz.fmcbrasil.com.br/images/topo/credz-logo-new.png\">");
@@ -331,7 +331,7 @@ namespace FMC.FIS.CREDZ.EnvioContatoUra
                     body.Append("<p>Esta oferta é válida até ").Append(DateTime.Today.AddDays(2).ToString("dd/MM/yyyy")).Append(" para pagamento até ").Append(avista.DtParcel.ToString("dd/MM/yyyy")).Append(".</p>");
                     body.Append("<p>Para aproveitar esta oferta ou simular outras condições acesse: <a href='https://fmc.digital/ecredz'>www.negociadorcredz.fmcbrasil.com.br</a> </p>");
                     body.Append("<p>Em caso de dúvidas, pode entrar em contato com nossa central de atendimento");
-                    body.Append(" nos telefones <b>4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(Demais Regiões)</b>.</p>");
+                    body.Append(" no Whatsapp: <a href='https://wa.me/553496400333'>34 99640-0333</a> </b>.</p>");
                     body.Append("<br>");
                     body.Append("<br>");
                     body.Append("<p>Caso já tenha efetuado o pagamento favor desconsiderar este e-mail.</p>");

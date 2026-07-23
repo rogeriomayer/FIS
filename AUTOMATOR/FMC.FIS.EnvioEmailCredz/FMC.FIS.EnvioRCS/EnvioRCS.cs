@@ -164,13 +164,13 @@ namespace FMC.FIS.EnvioEmailCredz
             AgreementSimulateResponse simulate = null;
             if (contrato != null)
             {
-                decimal vlParcel = 70;
+                decimal vlParcel = 99;
                 var parcela = 24;
                 for (int i = 24; i > 0; i--)
                 {
                     parcela = i;
                     vlParcel = (contrato.parcelas.FirstOrDefault().valor - (contrato.parcelas.FirstOrDefault().valor * (envioRCS.Desconto / 100))) / i;
-                    if (vlParcel > 70)
+                    if (vlParcel > 99)
                     {
                         break;
                     }
@@ -222,15 +222,15 @@ namespace FMC.FIS.EnvioEmailCredz
                 body.Append("Aproveite essa oferta que a Credz lhe oferece apenas nesse mês e renegocie sua dívida com um super desconto de R$").Append((avista.VlDiscount - 1).ToString("N2")).Append("");
                 body.Append(" para quitar seu ").Append(cartao).Append(" ").Append(nomeCartao).Append("");
                 body.Append(" por apenas R$").Append(avista.ValueEntrace.ToString("N2")).Append(" no pagamento a vista!");
-                if (avista.ValueEntrace > 400)
+                if (avista.ValueEntrace > 200)
                 {
-                    decimal vlParcel = 50;
+                    decimal vlParcel = 99;
                     var parcela = 24;
                     for (int i = 24; i > 0; i--)
                     {
                         parcela = i;
                         vlParcel = (simulate.VlFull - simulate.PctDiscount) / i;
-                        if (vlParcel > 50)
+                        if (vlParcel > 99)
                         {
                             break;
                         }
@@ -347,7 +347,7 @@ namespace FMC.FIS.EnvioEmailCredz
 
 
                 var contracts = CobmaisAPI.GetContratos(lead.Product.Person.NrCNPJCPF, "0", "0");
-
+                
                 if (contracts != null)
                 {
                     var contract = contracts.Where(p => p.numero_contrato == lead.Product.DsProduct).FirstOrDefault();
@@ -388,7 +388,7 @@ namespace FMC.FIS.EnvioEmailCredz
                             DtEntrace = DateTime.Today.AddDays(7),
                             PctDiscount = 0,
                             NrParcel = nrParcel,
-                            VlEntrace = 0,
+                            VlEntrace = 99,
                             Product = lead.Product.DsProduct,
                             CdSimulate = "",
                             ParcelaCredz = complementData,

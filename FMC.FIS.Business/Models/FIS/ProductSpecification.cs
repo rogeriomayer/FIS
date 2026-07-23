@@ -16,7 +16,7 @@ namespace FMC.FIS.Business.Models.FIS
         public byte IdProductType { get; set; }
 
         [Column("Logo", TypeName = "int")]
-        public int Logo { get; set; }
+        public int? Logo { get; set; }
 
         [Required]
         [StringLength(100)]
@@ -25,7 +25,7 @@ namespace FMC.FIS.Business.Models.FIS
 
         [StringLength(200)]
         [Column("UrlImage", TypeName = "varchar")]
-        public string UrlImage { get; set; }
+        public string? UrlImage { get; set; }
 
         public virtual IList<Product> Product { get; set; }
     }

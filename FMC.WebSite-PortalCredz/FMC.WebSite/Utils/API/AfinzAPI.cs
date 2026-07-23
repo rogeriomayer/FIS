@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 public class AfinzAPI
 {
-    private static string AFINZ_URL = "https://160.19.243.92/credz/api";//AppSettings.URL_API_AFINZ; 
+    private static string AFINZ_URL = "https://10.40.0.30/credz/api";
     public static Navigation SetNavigation(Navigation navigation)
     {
         try

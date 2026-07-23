@@ -264,7 +264,7 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
             body.Append("</html>");
             return body.ToString();
         }
-
+        /*
         private static AgreementSimulateResponse GetValueAgreement(Lead lead, Contrato contract)
         {
 
@@ -286,7 +286,7 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                         DtEntrace = DateTime.Today.AddDays(7),
                         PctDiscount = 0,
                         NrParcel = 1,
-                        VlEntrace = 0,
+                        VlEntrace = 99,
                         Product = lead.Product.DsProduct,
                         CdSimulate = "",
                         ComplementData = complementData
@@ -294,7 +294,7 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                     , Constants.ProductType.CREDZ
                 );
         }
-
+*/
     }
 
 

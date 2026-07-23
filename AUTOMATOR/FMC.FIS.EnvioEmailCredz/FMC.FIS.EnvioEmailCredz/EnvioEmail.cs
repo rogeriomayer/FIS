@@ -30,7 +30,7 @@ namespace FMC.FIS.EnvioEmailCredz
                 if (envioEmail.Email.Where(p => Util.IsEmail(p)).Count() > 0)
                 {
 
-                    if (envioEmail.Atraso >= 78)
+                    if (envioEmail.Atraso >= 84)
                     {
                         string body = GetBody(envioEmail);
 
@@ -48,10 +48,7 @@ namespace FMC.FIS.EnvioEmailCredz
                         }
                         */
 
-                        string title = "OFERTA " + envioEmail.NomeCartao;
-                        if (new List<int>() {78, 151, 181, 211, 281, 721 }.Contains(envioEmail.Atraso))
-                            title = "NOVO DESCONTO LIBERADO " + envioEmail.NomeCartao;
-
+                        string title = "Oferta especial para seu cartão " + envioEmail.NomeCartao.Replace("CREDZ", "") + " – pagamento facilitado";
                         if (SendMail(null, title, body, envioEmail.NomeCartao, smtp, email, senha, porta, envioEmail.Email))
                         {
                             string emails = "";
@@ -145,122 +142,143 @@ namespace FMC.FIS.EnvioEmailCredz
             }
         }
 
-
         private string GetBody(EnvioEmailSMS envioEmail)
         {
             StringBuilder body = new StringBuilder();
-            body.Append("<html>");
-            if (envioEmail.Lead.DebitBalance - (envioEmail.Lead.DebitBalance * (envioEmail.Desconto / 100)) < 300)
-                body = GetBody181_9999(envioEmail.Nome, envioEmail.NomeCartao, envioEmail.NumeroCartao, envioEmail.Desconto.ToString("N0"));
-            else if (envioEmail.Atraso <= 180)
-                body = GetBody78_180(envioEmail.Nome, envioEmail.NomeCartao, envioEmail.NumeroCartao);
-            /*else if (envioEmail.Atraso <= 89)
-                body = GetBody78_89(envioEmail.Nome, envioEmail.NomeCartao, envioEmail.NumeroCartao);
-            else if (envioEmail.Atraso <= 100)
-                body = GetBody90_100(envioEmail.Nome, envioEmail.NomeCartao, envioEmail.NumeroCartao);
-            else if (envioEmail.Atraso <= 119)
-                body = GetBody101_181(envioEmail.Nome, envioEmail.NomeCartao, envioEmail.NumeroCartao); */
-            else
-                body = GetBody181_9999(envioEmail.Nome, envioEmail.NomeCartao, envioEmail.NumeroCartao, envioEmail.Desconto.ToString("N0"));
 
-            if (body == null)
-                throw new Exception(envioEmail.NumeroCartao + " :conta não disponvivel!");
-
-            body.Append("<br>");
-            body.Append("<br>");
-            body.Append("<br>");
-            body.Append("<p><b>Equipe Negociador Credz</b></p>");
-
-            body.Append("<p><b>4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(demais regiões)</b></p>");
-            body.Append("<p>");
-            body.Append("<a href='https://fmc.digital/ecredz'>");
-            body.Append("<img alt=\"\" style=\"width:100px\" src=\"https://negociadorcredz.fmcbrasil.com.br/images/topo/credz-logo-new.png\">");
-            body.Append("</a>");
-            body.Append("</p>");
-
-            if (!string.IsNullOrEmpty(envioEmail.UrlCartao))
+            if (envioEmail.Lead.DebitBalance -
+                (envioEmail.Lead.DebitBalance * (envioEmail.Desconto / 100)) < 300)
             {
-                body.Append("<p>");
-                body.Append("<a href='https://fmc.digital/ecredz'>");
-                body.Append("<img alt=\"\"style=\"width:150px\" src=\"").Append(envioEmail.UrlCartao).Append("\"> ");
-                body.Append("</a>");
-                body.Append("</p>");
+                body = GetBody181_9999(
+                    envioEmail.Nome,
+                    envioEmail.NomeCartao,
+                    envioEmail.NumeroCartao,
+                    envioEmail.Desconto.ToString("N0"));
+            }
+            else if (envioEmail.Atraso <= 180)
+            {
+                body = GetBody78_180(
+                    envioEmail.Nome,
+                    envioEmail.NomeCartao,
+                    envioEmail.NumeroCartao);
+            }
+            else
+            {
+                body = GetBody181_9999(
+                    envioEmail.Nome,
+                    envioEmail.NomeCartao,
+                    envioEmail.NumeroCartao,
+                    envioEmail.Desconto.ToString("N0"));
             }
 
-            body.Append("<br>");
-            body.Append("<br>");
-            body.Append("<a href=\"http://fmcbrasil.com.br/descadastrar\" target=\"_blank\" rel=\"noopener noreferrer\" data-auth=\"NotApplicable\" style=\"color:#e60014; text-decoration:none\" data-linkindex=\"2\">Descadastre-se! <em>(Unsubscribe)</em></a>");
-            body.Append("<br>");
-            body.Append("<p><b>Evite fraudes com pagamento online:</b></p>");
-            body.Append("<p>1.Observe se os seus dados (nome,  CPF,  endereço) constantes no boleto estão corretos e se há algum erro de português ou formatação.</p>");
-            body.Append("<p>2.Verifique se os últimos números do código de barras correspondem ao valor do documento. Se forem diferentes, há uma grande chance de se tratar de uma fraude.");
-            body.Append("<p>3.Confira se os 3 primeiros números do código de barras correspondem ao banco cuja logomarca aparece no boleto.");
-            body.Append("<p>4.Sempre opte por pagar o boleto utilizando o leitor de códigos de barras disponível no aplicativo do seu banco. Em regra, boletos falsos possuem códigos de barras incompatíveis com esses leitores e obrigam a vítima a digitar o código número por número, manualmente, para efetivar o golpe.");
-            body.Append("<p>5.Ao fazer a leitura do código de barras, verifique se o nome o beneficiário é realmente da empresa/pessoa contratada.");
-            body.Append("<p>6.Sempre que possível, faça o download do boleto diretamente no site da empresa credora, utilizando, para tanto, uma conexão segura. Evite Wi-fi público. Se houver alguma suspeita, sempre entre em contato com a empresa.");
+            if (body == null)
+                throw new Exception(envioEmail.NumeroCartao + " : conta não disponível.");
+            // Observação se já pagou
+            body.Append("<p>Se já pagou, ignore este e-mail.</p>");
 
-            body.Append("<br>");
-            body.Append("<br>");
 
-            body.Append("<p>AVISO LEGAL ...Esta mensagem é destinada exclusivamente para a(s) pessoa(s) a quem é dirigida, podendo conter informação confidencial e/ou legalmente privilegiada.</p>");
-            body.Append("<p>Se você não for destinatário desta mensagem, desde já fica notificado de abster-se a divulgar, copiar, distribuir, examinar ou, de qualquer forma, utilizar a informação contida nesta mensagem, por ser ilegal. Caso você tenha recebido esta mensagem por engano, pedimos que nos retorne este E-Mail, promovendo, desde logo, a eliminação do seu conteúdo em sua base de dados, registros ou sistema de controle.</p>");
-            body.Append("<p>Fica desprovida de eficácia e validade a mensagem que contiver vínculos obrigacionais, expedida por quem não detenha poderes de representação. </p>");
-            body.Append("</html>");
+            // Assinatura
+            body.Append("<hr>");
+            body.Append("<p>Atenciosamente,<br><b>Equipe Negociador DM</b></p>");
+            body.Append("<p>Central de atendimento:<br>4003 4031 (Capitais e Regiões Metropolitanas)<br>0800 880 4031 (Demais Regiões)</p>");
+
+            // Logo
+            body.Append("<p><a href='https://fmc.digital/ecredz'><img alt='DM' style='width:60px' src='https://www.dmcardweb.com.br/src/public/images/brand/logo-dm.svg'></a></p>");
+            if (!string.IsNullOrEmpty(envioEmail.UrlCartao))
+            {
+                body.Append("<p><a href='https://fmc.digital/ecredz'><img alt='Cartão' style='width:150px' src='")
+                    .Append(envioEmail.UrlCartao).Append("'></a></p>");
+            }
+
+            // Rodapé legal
+            body.Append("<hr>");
+            body.Append("<p style='font-size:12px'>Você está recebendo este e-mail em razão de um relacionamento ativo ou recente com a DM / Credz. Caso não deseje mais receber comunicações eletrônicas, <a href='http://fmcbrasil.com.br/descadastrar'>clique aqui para cancelar o recebimento</a>.</p>");
+            body.Append("<p style='font-size:12px'>Recomendamos que pagamentos sejam realizados exclusivamente pelos canais oficiais. Antes de concluir qualquer pagamento, verifique os dados do beneficiário.</p>");
+            body.Append("<p style='font-size:11px; color:#666'>Esta mensagem é destinada exclusivamente ao destinatário indicado e pode conter informações confidenciais. Caso tenha recebido este e-mail por engano, por favor, desconsidere.</p>");
+
+
             return body.ToString();
         }
-
-
         private StringBuilder GetBody78_180(string nome, string cartao, string nomeCartao)
         {
             StringBuilder body = new StringBuilder();
             var contrato = GetContratos();
 
+            nomeCartao = nomeCartao.Replace("CREDZ", "");
+
             AgreementSimulateResponse simulate = null;
-            if (contrato != null)
+            ParcelResponse avista = null;
+            if (contrato == null)
+                return null;
+
+            simulate = GetValueAgreement(0, contrato);
+            avista = simulate.ParcelResponse.OrderBy(p => p.NrParcel).First();
+
+            decimal vlParcel = 90;
+            var parcela = 24;
+            for (int i = 24; i > 0; i--)
             {
-                decimal vlParcel = 50;
-                var parcela = 24;
-                for (int i = 24; i > 0; i--)
-                {
-                    parcela = i;
-                    vlParcel = (contrato.parcelas.FirstOrDefault().valor - (contrato.parcelas.FirstOrDefault().valor * (envioEmail.Desconto / 100))) / i;
-                    if (vlParcel > 70)
-                    {
-                        break;
-                    }
-                }
-                simulate = GetValueAgreement(parcela, contrato);
+                parcela = i;
+                vlParcel = (simulate.VlFull - simulate.PctDiscount) / i;
+                if (vlParcel > 90)
+                    break;
             }
 
-            //MUDANÇA EMAIL 2024-01-18
-            if (simulate != null && simulate.ParcelResponse != null && simulate.ParcelResponse.Count() > 0 && simulate.ParcelResponse.FirstOrDefault().VlParcel > 5)
+            //var parcelas = Convert.ToInt32(simulate.VlDue / 99);
+            //if (parcelas > 24) parcelas = 24;
+            simulate = GetValueAgreement(parcela, contrato);
+
+            if (simulate == null || simulate.ParcelResponse?.Any() != true)
+                return null;
+
+            var parcelado = simulate.ParcelResponse.First();
+
+
+            body.Append("<p>Olá ").Append(nome).Append(",</p>");
+
+            // Aviso de bloqueio + CPF/SPC/Serasa
+            body.Append("<p>Seu cartão <b>")
+                    .Append(cartao).Append(" ").Append(nomeCartao)
+                    .Append("</b> está bloqueado e seu CPF consta nos orgãos como SPC/Serasa. Faça já um acordo e regularize sua situação.</p>");
+
+            // Juros informativos
+            body.Append("<p>Lembre-se: enquanto não houver pagamento, os juros continuam sendo cobrados diariamente.</p>");
+
+            // Desconto (se > R$10)
+            if (avista.VlDiscount > 10)
             {
-                var parcela = simulate.ParcelResponse.FirstOrDefault();
-                body.Append("<html>");
-                body.Append("<p>Olá ").Append(nome).Append("</p>");
-                body.Append("<p>A Credz tem uma oferta especial para parcelamento do seu ");
-                body.Append("<b>").Append(cartao).Append(" ").Append(nomeCartao).Append("</b>");
-                body.Append(" pagando apenas uma entrada de <b>R$").Append(parcela.ValueEntrace.ToString("N2"));
-                body.Append("</b> e ").Append(parcela.NrParcel).Append(" parcelas de <b>R$");
-                body.Append(parcela.VlParcel).Append(" </b>.");
-                body.Append("<p>Não perca essa oportunidade, valida apenas em nosso portal!</p>");
-                body.Append("<p>Esta oferta é válida até ").Append(DateTime.Today.AddDays(2).ToString("dd/MM/yyyy")).Append(" para pagamento até ").Append(simulate.DateEntrace.ToString("dd/MM/yyyy")).Append(".</p>");
-                body.Append("<br>");
+                body.Append("<p>Para te ajudar, oferecemos um desconto especial de até <b>R$ ")
+                    .Append(avista.VlDiscount.ToString("N2"))
+                    .Append("</b> nas condições abaixo:</p>");
             }
             else
             {
-                return null;
+                body.Append("<p>Para te ajudar, oferecemos condições especiais de parcelamento para você regularizar sua situação.</p>");
             }
 
-            body.Append("<p>Para aproveitar esta oferta ou simular outras condições acesse: <a href='https://fmc.digital/ecredz'>www.negociadorcredz.fmcbrasil.com.br</a> </p>");
-            body.Append("<p>Em caso de dúvidas, pode entrar em contato com nossa central de atendimento");
-            body.Append(" nos telefones <b>4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(Demais Regiões)</b>.</p>");
-            body.Append("<br>");
-            body.Append("<br>");
-            body.Append("<p>Caso já tenha efetuado o pagamento favor desconsiderar este e-mail.</p>");
+            // Parcelamento
+            body.Append("<p><b>Parcelado:</b><br>");
+            body.Append("Entrada: R$ ").Append(parcelado.ValueEntrace.ToString("N2")).Append("<br> mais ");
+            body.Append(parcelado.NrParcel).Append(" parcelas de R$ ");
+            body.Append(parcelado.VlParcel.ToString("N2")).Append("</p>");
+
+            // Pagamento à vista
+            body.Append("<p><b>À vista:</b><br>");
+            body.Append("Valor total: R$ ").Append(avista.VlFull.ToString("N2")).Append("</p>");
+
+            // Datas de validade
+            body.Append("<p>Condições validas até ")
+                .Append(DateTime.Today.AddDays(2).ToString("dd/MM/yyyy"))
+                .Append(", para pagamento até ")
+                .Append(simulate.DateEntrace.ToString("dd/MM/yyyy")).Append(".</p>");
+
+            // Link para portal
+            body.Append("<p>Para negociar ou ver mais detalhes, acesse:<br>");
+            body.Append("<a href='https://fmc.digital/ecredz'>www.negociadorcredz.fmcbrasil.com.br</a></p>");
 
             return body;
         }
+
 
 
         private StringBuilder GetBody181_9999(string nome, string cartao, string nomeCartao, string desconto)
@@ -270,82 +288,66 @@ namespace FMC.FIS.EnvioEmailCredz
                 StringBuilder body = new StringBuilder();
                 AgreementSimulateResponse simulate = null;
 
+                //cartao = cartao.Replace("CREDZ", "");
                 var contrato = GetContratos();
                 if (contrato != null)
                     simulate = GetValueAgreement(0, contrato);
 
-
-                if (simulate != null && simulate.ParcelResponse != null && simulate.ParcelResponse.Count() > 0 && simulate.ParcelResponse.FirstOrDefault().VlParcel > 5)
+                if (simulate != null && simulate.ParcelResponse?.Any() == true && simulate.ParcelResponse.First().VlParcel > 5)
                 {
-                    var avista = simulate.ParcelResponse.OrderBy(p => p.NrParcel).FirstOrDefault();
-                    //var body = new StringBuilder();
+                    var avista = simulate.ParcelResponse.OrderBy(p => p.NrParcel).First();
+
                     body.Append("<html>");
-                    body.Append("<p>Olá ").Append(nome).Append("</p>");
+                    body.Append("<p>Olá ").Append(nome).Append(",</p>");
 
-                    if (avista.VlDiscount > 5)
-                    {
-                        body.Append("<p>Aproveite essa oferta que a Credz lhe oferece apenas nesse mês e renegocie sua dívida com um desconto de <b>R$").Append((avista.VlDiscount - 1).ToString("N2")).Append("</b>");
-                        body.Append(" para quitar seu <b>").Append(cartao).Append(" ").Append(nomeCartao).Append("</b>");
-                    }
-                    else
-                        body.Append("<p>Aproveite esta oportunidade e quite seu <b>").Append(cartao).Append(" ").Append(nomeCartao).Append("</b>");
+                    body.Append("<p>Consta em nosso sistema um débito relacionado ao seu ");
+                    body.Append("<b>").Append(cartao).Append(" ").Append(nomeCartao).Append("</b>.</p>");
 
-                    if (avista.ValueEntrace <= 200)
-                    {
-                        body.Append(" por apenas <b>R$").Append(avista.ValueEntrace.ToString("N2")).Append("</b> no pagamento a vista!</p>");
-                        body.Append("<p>Não perca essa oportunidade, valida apenas em nosso portal!</p>");
-                        body.Append("<br>");
-                        body.Append("<p>Temos também opções de parcelamento com um desconto que vale a pena conferir!</p>");
-                    }
+                    body.Append("<p>Para te ajudar regularizar sua situação e retirar seu CPF que consta nos orgãos como SPC/Serasa, oferecemos um desconto especial de até <b>R$ ")
+                   .Append(avista.VlDiscount.ToString("N2"))
+                   .Append("</b> nas condições abaixo:</p>");
 
-                    if (avista.ValueEntrace <= 200)
+                    body.Append("<p><b>Opção de pagamento à vista:</b><br>");
+                    body.Append("Valor: <b>R$ ").Append(avista.ValueEntrace.ToString("N2")).Append("</b></p>");
+
+                    if (avista.ValueEntrace > 200)
                     {
-                        body.Append(" por apenas <b>R$").Append(avista.ValueEntrace.ToString("N2")).Append("</b> no pagamento a vista!</p>");
-                        body.Append("<p>Não perca essa oportunidade, valida apenas em nosso portal!</p>");
-                        body.Append("<br>");
-                        body.Append("<p>Temos também opções de parcelamento com um desconto que vale a pena conferir!</p>");
-                    }
-                    else
-                    {
-                        decimal vlParcel = 50;
+                        decimal vlParcel = 99;
                         var parcela = 24;
                         for (int i = 24; i > 0; i--)
                         {
                             parcela = i;
                             vlParcel = (simulate.VlFull - simulate.PctDiscount) / i;
-                            if (vlParcel > 50)
-                            {
+                            if (vlParcel > 99)
                                 break;
-                            }
                         }
-                        simulate = GetValueAgreement(parcela, contrato);
-                        var parcelamento = simulate.ParcelResponse.OrderByDescending(p => p.NrParcel).FirstOrDefault();
-                        body.Append(" por apenas <b>R$").Append(avista.ValueEntrace.ToString("N2")).Append("</b> no pagamento <b>a vista</b>!</p>");
-                        body.Append("<p> Temos também opção de parcelamento com desconto de <b>R$").Append(parcelamento.VlDiscount.ToString("N2"));
-                        body.Append("</b>, pagando uma entrada de <b>R$").Append(parcelamento.ValueEntrace.ToString("N2"));
-                        body.Append("</b> e ").Append(parcelamento.NrParcel).Append(" parcelas de <b>R$");
-                        body.Append(parcelamento.VlParcel).Append(" </b>.");
-                        body.Append("</p><br>");
-                        body.Append("<p>Não perca essa oportunidade, valida apenas em nosso portal!</p>");
 
+                        //var parcelas = Convert.ToInt32(simulate.VlDue / 99);
+                        //if (parcelas > 24) parcelas = 24;
+                        simulate = GetValueAgreement(parcela, contrato);
+
+                        var parcelamento = simulate.ParcelResponse.OrderByDescending(p => p.NrParcel).First();
+
+                        body.Append("<p><b>Opção de parcelamento:</b><br>");
+                        body.Append("Entrada: <b>R$ ").Append(parcelamento.ValueEntrace.ToString("N2")).Append("</b><br> mais ");
+                        body.Append(parcelamento.NrParcel).Append(" parcelas de <b>R$ ");
+                        body.Append(parcelamento.VlParcel.ToString("N2")).Append("</b></p>");
                     }
 
-                    body.Append("<br>");
-                    body.Append("<p>Esta oferta é válida até ").Append(DateTime.Today.AddDays(2).ToString("dd/MM/yyyy")).Append(" para pagamento até ").Append(avista.DtParcel.ToString("dd/MM/yyyy")).Append(".</p>");
-                    body.Append("<p>Para aproveitar esta oferta ou simular outras condições acesse: <a href='https://fmc.digital/ecredz'>www.negociadorcredz.fmcbrasil.com.br</a> </p>");
-                    body.Append("<p>Em caso de dúvidas, pode entrar em contato com nossa central de atendimento");
-                    body.Append(" nos telefones <b>4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(Demais Regiões)</b>.</p>");
-                    body.Append("<br>");
-                    body.Append("<br>");
-                    body.Append("<p>Caso já tenha efetuado o pagamento favor desconsiderar este e-mail.</p>");
+                    body.Append("<p>Estas condições são validas até ");
+                    body.Append(DateTime.Today.AddDays(2).ToString("dd/MM/yyyy"));
+                    body.Append(", para pagamento até ");
+                    body.Append(avista.DtParcel.ToString("dd/MM/yyyy")).Append(".</p>");
+
+                    body.Append("<p>Para negociar ou verificar outras condições disponíveis, acesse:<br>");
+                    body.Append("<a href='https://fmc.digital/ecredz'>www.negociadorcredz.fmcbrasil.com.br</a></p>");
+
+                    return body;
                 }
-                else
-                {
-                    return null;
-                }
-                return body;
+
+                return null;
             }
-            catch (Exception ex)
+            catch
             {
                 return null;
             }
@@ -396,7 +398,7 @@ namespace FMC.FIS.EnvioEmailCredz
                             DtEntrace = DateTime.Today.AddDays(7),
                             PctDiscount = 0,
                             NrParcel = nrParcel,
-                            VlEntrace = 0,
+                            VlEntrace = 99,
                             Product = lead.Product.DsProduct,
                             CdSimulate = "",
                             ParcelaCredz = complementData,

@@ -13,5 +13,10 @@ namespace FMC.CREDZ.API.Code.Business.BLL
             return persistence.GetWsNavigationByPeriod(dateInitial, dateEnd);
         }
 
+        public Navigation GetNavigation(string cpf, string cdFrom, string dsOrigem, DateTime dtInsert)
+        {
+            return persistence.GetNavigation(cpf, cdFrom, dsOrigem, dtInsert);
+        }
+
     }
 }

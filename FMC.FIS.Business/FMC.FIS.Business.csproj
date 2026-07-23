@@ -58,12 +58,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Folder Include="Models\Digicob\" />
 		<Folder Include="Properties\" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\..\..\BoletoNetCore-master\BoletoNetCore-master\BoletoNetCore.Pdf\BoletoNetCore.Pdf.csproj" />
-	  <ProjectReference Include="..\..\..\BoletoNetCore-master\BoletoNetCore-master\BoletoNetCore\BoletoNetCore.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -67,7 +67,7 @@ namespace FMC.Fis
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             //app.UseHttpContextItemsMiddleware();

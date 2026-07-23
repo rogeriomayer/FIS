@@ -34,6 +34,25 @@ public class RestApi
 
     }
 
+    public static string PostHttpClients1()
+    {
+        HttpClientHandler clientHandler = new HttpClientHandler();
+        clientHandler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; };
+        clientHandler.SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 | System.Security.Authentication.SslProtocols.Tls11;
+        clientHandler.UseDefaultCredentials = true;
+
+        HttpClient client = new HttpClient(clientHandler);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://smartsms.bvtelecom.com.br/webhook/api/delivery/single-sms");
+        request.Headers.Add("ApiKey", "522f56e0-a4dc-4a44-b78a-bb0bbd773368");
+        var content = new StringContent("{\"celular\":\"34996780810\",\"mensagem\":\"teste credz\"}\r\n   ", null, "application/json");
+        request.Content = content;
+        var response = client.SendAsync(request).GetAwaiter().GetResult();
+
+        return response.Content.ToString();
+
+    }
+
     public static Resp GetHttpClients<Resp>(string uri, Dictionary<string, string> parameters = null)
     {
         try

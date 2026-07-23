@@ -45,6 +45,7 @@ namespace FMC.FIS.GenerateScore
             }
         }
 
+        /*
         public static decimal GenerateScore(Lead lead)
         {
             try
@@ -90,7 +91,7 @@ namespace FMC.FIS.GenerateScore
             {
                 return 0;
             }
-        }
+        }*/
     }
 }
 

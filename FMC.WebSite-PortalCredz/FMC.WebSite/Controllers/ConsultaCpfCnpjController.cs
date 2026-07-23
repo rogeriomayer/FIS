@@ -603,13 +603,13 @@ namespace FMC.WebSite.FIS.Controllers
 
 
                     //decimal vlEntrada = Convert.ToInt32((conta.VlFull - (conta.VlFull * (pctDiscount / 100))) / 2);
-                    decimal vlEntrada = 70;
+                    decimal vlEntrada = 99;
                     DateTime dtEntrada = DateTime.Today.AddDays(7);
 
                     simulaParcelamento = new SimulaParcelamento()
                     {
                         DataEntrada = dtEntrada.DayOfWeek == DayOfWeek.Sunday ? dtEntrada.AddDays(1).ToString("dd/MM/yyyy") : dtEntrada.ToString("dd/MM/yyyy"),
-                        Entrada = vlEntrada < 70 ? Convert.ToDecimal(70).ToString("N2") : vlEntrada.ToString("N2"),
+                        Entrada = vlEntrada < 99 ? Convert.ToDecimal(99).ToString("N2") : vlEntrada.ToString("N2"),
                         FixedEntraceValue = true
                         //Parcela = "0"
                     };
@@ -954,6 +954,17 @@ namespace FMC.WebSite.FIS.Controllers
 
                 cache.Remove("produto");
                 cache.AddCache("produto", new Produto() { CodProduto = conta.Account, NomeProduto = "IBI" });
+
+                cache.Remove("Agreement");
+                cache.AddCache("Agreement", new Agreement()
+                {
+                    DtEntrace = acordo.DtEntrace,
+                    NrParcel = acordo.QtParcel,
+                    VlEntrace = acordo.VlEntrace,
+                    VlParcel = acordo.VlParcel
+                }
+                );
+
 
                 BilletResponse boleto = null;
                 if (parcelaAtual != null && parcelaAtual.BilletResponse.Count > 0)
@@ -1323,29 +1334,28 @@ namespace FMC.WebSite.FIS.Controllers
                                         string cpfCnpj = Regex.Replace(model.CpfCnpj, @"[^\d]", "");
 
                                         Agreement agreement = cache.Get<Agreement>("Agreement");
-                                        if (agreement != null)
-                                        {
-                                            DateTime dtEntrace = agreement.DtEntrace;
-                                            decimal value = (agreement.VlEntrace > 0) ? agreement.VlEntrace : agreement.VlParcel;
-                                        }
-                                        /*
-                                        var billetRequest = new SendSMSRequest
-                                        {
-                                            idProduct = agreement.IdProduct,
-                                            cpf = cpf,
-                                            codBillet = boleto.CdAgreement,
-                                            parcel = boleto.Parcel,
-                                            dtPayment = boleto.DtBillet,
-                                            phone = nphone,
-                                            idUserLogin = 1
-                                        };
-                                        var billetResponse = FisAPI.SendBilletSMS(billetRequest, 1, "");
 
-                                        */
+                                        var parcel = boleto.Parcel;
+                                        string txtParcel = "";
+                                        if (parcel == 0)
+                                            if (agreement != null && agreement.NrParcel == 0)
+                                            {
+                                                txtParcel = "";
+                                            }
+                                            else
+                                                txtParcel = " da entrada";
+                                        else
+                                            txtParcel = " da parcela " + (parcel + 1).ToString();
 
                                         var ret = FisAPI.SendBilletSMS
                                             (
-                                            new SMSRequest() { phone = nphone, message = "Segue linha digitavel para pagamento " + (boleto != null ? boleto.Line : cache.Get<string>("linhaDigitavel")) }
+                                            new SMSRequest()
+                                            {
+                                                phone = nphone,
+                                                message = "CREDZ:Segue linha digitavel para pagamento" + txtParcel
+                                            + " do seu acordo. "
+                                            + (boleto != null ? boleto.Line : cache.Get<string>("linhaDigitavel"))
+                                            }
                                             , 3, "");
 
                                         #region Log Billet

@@ -1,6 +1,7 @@
 namespace FMC.CREDZ.API.Models
 {
     using System;
+    using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.ComponentModel.DataAnnotations.Schema;
 
@@ -42,9 +43,7 @@ namespace FMC.CREDZ.API.Models
         public virtual Navigation Navigation { get; set; }
         // [ForeignKey("IdSystem")]
 
-        //[DataMember]
-        //public virtual ICollection<Simulate> Simulate { get; set; }
-        //[DataMember]
-        //public virtual ICollection<Agreement> Agreement { get; set; }
+        public virtual ICollection<Simulate> Simulate { get; set; }
+        public virtual ICollection<Agreement> Agreement { get; set; }
     }
 }

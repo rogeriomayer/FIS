@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FMC.FIS.Business.Code.Api.Cobmais;
+using FMC.FIS.Business.Code.Api.Digicob;
 
 namespace FMC.FIS.Business.BLL
 {
@@ -321,29 +322,38 @@ namespace FMC.FIS.Business.BLL
             {
                 try
                 {
-                    var personCobmais = CobmaisAPI.GetPessoa(cpf);
-                    IList<Models.Cobmais.Contrato> cobmaisContracts = null;
-                    if (personCobmais != null)
+
+                    var contractDigicob =  new DigicobAPI().GetContractAsync(cpf, "").GetAwaiter().GetResult();
+                    if (contractDigicob != null)
                     {
-                        FillPersonDataCredz(personCobmais, personResponse);
-                        cobmaisContracts = CobmaisAPI.GetContratos(cpf, "0", "0");
+                        FillCardsDigicob(products, contractDigicob.ToList(), person, personResponse);
+                    }
+                    else
+                    {
+                        var personCobmais = CobmaisAPI.GetPessoa(cpf);
+                        IList<Models.Cobmais.Contrato> cobmaisContracts = null;
+                        if (personCobmais != null)
+                        {
+                            FillPersonDataCredz(personCobmais, personResponse);
+                            cobmaisContracts = CobmaisAPI.GetContratos(cpf, "0", "0");
+                        }
+
+                        if (personCobmais == null && (cobmaisContracts == null || cobmaisContracts.Count == 0))
+                            return null;
+
+                        if (person == null)
+                        {
+                            person = CreatePersonCredz(personCobmais, cobmaisContracts);
+
+                            products = person.Product.Where(p => p.IdProductType == Convert.ToByte(productType)).Select(p => p.DsProduct).ToList();
+
+                            personResponse = CreatePersonResponse(person, products);
+                        }
+                        FillCardsCredz(products, cobmaisContracts, person, personResponse);
                     }
 
-                    if (personCobmais == null && (cobmaisContracts == null || cobmaisContracts.Count == 0))
-                        return null;
 
-                    if (person == null)
-                    {
-                        person = CreatePersonCredz(personCobmais, cobmaisContracts);
-
-                        products = person.Product.Where(p => p.IdProductType == Convert.ToByte(productType)).Select(p => p.DsProduct).ToList();
-
-                        personResponse = CreatePersonResponse(person, products);
-                    }
-
-
-
-                    FillCardsCredz(products, cobmaisContracts, person, personResponse);
+                    
                 }
                 catch (Exception ex)
                 {
@@ -810,6 +820,101 @@ namespace FMC.FIS.Business.BLL
             }
         }
 
+        private void FillCardsDigicob(IList<string> products, IList<Digicob.DM.Models.ContractResponse> digicobContracts, Person person, Models.Customer.PersonResponse personResponse)
+        {
+
+            //var cobmaisContracts = CobmaisAPI.GetContratos(cpf, "0", "0");
+
+            if (digicobContracts != null && digicobContracts.Count > 0)
+            {
+                foreach (var contract in digicobContracts)
+                {
+                    //verificar se ExternalContractId é realmente o numero do contrato
+                    CardResponse card = personResponse.Cards.Where(p => p.Account == contract.ExternalContractId).FirstOrDefault();
+                    if (card == null)
+                    {
+                        personResponse.Cards = CreateCardResponse(person, products);
+                        card = personResponse.Cards.Where(p => p.Account == contract.ExternalContractId).FirstOrDefault();
+                    }
+                    if (card != null)
+                    {
+                        //var parcelas = contract.parcelas.ToList();
+                        var parcelas = contract.Collections.ToList();
+
+                        if (parcelas != null && parcelas.Count > 0)
+                        {
+                            //var valor = parcelas.Sum(p => p.valor);
+                            var vencimento = parcelas.OrderBy(p => p.DueDate).FirstOrDefault().DueDate;
+
+                            card.VlDue = contract.PrincipalValue.Value;
+                            card.DtDue = vencimento;
+
+                            //var saldoTotal = contract.dados_adicionais.Where(p => p.nome == "Saldo Total").FirstOrDefault();
+                            //card.VlFull = saldoTotal != null ? Convert.ToDecimal(saldoTotal.valor) : valor;
+                            card.VlFull = contract.UpdatedValue.Value;
+                            //var minimo = contract.dados_adicionais.Where(p => p.nome == "Valor de Pagamento Mínimo").FirstOrDefault();
+                            //card.VlMinimum = minimo != null ? Convert.ToDecimal(minimo.valor) : valor;
+                            card.VlMinimum = contract.PrincipalValue.Value;
+                            card.Age = DateTime.Today.Subtract(vencimento.Value).Days;
+
+                            /*
+                            foreach (var parcela in parcelas)
+                            {
+                                card.ParcelaCredz.Add
+                                    (
+                                        new ParcelaCredz()
+                                        {
+                                            id_parcela_original = parcela.id,
+                                            negociacao_id = contract.negociacao_id,
+                                            numero_parcela_original = parcela.numero,
+                                            vencimento = parcela.vencimento,
+                                            valor = parcela.valor
+                                        }
+                                    );
+                            }
+
+                            */
+                            /*
+                            card.ComplementData.Add(new ComplementData() { Name = "id_parcela_original", Value = parcelas.OrderBy(p => p.vencimento).FirstOrDefault().id.ToString() });
+                            card.ComplementData.Add(new ComplementData() { Name = "negociacao_id", Value = contract.negociacao_id.ToString() });
+                            card.ComplementData.Add(new ComplementData() { Name = "numero_parcela_original", Value = parcelas.OrderBy(p => p.vencimento).FirstOrDefault().numero.ToString() });
+                            */
+                        }
+
+
+                        //string finalCartao = contract.dados_adicionais.Where(p => p.nome == "Final Número Cartão").Count() > 0 ? contract.dados_adicionais.Where(p => p.nome == "Final Número Cartão").FirstOrDefault().valor : "";
+
+                        /* Verificar o numero do cartão e nome do cartão*/
+                        card.CardNumber = contract.Product;
+                        //card.CardNumber = Convert.ToInt64(contract.product).ToString().Substring(0, 6).PadRight(finalCartao.Length >= 3 ? 12 : 16, '*') + finalCartao;
+                        card.CardName = contract.Store;
+                        //card.CardName = String.IsNullOrEmpty(contract.filial_descricao) ? (string.IsNullOrEmpty(card.CardName) ? "CredZ" : card.CardName) : contract.filial_descricao;
+
+                        /*
+                         * Alteração DIGICOB
+                         var cobrador = contract.dados_adicionais.Where(p => p.nome.ToUpper() == "COBRADOR").FirstOrDefault();
+                        if (cobrador.valor == "ZZZ")
+                            card.AvailableBilling = false;
+                        else
+                        {
+                            var unvailableBilling = new UnvailableBillingBLL().GetByProduct(contract.numero_contrato);
+                            card.AvailableBilling = unvailableBilling != null ? false : true;
+                        }
+                        */
+
+
+                        ///validar acordos
+
+                        FillAgreementDigicob(personResponse.CPF, ref card, contract);
+                    }
+                }
+            }
+            else
+            {
+                personResponse.Cards.ToList().ForEach(p => p.AvailableBilling = false);
+            }
+        }
+
         private void FillAgreementCredz(string cpf, ref Models.Customer.CardResponse cardResponse, Models.Cobmais.Contrato contrato)
         {
             try
@@ -947,6 +1052,143 @@ namespace FMC.FIS.Business.BLL
                 return;
             }
         }
+
+        private void FillAgreementDigicob(string cpf, ref Models.Customer.CardResponse cardResponse,Digicob.DM.Models.ContractResponse contrato)
+        {
+            try
+            {
+                //var acordos = CobmaisAPI.GetAcordos(cpf);
+                var acordo = contrato.Agreements.OrderByDescending(p => p.CreatedAt).FirstOrDefault();
+                var idProduct = cardResponse.IdProduct;
+
+                IList<int> statusAtivos = new List<int>() { 1, 3, 6, 10 };
+
+                /*
+                 var parcelaOriginal = cardResponse.ParcelaCredz.OrderByDescending(p => p.id_parcela_original).FirstOrDefault();
+                Models.Cobmais.Acordo acordo = null;
+                if (parcelaOriginal != null)
+                {
+                    acordo = acordos.Where(p => p.id == contrato.parcelas.Select(p => p.acordo_id).FirstOrDefault()).FirstOrDefault();
+
+                    if (acordo == null)
+                        acordo = acordos.Where(p => p.parcelas_originais.Where(po => po.id == Convert.ToInt64(parcelaOriginal.id_parcela_original)).Any()).OrderByDescending(p => p.id).FirstOrDefault();
+                    //acordo = acordos.Where(p => p.parcelas_originais.Where(po => po.id == Convert.ToInt64(parcelaOriginal.Value)).Any()).OrderByDescending(p => p.id).FirstOrDefault();
+
+
+                    if (acordo == null)
+                        acordo = acordos.Where(p => p.parcelas_originais.FirstOrDefault().id == contrato.parcelas.FirstOrDefault().id).FirstOrDefault();
+                */
+
+                if (acordo != null)
+                {
+
+                    AgreementResponse agreementResponse = cardResponse.StatusLeadResponse.Where(p => p.AgreementResponse != null && p.AgreementResponse.CdAgreement == acordo.Id.ToString()).OrderByDescending(p => p.IdStatusLead).Select(p => p.AgreementResponse).FirstOrDefault();
+
+                    // var unvailableBilling = new UnvailableBillingBLL().GetByProduct(contrato.numero_contrato);
+
+                    // cardResponse.AvailableBilling = unvailableBilling != null ? false : !statusAtivos.Contains(acordo.status_id.Value);
+
+                    if (agreementResponse != null && agreementResponse.CdAgreement == acordo.Id.ToString())
+                    {
+                        //if (agreementResponse.IdAgreementStatus != acordo.status_id)
+                        //   new AgreementBLL().UpdateAgreementStatus(agreementResponse.IdAgreement, acordo.status_id.Value);
+
+                        //if (statusAtivos.Contains(acordo.status_id.Value))
+                        if (acordo.Status == "Aberto")
+                        {
+
+                            cardResponse.AvailableBilling = false;
+                            if (acordo.Installments.Count() > 0)
+                            {
+                                agreementResponse.VlEntrace = acordo.Installments.Where(p => p.Number == 1).FirstOrDefault().Value;
+                                agreementResponse.DtEntrace = acordo.Installments.Where(p => p.Number == 1).FirstOrDefault().DueDate;
+                                agreementResponse.PcDiscount = acordo.DiscountValue;
+                                agreementResponse.QtParcel = acordo.InstallmentCount;
+                                if (acordo.InstallmentCount > 1 && acordo.Installments.Count() > 1)
+                                    agreementResponse.VlParcel = acordo.Installments.Where(p => p.Number == 2).FirstOrDefault().Value;
+                                agreementResponse.VlAgreement = acordo.TotalValue;
+                                agreementResponse.CdAgreement = acordo.Id.ToString();
+                                agreementResponse.DtInsert = acordo.CreatedAt;
+                                agreementResponse.Status = acordo.Status;
+                            }
+                            else
+                            {
+                                agreementResponse.VlEntrace = acordo.TotalValue;
+                                agreementResponse.DtEntrace = acordo.DownPaymentDate.Value;
+                                agreementResponse.PcDiscount = acordo.DiscountValue;
+                                agreementResponse.QtParcel = acordo.InstallmentCount;
+                                if (acordo.InstallmentCount > 1 && acordo.Installments.Count() > 1)
+                                    agreementResponse.VlParcel = acordo.Installments.Where(p => p.Number == 2).FirstOrDefault().Value;
+                                agreementResponse.VlAgreement = acordo.TotalValue;
+                                agreementResponse.CdAgreement = acordo.Id.ToString();
+                                agreementResponse.DtInsert = acordo.CreatedAt;
+                                agreementResponse.Status = acordo.Status;
+                            }
+                            foreach (var parcel in agreementResponse.AgreementParcelResponse)
+                            {
+                                if (!parcel.BilletResponse.Any())
+                                {
+                                    var boleto = acordo.Installments.Where(p => p.DueDate.Date == parcel.DtParcel.Date).FirstOrDefault().Billets.FirstOrDefault();
+                                    if (boleto != null)
+                                    {
+                                        var newBillet = new BilletBLL().Add
+                                            (
+                                                new Models.FIS.Billet()
+                                                {
+                                                    IdAgreementParcel = parcel.IdAgreementParcel,
+                                                    CdAgreement = acordo.Id.ToString(),
+                                                    Barcode = boleto.Barcode,
+                                                    Line = boleto.PaymentLine,
+                                                    DocumentNumber = boleto.OurNumber,
+                                                    DtBillet = boleto.DueDate,
+                                                    IdProduct = idProduct,
+                                                    CdBillet = boleto.Id.ToString(),
+                                                    URL = boleto.BilletUrl,
+                                                    VlBillet = boleto.Value,
+                                                    DtInsert = DateTime.Now
+                                                }
+                                            );
+                                        parcel.BilletResponse.Add
+                                            (
+                                                new BilletResponse()
+                                                {
+                                                    IdBillet = newBillet.IdBillet,
+                                                    IdProduct = newBillet.IdProduct,
+                                                    IdAgreementParcel = newBillet.IdAgreementParcel,
+                                                    IdPromisse = newBillet.IdPromisse,
+                                                    VlBillet = newBillet.VlBillet,
+                                                    DtBillet = newBillet.DtBillet,
+                                                    Barcode = newBillet.Barcode,
+                                                    Line = newBillet.Line,
+                                                    DocumentNumber = newBillet.DocumentNumber,
+                                                    DtInsert = newBillet.DtInsert,
+                                                    CdAgreement = newBillet.CdAgreement,
+                                                    CdBillet = newBillet.CdBillet,
+                                                    URL = newBillet.URL,
+                                                    NrSendEmail = newBillet.BilletEmail.Count(),
+                                                    NrSendSMS = newBillet.BilletSMS.Count(),
+                                                    Parcel = newBillet.AgreementParcel != null ? newBillet.AgreementParcel.NrParcel : 0
+                                                }
+                                            );
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                    //else
+                    //{
+                    //    var newStatusLead = AddAgreementAPI(cardResponse.IdLead, cardResponse.IdProduct, acordo);
+                    //    cardResponse.StatusLeadResponse.Add(StatusLeadBLL.CreateStatusLeadResponse(newStatusLead));
+                    //}
+                }
+            }
+            catch (Exception ex)
+            {
+                return;
+            }
+        }
+
 
         private Models.FIS.StatusLead AddAgreementAPI(long idLead, long idProduct, FMC.FIS.Business.Models.Cobmais.Acordo acordo)
         {

@@ -29,7 +29,7 @@ namespace FMC.FIS.Credz.Remember
         internal void SendSMSPagamento()
         {
             StringBuilder message = new StringBuilder();
-            message.Append("CREDZ: Pagamento recebido, segue linha digitavel para pagamento da proxima parcela:").Append(_objectSend.Line);
+            message.Append("CREDZ: Pagamento recebido, segue linha digitavel da proxima parcela:").Append(_objectSend.Line).Append(" Whatsapp: https://wa.me/553496400333");
 
             var ret = new BvSmsBLL().SmsSingle
                            (
@@ -59,12 +59,13 @@ namespace FMC.FIS.Credz.Remember
         internal static string SmsText()
         {
             StringBuilder message = new StringBuilder();
-            message.Append("CREDZ: ").Append(_objectSend.Name.Split(' ').FirstOrDefault());
+            var name = _objectSend.Name.Split(' ').FirstOrDefault();
+            message.Append("CREDZ: ").Append(name.Length > 16 ? name.Substring(0, 15) : name);
 
             if (_objectSend.DtParcel <= DateTime.Today)
-                message.Append(" evite novas negativações no CPF e encargos no cartão, pague agora mesmo seu acordo: ").Append(_objectSend.Line);
+                message.Append(" pague seu acordo agora e evite negativacoes no CPF e encargos: Pegue o boleto no Whatspp 34984412412 ou https://wa.me/5534984412412");//.Append(_objectSend.Line);
             else
-                message.Append(" segue a linha digitavel para pagamento do seu acordo: ").Append(_objectSend.Line);
+                message.Append(" segue a linha digitavel para pagamento do seu acordo: ").Append(_objectSend.Line).Append(" ou no Whatspp 34996400333");
 
             return message.ToString();
         }
@@ -228,8 +229,9 @@ namespace FMC.FIS.Credz.Remember
 
                 body.Append("<p>Você também pode retirar a segunda no nosso potal.</p>");
                 body.Append("<p>Acesse agora: <a href='https://fmc.digital/ecredz'>www.negociadorcredz.fmcbrasil.com.br</a> </p>");
-                body.Append("<p>ou diretamente no link abaixo.</p>");
+                body.Append("<p>ou diretamente no link abaixo</p>");
                 body.Append("<p>").Append("<a href='" + _objectSend.BilletUrl + "'>" + _objectSend.BilletUrl + "</a>").Append("</p>");
+                body.Append("<p>ou pelo Whatsapp: <a href='https://wa.me/553496400333'>34999983742</a> </p>");
                 body.Append("<br>");
             }
             body.Append("<br>");
@@ -274,13 +276,14 @@ namespace FMC.FIS.Credz.Remember
             {
                 body.Append("<p>Segue o boleto para pagamento ");
             }
-            if (_objectSend.Parcel == 0)
+            /*if (_objectSend.Parcel == 0)
                 if (_objectSend.aVista)
                     body.Append("do seu acordo no valor de R$").Append(_objectSend.Value.ToString("N2"));
                 else
                     body.Append("da entrada do seu acordo no valor de R$").Append(_objectSend.Value.ToString("N2"));
-            else
-                body.Append("da parcela ").Append(_objectSend.Parcel + 1).Append(" do seu acordo no valor de R$").Append(_objectSend.Value.ToString("N2"));
+            else*/
+            body.Append("da parcela ")/*.Append(_objectSend.Parcel + 1)*/
+                .Append(" do seu acordo no valor de R$").Append(_objectSend.Value.ToString("N2"));
 
             body.Append(" referente ao cartão ").Append(_objectSend.CardNumber).Append(" ").Append(_objectSend.CardName).Append(" com vencimento em ").Append(_objectSend.DtParcel.ToString("dd/MM/yyyy"));
             body.Append("</p>");
@@ -312,8 +315,13 @@ namespace FMC.FIS.Credz.Remember
 
             body.Append("<p>Você também pode retirar a segunda no nosso potal.</p>");
             body.Append("<p>Acesse agora: <a href='https://fmc.digital/ecredz'>www.negociadorcredz.fmcbrasil.com.br</a> </p>");
-            body.Append("<p>ou diretamente no link abaixo.</p>");
-            body.Append("<p>").Append("<a href='" + _objectSend.BilletUrl + "'>" + _objectSend.BilletUrl + "</a>").Append("</p>");
+            body.Append("<p>ou diretamente no link abaixo,</p>");
+            if (_objectSend.DtParcel < DateTime.Today)
+                body.Append("<p>").Append("<a href='" + _objectSend.BilletUrl + "'>" + _objectSend.BilletUrl + "</a>").Append("</p>");
+            if (_objectSend.DtParcel < DateTime.Today)
+                body.Append("<p>ou pelo Whatsapp: <a href='https://zaps.chat/r/credz'>34 99640 0333</a> </p>");
+            else
+                body.Append("<p>ou pelo Whatsapp: <a href='https://wa.me/5534984412412'>34 98441-2412</a> </p>");
             body.Append("<br>");
             body.Append("<br>");
             body.Append("<br>");
@@ -321,7 +329,6 @@ namespace FMC.FIS.Credz.Remember
             body.Append("<br>");
             body.Append("<br>");
             body.Append("<p><b>Equipe Negociador Credz</b></p>");
-            body.Append("<p><b>4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(demais regiões)</b></p>");
             body.Append("<p><img alt=\"\" style=\"width:100px\" src=\"https://negociadorcredz.fmcbrasil.com.br/images/topo/credz-logo-new.png\"></p>");
             if (!string.IsNullOrEmpty(_objectSend.CardUrl))
                 body.Append("<p><img alt=\"\" style=\"width:150px\" src=\"").Append(_objectSend.CardUrl).Append("\">  </p>");
@@ -577,14 +584,16 @@ namespace FMC.FIS.Credz.Remember
                 body.Append("basta clicar no link abaixo.</p>");
                 body.Append("<p>Portal Negociação Credz: <a href='https://fmc.digital/ecredz'>www.negociadorcredz.fmcbrasil.com.br</a> </p>");
                 body.Append("<p>Em caso de dúvidas, pode entrar em contato com nossa central de atendimento");
-                body.Append(" nos telefones <b>4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(Demais Regiões)</b>.</p>");
+                //body.Append(" nos telefones <b>4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(Demais Regiões)</b>.</p>");
+                body.Append("<p>Ou pelo <b>Whatsapp: <a href='https://wa.me/553496400333'>34 99640-0333</a> </b> </p>");
                 body.Append("<br>");
                 body.Append("<br>");
                 body.Append("<p>Caso já tenha efetuado o pagamento favor desconsiderar este e-mail.</p>");
                 body.Append("<br>");
                 body.Append("<br>");
                 body.Append("<p><b>Equipe Negociador Credz</b></p>");
-                body.Append("<p><b>4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(demais regiões)</b></p>");
+                //body.Append("<p><b>4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(demais regiões)</b></p>");
+                body.Append("<p><b>Whatsapp: <a href='https://wa.me/553496400333'>34 99640-0333</a> </b></p>");
                 body.Append("<p><img alt=\"\" style=\"width:100px\" src=\"https://negociadorcredz.fmcbrasil.com.br/images/topo/credz-logo-new.png\">  </p>");
                 if (_objectSend.Product.ProductSpecification != null)
                     body.Append("<p><img alt=\"\" style=\"width:150px\" src=\"").Append(_objectSend.Product.ProductSpecification.UrlImage).Append("\">  </p>");
@@ -613,6 +622,101 @@ namespace FMC.FIS.Credz.Remember
                 return null;
         }
 
+        public void SendRCSBroken()
+        {
+            var sends = new SendBrokenEmailBLL().GetEmails(_objectSend.Product.IdProduct, DateTime.Today.AddDays(-30), _objectSend.Phone);
+            if (sends.Count() == 0 && _objectSend.Product.Lead.Where(p => p.DtInsert >= DateTime.Today.AddDays(-1)).Count() > 0)
+            {
+                if (!string.IsNullOrEmpty(_objectSend.Phone))
+                {
+                    string description = GetBodyRCSBroken();
+                    if (description != null)
+                    {
+                        try
+                        {
+                            var ret = InfobipRcsAPI.SendSingle
+                                (
+                                    new List<string>() { _objectSend.Phone },
+                                    new ContentRoot()
+                                    {
+                                        alignment = "LEFT",
+                                        orientation = "VERTICAL",
+                                        type = "CARD",
+                                        content = new ContentChild()
+                                        {
+                                            title = "Olá " + _objectSend.Name + ".",
+                                            description = description,
+                                            media = new Media()
+                                            {
+                                                file = new File() { url = _objectSend.CardUrl },
+                                                thumbnail = new Thumbnail() { url = "https://negociadorcredz.fmcbrasil.com.br/images/topo/credz-logo-new.png" },
+                                                height = "TALL"
+                                            },
+                                            suggestions = new List<Suggestion>()
+                                            {
+                                        new Suggestion()
+                                            {
+                                                type = "OPEN_URL",
+                                                text = "CLIQUE AQUI E RENEGOCIE",
+                                                url = "https://fmc.digital/rcs",
+                                                postbackData = "CLICK_NEW"
+                                            },
+                                        new Suggestion()
+                                            {
+                                                type = "OPEN_URL",
+                                                text = "FALE NO WHATSAPP",
+                                                url = "https://wa.me/553496400333",
+                                                postbackData = "CLICK_NEW"
+                                            }
+                                            }
+                                        }
+
+                                    },
+                                    new Options()
+                                    {
+                                        smsFailover = new SmsFailover()
+                                        {
+                                            sender = "fmcbrasil",
+                                            text = SmsText()
+                                        }
+                                    },
+                                    new Webhooks()
+                                    {
+                                        callbackData = "CREDZ-BILLET",
+                                        delivery = new Delivery()
+                                        {
+                                            url = "http://fmcbrasil.com.br/infobip/rcs/webhook/delivery",
+                                            intermediateReport = true,
+                                            notify = true,
+                                            receiveTriggeredFailoverReports = true
+                                        },
+                                        seen = new Seen() { url = "http://fmcbrasil.com.br/infobip/rcs/webhook/seen" }
+                                    }
+                                );
+                            if (!string.IsNullOrEmpty(ret.messages.FirstOrDefault().messageId))
+                            {
+                                new SendBrokenEmailBLL().Add
+                            (
+                                 new Business.Models.CREDZ.SendBrokenEmail()
+                                 {
+                                     age = _objectSend.Product.Lead.OrderByDescending(p => p.IdLead).FirstOrDefault().Age,
+                                     email = _objectSend.Phone,
+                                     IdProduct = _objectSend.Product.IdProduct,
+                                     idPerson = _objectSend.Product.IdPerson,
+                                     dtInsert = DateTime.Now
+                                 }
+                            );
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+
+                        }
+                    }
+                }
+            }
+        }
+
         private StringBuilder GetMidleBody()
         {
 
@@ -624,7 +728,10 @@ namespace FMC.FIS.Credz.Remember
             var lead = _objectSend.Product.Lead.Where(p => p.DtInsert > _objectSend.Agreement.DtInsert).FirstOrDefault();
             if (lead != null)
             {
-                var parcel = _objectSend.Agreement.AgreementParcel.Where(p => p.DtParcel < lead.DtInsert).OrderByDescending(p => p.DtParcel).FirstOrDefault();
+                var parcel = _objectSend.Agreement.AgreementParcel.Where(p => p.Billet.Count() > 0).OrderByDescending(p => p.DtParcel).FirstOrDefault();
+                if (parcel == null)
+                    parcel = _objectSend.Agreement.AgreementParcel.FirstOrDefault();
+
                 if (parcel != null)
                 {
 
@@ -656,16 +763,20 @@ namespace FMC.FIS.Credz.Remember
 
 
                         body.Append("<p>");
-                        if (avista.ValueEntrace <= 400)
+                        if (avista.ValueEntrace <= 200 || totalParcel < 1)
                             body.Append("Pague apenas R$").Append(avista.ValueEntrace.ToString("N2")).Append(" no pagamento a vista!");
                         else
                         {
                             if (parcelamento != null)
                             {
                                 if (parcelamento.VlDiscount > 5)
+                                {
                                     body.Append("Você pode refazer seu acordo com desconto de <b>R$").Append(parcelamento.VlDiscount.ToString("N2"));
+                                    body.Append("</b>, pagando uma entrada de <b>R$").Append(parcelamento.ValueEntrace.ToString("N2"));
+                                }
                                 else
                                     body.Append("Você pode refazer seu acordo, pagando uma entrada de <b>R$").Append(parcelamento.ValueEntrace.ToString("N2"));
+
                                 body.Append("</b> e ").Append(parcelamento.NrParcel).Append(" parcelas de <b>R$");
                                 body.Append(parcelamento.VlParcel).Append(" </b>.");
                             }
@@ -691,6 +802,91 @@ namespace FMC.FIS.Credz.Remember
             body.Append("<p>Lembramos que é muito importante o pagamento das parcelas dentro do prazo acordado, pois caso não haja pagamento automaticamente seu CPF será novamente encaminhado para negativação.</p>");
 
             return body;
+        }
+
+        private string GetBodyRCSBroken()
+        {
+
+            var body = new StringBuilder();
+
+            body.AppendLine("Você realizou uma renegociação no seu cartão ").Append(_objectSend.CardNumber).Append(" ").Append(_objectSend.CardName).Append(", ");
+            body.AppendLine("infelizmente deve ter ocorrido algum imprevisto pois não localizamos o pagamento programado de ");
+
+            var lead = _objectSend.Product.Lead.Where(p => p.DtInsert > _objectSend.Agreement.DtInsert).FirstOrDefault();
+            if (lead != null)
+            {
+                var parcel = _objectSend.Agreement.AgreementParcel.Where(p => p.Billet.Count() > 0).OrderByDescending(p => p.DtParcel).FirstOrDefault();
+                if (parcel == null)
+                    parcel = _objectSend.Agreement.AgreementParcel.FirstOrDefault();
+
+                body.Append("R$").Append(parcel.VlParcel.ToString("N2")).Append(" para ").Append(parcel.DtParcel.ToString("dd/MM/yyyy")).Append(".");
+                body.Append("Acesse novamente nosso portal e reative seu acordo, ou simule com novo valor e data de entrada e escolha uma opção que caiba no seu orçamento!");
+
+                AgreementSimulateResponse simulate = null;
+
+                var contrato = GetContratos();
+                if (contrato != null)
+                    simulate = GetValueAgreement(0, contrato);
+
+                if (simulate != null && simulate.ParcelResponse != null && simulate.ParcelResponse.Count() > 0 && simulate.ParcelResponse.FirstOrDefault().VlParcel > 5)
+                {
+                    var avista = simulate.ParcelResponse.OrderBy(p => p.NrParcel).FirstOrDefault();
+                    var totalParcel = _objectSend.Agreement.AgreementParcel.Count() - parcel.NrParcel - 1;
+
+                    int count = 0;
+                    do
+                    {
+                        simulate = GetValueAgreement(totalParcel > 1 ? totalParcel : 1, contrato);
+                        count++;
+                    }
+                    while (simulate == null && count < 3);
+                    if (simulate == null)
+                        return null;
+
+                    var parcelamento = simulate.ParcelResponse.OrderByDescending(p => p.NrParcel).FirstOrDefault();
+
+
+                    body.Append("\r\n");
+                    if (avista.ValueEntrace <= 200 || totalParcel < 1)
+                        body.Append("Pague apenas R$").Append(avista.ValueEntrace.ToString("N2")).Append(" no pagamento a vista!");
+                    else
+                    {
+                        if (parcelamento != null)
+                        {
+                            if (parcelamento.VlDiscount > 5)
+                            {
+                                body.Append("Você pode refazer seu acordo com desconto de R$").Append(parcelamento.VlDiscount.ToString("N2"));
+                                body.Append(", pagando uma entrada de R$").Append(parcelamento.ValueEntrace.ToString("N2"));
+                            }
+                            else
+                                body.Append("Você pode refazer seu acordo, pagando uma entrada de R$").Append(parcelamento.ValueEntrace.ToString("N2"));
+
+                            body.Append(" e ").Append(parcelamento.NrParcel).Append(" parcelas de R$");
+                            body.Append(parcelamento.VlParcel).Append(".");
+                        }
+                        else
+                            return null;
+                    }
+
+                    body.Append("\r\n");
+
+                    body.Append("Esta oferta é válida até ").Append(DateTime.Today.AddDays(2).ToString("dd/MM/yyyy")).Append(" para pagamento até ").Append(avista.DtParcel.ToString("dd/MM/yyyy")).Append(".");
+                    body.Append("\r\n\r\n");
+                    body.Append("Central de atendimento 4003 4031(Capitais e Regiões Metropolitanas) ou 0800 880 4031(Demais Regiões).");
+
+                }
+                else
+                    return null;
+
+            }
+            else
+                return null;
+            body.Append("\r\n\r\n");
+            body.Append("Não perca essa oportunidade!");
+            body.Append("\r\n\r\n");
+            body.Append("Lembramos que o pagamento das parcelas deve ser realizado dentro do prazo acordado, senão automaticamente seu CPF será novamente encaminhado para negativação.");
+
+            return body.ToString();
         }
 
         private static Contrato GetContratos()
@@ -736,7 +932,7 @@ namespace FMC.FIS.Credz.Remember
                             DtEntrace = DateTime.Today.AddDays(7),
                             PctDiscount = 0,
                             NrParcel = nrParcel,
-                            VlEntrace = 0,
+                            VlEntrace = 99,
                             Product = _objectSend.Product.DsProduct,
                             CdSimulate = "",
                             ParcelaCredz = complementData,
@@ -761,7 +957,7 @@ namespace FMC.FIS.Credz.Remember
         {
             try
             {
-                return new BilletBLL().AddNewBillet
+                var billet = new BilletBLL().AddNewBillet
                       (
                       new FMC.FIS.Business.Models.Customer.NewBilletRequest()
                       {
@@ -777,10 +973,30 @@ namespace FMC.FIS.Credz.Remember
                       ,
                       Constants.ProductType.CREDZ
                       );
+                if (billet == null)
+                    billet = new BilletBLL().AddNewBillet
+                      (
+                      new FMC.FIS.Business.Models.Customer.NewBilletRequest()
+                      {
+                          IdAgreement = agreement.IdAgreement,
+                          CdAgreement = agreement.CdAgreement,
+                          IdAgreementParcel = currentParcel.IdAgreementParcel,
+                          NrParcel = currentParcel.NrParcel,
+                          IdProduct = product.IdProduct,
+                          VlBillet = currentParcel.VlParcel,
+                          CPF = product.Person.NrCNPJCPF,
+                          DtBillet = currentParcel.DtParcel,
+                      }
+                      ,
+                      Constants.ProductType.CREDZ
+                      );
+
+                return billet;
             }
             catch
             {
                 return null;
+
             }
         }
 
@@ -789,22 +1005,21 @@ namespace FMC.FIS.Credz.Remember
             var phones = person.Phone.Where(p => p.IdPhoneStatus == 1).Select(p => p.NrPhone).ToList();
 
             if (phones.Count == 1 && (Convert.ToInt32(phones.FirstOrDefault().Substring(2, 1)) >= 6))
-
                 return phones.FirstOrDefault();
             else
             {
                 var phoneBillet = new GenericQueryBLL<PhoneUra>().GetSingle("select top 1 b.Phone telefone, * from CREDZ.dbo.Billet b where cpf = '" + person.NrCNPJCPF + "' and CONVERT(int, SUBSTRING( CONVERT(varchar(11), b.Phone),3,1)) > 6  order by DtInsert desc");
 
-                if (phoneBillet != null && (Convert.ToInt32(phones.FirstOrDefault().Substring(2, 1)) >= 6))
+                if (phoneBillet != null && (Convert.ToInt32(phoneBillet.telefone.Substring(2, 1)) >= 6))
                     return phoneBillet.telefone;
 
                 var phoneUra = new GenericQueryBLL<PhoneUra>().GetSingle("select top 1 CONVERT(varchar(11),telefone) telefone, dtLigacao from CREDZ.dbo.RetornoUra where SUBSTRING(CONVERT(varchar(11), telefone), 3,1) > 6 and  cpf = '" + person.NrCNPJCPF + "' order by dtLigacao desc");
 
-                if (phoneUra != null && (Convert.ToInt32(phoneUra.telefone.Substring(2, 1)) >= 6))
+                if (phoneUra != null && (phoneUra != null && Convert.ToInt32(phoneUra.telefone.Substring(2, 1)) >= 6))
                     return phoneUra.telefone;
 
                 var phoneRCS = new GenericQueryBLL<PhoneUra>().GetSingle("select top 1 CONVERT(varchar(11),phone) telefone from CREDZ.SendRCS r inner join Person p on p.IdPerson = r.IdPerson inner join CREDZ.dbo.Navigation n	on n.CPF = p.NrCNPJCPF	and n.DsOrigem = 'rcs' where NrCNPJCPF = '" + person.NrCNPJCPF + "' order by r.DtInsert desc");
-                if (phoneRCS != null && (Convert.ToInt32(phoneRCS.telefone.Substring(2, 1)) >= 6))
+                if (phoneRCS != null && (phoneRCS != null && Convert.ToInt32(phoneRCS.telefone.Substring(2, 1)) >= 6))
                     return phoneRCS.telefone.Split(';').FirstOrDefault();
 
                 var pessoa = CobmaisAPI.GetPessoa(person.NrCNPJCPF);
@@ -849,7 +1064,7 @@ namespace FMC.FIS.Credz.Remember
         public string Line { get; set; }
         public byte[] Pdf { get; set; }
         public Product Product { get; set; }
-        public Discount Discount { get; set; }
+        //public Discount Discount { get; set; }
         public Agreement Agreement { get; set; }
     }
 

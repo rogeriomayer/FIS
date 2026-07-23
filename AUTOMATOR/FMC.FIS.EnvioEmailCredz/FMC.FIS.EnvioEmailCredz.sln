@@ -9,8 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FMC.FIS.Business", "..\..\F
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FMC.FIS.EnvioEmailComAcessoCredz", "..\FMC.FIS.EnvioEmailComAcessoCredz\FMC.FIS.EnvioEmailComAcessoCredz.csproj", "{EC4867BB-A97F-4C5F-8027-8ED5052135D3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FMC.RCS", "FMC.RCS\FMC.RCS.csproj", "{7A3C4161-77AC-47E5-8EC3-0F31902FD47E}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FMC.FIS.ML.Score", "..\..\FMC.FIS.ML.Score\FMC.FIS.ML.Score.csproj", "{715640BA-52B2-487F-A6EA-A39568A1CDE7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FMC.FIS.CREDZ.EnvioEmailContaSMS", "..\FMC.FIS.Credz.EnvioEmailContaSMS\ConsoleApp1\FMC.FIS.CREDZ.EnvioEmailContaSMS.csproj", "{4350872E-3D9D-4E41-819B-38550C6BA3E7}"
@@ -43,6 +41,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FMC.AtivaUsuarioAD", "FMC.A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FMC.FIS.CREZ.EnvioEmailQuebra", "FMC.FIS.CREZ.EnvioEmailQuebra\FMC.FIS.CREZ.EnvioEmailQuebra.csproj", "{10194158-C7C0-4B4E-9415-2A5D897B3D29}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FMC.FIS.UpdateDichat", "..\FMC.FIS.UpdateDichat\FMC.FIS.UpdateDichat.csproj", "{58DECFBB-7B2D-427F-8B2A-9312B4A41A90}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FMC.CREDZ.API", "..\..\FMC.CREDZ.API\FMC.CREDZ.API.csproj", "{75D7BAA3-28CF-4EEA-8F04-AF34C384F4C6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,10 +63,6 @@ Global
 		{EC4867BB-A97F-4C5F-8027-8ED5052135D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EC4867BB-A97F-4C5F-8027-8ED5052135D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC4867BB-A97F-4C5F-8027-8ED5052135D3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7A3C4161-77AC-47E5-8EC3-0F31902FD47E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7A3C4161-77AC-47E5-8EC3-0F31902FD47E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7A3C4161-77AC-47E5-8EC3-0F31902FD47E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7A3C4161-77AC-47E5-8EC3-0F31902FD47E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{715640BA-52B2-487F-A6EA-A39568A1CDE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{715640BA-52B2-487F-A6EA-A39568A1CDE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{715640BA-52B2-487F-A6EA-A39568A1CDE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -129,6 +127,14 @@ Global
 		{10194158-C7C0-4B4E-9415-2A5D897B3D29}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{10194158-C7C0-4B4E-9415-2A5D897B3D29}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{10194158-C7C0-4B4E-9415-2A5D897B3D29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58DECFBB-7B2D-427F-8B2A-9312B4A41A90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58DECFBB-7B2D-427F-8B2A-9312B4A41A90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58DECFBB-7B2D-427F-8B2A-9312B4A41A90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58DECFBB-7B2D-427F-8B2A-9312B4A41A90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75D7BAA3-28CF-4EEA-8F04-AF34C384F4C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75D7BAA3-28CF-4EEA-8F04-AF34C384F4C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75D7BAA3-28CF-4EEA-8F04-AF34C384F4C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75D7BAA3-28CF-4EEA-8F04-AF34C384F4C6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

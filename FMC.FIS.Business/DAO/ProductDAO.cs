@@ -87,6 +87,9 @@ namespace FMC.FIS.Business.DAO
         {
             var query = new StringBuilder();
 
+
+
+
             query.Append(" select distinct pr.*  ");
             query.Append(" from Person pe ");
             query.Append(" 	inner join product pr ");

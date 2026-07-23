@@ -34,7 +34,7 @@ namespace FMC.FIS.CREDZ.EnvioContatoUra
 
             try
             {
-                if (envioRCS.Atraso >= 78)
+                if (envioRCS.Atraso >= 84)
                 {
                     var ret = SendRCS();
 
@@ -113,13 +113,20 @@ namespace FMC.FIS.CREDZ.EnvioContatoUra
                                     },
                                     suggestions = new List<Suggestion>()
                                     {
-                                    new Suggestion()
-                                    {
-                                        type = "OPEN_URL",
-                                        text = "CLIQUE AQUI E RENEGOCIE",
-                                        url = "https://fmc.digital/rcs",
-                                        postbackData = "CLICK_URA"
-                                    }
+                                        new Suggestion()
+                                        {
+                                            type = "OPEN_URL",
+                                            text = "CLIQUE AQUI E RENEGOCIE",
+                                            url = "https://fmc.digital/rcs",
+                                            postbackData = "CLICK_URA"
+                                        },
+                                        new Suggestion()
+                                        {
+                                             type = "OPEN_URL",
+                                             text = "RENEGOCIAR PELO WHATSSAPP",
+                                             url = "https://zaps.chat/r/credz",
+                                             postbackData = "CLICK_WHATSAPP"
+                                        }
                                     }
                                 }
 
@@ -304,23 +311,23 @@ namespace FMC.FIS.CREDZ.EnvioContatoUra
                 decimal vlPgt = simulate.ParcelResponse.Where(p => p.NrParcel == 0).FirstOrDefault().VlParcel;
 
                 message.Append(nome.Split(' ').FirstOrDefault());
-                message.Append(" quite o seu ");
+                message.Append(" quite seu ");
                 message.Append(nomeCartao);
-                message.Append(" por apenas R$");
+                message.Append(" por R$");
                 message.Append((simulate.ParcelResponse.FirstOrDefault().VlFull).ToString("N2"));
                 message.Append(" a vista ");
                 message.Append(" ou parcele");
-                message.Append(" em http://fmc.digital/credz ou ligue 40034031");
+                message.Append(" em http://fmc.digital/credz ou Whatsapp 3496400333");
                 if (message.Length > 160)
                 {
                     message.Clear();
                     message.Append(nome.Split(' ').FirstOrDefault());
-                    message.Append(" quite o seu ");
+                    message.Append(" quite seu ");
                     message.Append(nomeCartao.Replace("CREDZ", "").Replace("VISA", ""));
-                    message.Append(" por apenas R$");
+                    message.Append(" por R$");
                     message.Append((simulate.ParcelResponse.FirstOrDefault().VlFull).ToString("N2"));
                     message.Append(" a vista, ou parcele");
-                    message.Append(" em http://fmc.digital/credz ou ligue 40034031");
+                    message.Append(" em http://fmc.digital/credz ou Whatsapp 3496400333");
                 }
 
             }

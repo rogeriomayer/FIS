@@ -222,13 +222,13 @@ namespace FMC.FIS.EnvioEmailCredz
             AgreementSimulateResponse simulate = null;
             if (contrato != null)
             {
-                decimal vlParcel = 50;
+                decimal vlParcel = 99;
                 var parcela = 24;
                 for (int i = 24; i > 0; i--)
                 {
                     parcela = i;
                     vlParcel = (contrato.parcelas.FirstOrDefault().valor - (contrato.parcelas.FirstOrDefault().valor * (envioEmail.Desconto / 100))) / i;
-                    if (vlParcel > 70)
+                    if (vlParcel > 99)
                     {
                         break;
                     }
@@ -393,7 +393,7 @@ namespace FMC.FIS.EnvioEmailCredz
                             DtEntrace = DateTime.Today.AddDays(7),
                             PctDiscount = 0,
                             NrParcel = nrParcel,
-                            VlEntrace = 0,
+                            VlEntrace = 99,
                             Product = lead.Product.DsProduct,
                             CdSimulate = "",
                             ParcelaCredz = complementData,

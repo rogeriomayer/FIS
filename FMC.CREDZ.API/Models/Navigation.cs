@@ -12,7 +12,7 @@ namespace FMC.CREDZ.API.Models
     {
         public Navigation()
         {
-            //Product = new HashSet<Product>();
+            Product = new HashSet<Product>();
             //Address = new HashSet<Address>();
             //Billet = new HashSet<Billet>();
             //BilletIBI = new HashSet<BilletIBI>();
@@ -39,9 +39,8 @@ namespace FMC.CREDZ.API.Models
 
         [Column("CdFrom", TypeName = "char")]
         public string CdFrom { get; set; }
-        
 
-        //public virtual ICollection<Product> Product { get; set; }
+        public virtual ICollection<Product> Product { get; set; }
 
         //public virtual ICollection<Address> Address { get; set; }
 

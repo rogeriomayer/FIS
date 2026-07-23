@@ -1,7 +1,9 @@
 ﻿namespace FMC.FIS.Business.Code.Api.BvTelecom
 {
+    using FMC.FIS.Business.Models.RCS;
     using Models.BvTelecom;
     using System.Collections.Generic;
+    using System.Linq;
 
     public class BvTelecomAPI
     {
@@ -33,5 +35,33 @@
             header.Add("ApiKey", Token);
             return RestApi.Post<SmsResponse, ICollection<SingleRequest>>(URL, "multiple-sms", messages, header, "", "");
         }
+
+        public static SendRCSResponse SendSingle(IList<string> phones, ContentRoot content, Options options, Webhooks webhooks)
+        {
+            var destinations = new List<Destination>();
+            phones.ToList().ForEach(p => destinations.Add(new Destination() { to = "+55" + p }));
+
+            var param = new SendRCSRequest();
+            param.messages.Add
+                (
+                    new Message()
+                    {
+
+                        sender = "rcs_udiconversacional",
+                        destinations = destinations,
+                        content = content,
+                        options = options,
+                        webhooks = webhooks
+                    }
+                );
+
+            IDictionary<string, string> header = new Dictionary<string, string>();
+            header.Add("X-Api-Key", "B1A7BFAF-2804-4A9F-8648-8837B42450FF");
+
+
+            return RestApi.Post<SendRCSResponse, SendRCSRequest>("https://integration.smartrcs.com.br/api", "message/text", param, header, "", "");
+        }
+
+
     }
 }

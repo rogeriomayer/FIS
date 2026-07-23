@@ -15,6 +15,12 @@ using System.Text;
 
 namespace FMC.FIS.CREZ.EnvioEmailQuebra
 {
+    public class Cpf
+    {
+        [Key]
+        public string item { get; set; } 
+    }
+
     internal class Program
     {
         static void Main(string[] args)
@@ -33,6 +39,7 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
 
             try
             {
+                
                 foreach (var process in System.Diagnostics.Process.GetProcessesByName(currentProcess.ProcessName))
                 {
 
@@ -46,8 +53,8 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                 }
 
                 DateTime dtLead = DateTime.Now.Hour > 11 ? DateTime.Today : DateTime.Today.AddDays(-1);
-                //IList<Person> listPerson = new PersonBLL().GetPersonSendSMS(dtLead).ToList();
-                IList<Person> listPerson = new PersonBLL().GetPersonSendRCSNews().ToList();
+                IList<Person> listPerson = new PersonBLL().GetPersonSendSMS(dtLead).ToList();
+                
 
                 IList<Discount> discounts = new DiscountBLL().GetByProductType(3).ToList();
 
@@ -58,10 +65,14 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
 
                     IList<SingleRequest> listSend = new List<SingleRequest>();
                     IList<SMS> listSMS = new List<SMS>();
+                    int count = 0;
 
-                    foreach (var person in listPerson.OrderBy(p => p.IdPerson).Distinct().ToList())
+                    foreach (var person in listPerson.Distinct().ToList())
                     {
+                        phones.Clear();
+                        if (count > 2000) break;
                         Console.WriteLine(person.NrCNPJCPF);
+                        Console.WriteLine("Total: " + count);
                         //var phones = person.Phone.Where(p => p.IdPhoneStatus == 1 && Convert.ToInt32(p.NrPhone.Substring(2, 1)) >= 6).Select(p => p.NrPhone).ToList();
                         //if (phones == null || phones.Count == 0)
                         //{
@@ -70,26 +81,28 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                         //}
                         try
                         {
-                            var lead = person.Product.Where(pr => pr.Lead.Where(p => p.DtInsert >= DateTime.Today.AddDays(-2)).Any()).FirstOrDefault().Lead.OrderByDescending(p => p.IdLead).FirstOrDefault();
+                            var lead = person.Product.Where(pr => pr.Lead.Where(p => p.DtInsert >= DateTime.Today.AddDays(0)).Any()).FirstOrDefault().Lead.OrderByDescending(p => p.IdLead).FirstOrDefault();
 
                             if (cpf != person.NrCNPJCPF)
                             {
                                 cpf = person.NrCNPJCPF;
-                                    contract = GetContratos(lead);
+                                contract = GetContratos(lead);
                             }
 
-                            
 
-                            if (lead != null && phones.Count() > 0 && contract != null )
+
+                            if (lead != null && phones.Count() > 0 && contract != null)
                             {
                                 var product = person.Product.FirstOrDefault();
                                 var products = person.Product.Select(p => p.DsProduct).ToList();
                                 var phone = phones.FirstOrDefault();
-                                if (contract != null)
+
+                                if (contract != null && phone != null)
                                 {
                                     var obj = SendSMS(lead, phone, contract, discounts);
                                     if (obj != null)
                                     {
+                                        count++;
                                         listSend.Add(obj);
                                         listSMS.Add
                                             (
@@ -156,16 +169,16 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                 Util.SaveFile("Erro:" + erro);
             }
         }
-        private static SingleRequest SendSMS(Lead lead, string phone, Contrato contract, IList<Discount> discounts)
+        private static SingleRequest SendSMS(Lead lead, string phone, Contrato contrato, IList<Discount> discounts)
         {
             StringBuilder message = new StringBuilder();
 
             //if (lead.Age > 281)
             //{
-            var contrato = GetContratos(lead);
+            //var contrato = GetContratos(lead);
 
             AgreementSimulateResponse simulate = null;
-            var discount = discounts.Where(p => (lead.Age >= p.MinAge && lead.Age <= p.MaxAge) && p.MaxParcel == 1).FirstOrDefault().MaxDiscount;
+            //var discount = discounts.Where(p => (lead.Age >= p.MinAge && lead.Age <= p.MaxAge) && p.MaxParcel == 1).FirstOrDefault().MaxDiscount;
             if (contrato != null)
             {
                 /*
@@ -183,39 +196,55 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                 simulate = GetValueAgreement(0, contrato, lead);
             }
 
-            if (simulate != null && simulate.ParcelResponse != null && simulate.ParcelResponse.Count > 0)
+            if (simulate != null && simulate.ParcelResponse != null && simulate.ParcelResponse.Count > 0 /*&& simulate.ParcelResponse.FirstOrDefault().ValueEntrace < 1000*/)
             {
 
-                decimal vlPgt = simulate.ParcelResponse.Where(p => p.NrParcel == 0).FirstOrDefault().VlParcel;
-                //message.Append(" não perca essa chance quite seu ").Append(lead.Product.ProductSpecification.Description.Replace("CREDZ", "").Replace("VISA", ""));
-                //message.Append(" de R$").Append(simulate.VlFull.ToString("N2"));
-                //message.Append(" por apenas R$").Append(vlPgt.ToString("N2"));
-                //if (vlPgt > 200)
-                //    message.Append(" ou parcele");
-                //message.Append(" em https://fmc.digital/credz ou ligue 40034031");
 
-                message.Append(lead.Product.Person.DsName.Split(' ').FirstOrDefault());
-                message.Append(" quite o seu ");
-                if (lead.Product.ProductSpecification != null)
-                    message.Append(lead.Product.ProductSpecification.Description);
-                else
-                    message.Append("Credz Visa");
 
+                var firstName = lead.Product.Person.DsName.Split(' ').FirstOrDefault();
+                var productName = lead.Product.ProductSpecification?.Description ?? "Credz Visa";
+                var vlFull = simulate.ParcelResponse.FirstOrDefault().ValueEntrace;
+                var vlOriginal = simulate.ParcelResponse.FirstOrDefault().VlParcel + simulate.ParcelResponse.FirstOrDefault().VlDiscount;
+
+
+                // Versão principal — com contraste de valores
+                message.Append(firstName);
+                message.Append(", quite seu ");
+                message.Append(productName);
+                message.Append(" que era R$");
+                message.Append(vlOriginal.ToString("N2"));
                 message.Append(" por apenas R$");
-                message.Append((simulate.ParcelResponse.FirstOrDefault().VlFull).ToString("N2"));
-                message.Append(" a vista ");
-                message.Append(" ou parcele");
-                message.Append(" em http://fmc.digital/credz ou ligue 40034031");
+                message.Append(vlFull.ToString("N2"));
+                //message.Append(" a vista: Envie SIM p/ confirmar ou acesse https://fmc.digital/scredz");
+                //message.Append(" a vista: Whatsapp: https://wa.me/553496400333");
+                message.Append(" a vista: Whatsapp: https://zaps.chat/r/credz");
+
+                // Fallback nível 1 — remove o nome do produto
                 if (message.Length > 160)
                 {
                     message.Clear();
-                    message.Append(lead.Product.Person.DsName.Split(' ').FirstOrDefault());
-                    message.Append(" quite o seu ");
-                    message.Append(lead.Product.ProductSpecification.Description.Replace("CREDZ", "").Replace("VISA", ""));
+                    message.Append("CREDZ: ");
+                    message.Append(firstName);
+                    message.Append(", quite sua divida de R$");
+                    message.Append(vlOriginal.ToString("N2"));
                     message.Append(" por apenas R$");
-                    message.Append((simulate.ParcelResponse.FirstOrDefault().VlFull).ToString("N2"));
-                    message.Append(" a vista, ou parcele");
-                    message.Append(" em http://fmc.digital/credz ou ligue 40034031");
+                    message.Append(vlFull.ToString("N2"));
+                    //    message.Append(" a vista: Envie SIM p/ confirmar ou acesse https://fmc.digital/scredz");
+                    message.Append(" a vista: Whatsapp: https://zaps.chat/r/credz");
+                }
+
+                // Fallback nível 2 — versão mínima, ainda com contraste
+                if (message.Length > 160)
+                {
+                    message.Clear();
+                    message.Append("CREDZ: ");
+                    message.Append(firstName);
+                    message.Append(" quite por R$");
+                    message.Append(vlFull.ToString("N2"));
+                    message.Append(" (era R$");
+                    message.Append(vlOriginal.ToString("N2"));
+                    //message.Append("): Envie SIM p/ confirmar ou acesse https://fmc.digital/scredz");
+                    message.Append(" a vista: Whatsapp: https://zaps.chat/r/credz");
                 }
 
             }
@@ -256,10 +285,10 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
         private static Contrato GetContratos(Lead lead)
         {
 
-           
+
             var person = CobmaisAPI.GetPessoa(lead.Product.Person.NrCNPJCPF);
 
-            
+
             var phoneUra = new GenericQueryBLL<PhoneUra>().GetCollection("select top 1 CONVERT(varchar(11),telefone) telefone, dtLigacao from CREDZ.dbo.RetornoUra where SUBSTRING(CONVERT(varchar(11), telefone), 3,1) > 6 and  cpf = '" + lead.Product.Person.NrCNPJCPF + "' order by dtLigacao desc");
 
             if (phoneUra.Count() > 0)
@@ -279,7 +308,7 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
 
             if (phones.Count > 0)
             {
-                
+
                 var contracts = CobmaisAPI.GetContratos(lead.Product.Person.NrCNPJCPF, "0", "0");
 
                 if (contracts != null)
@@ -297,7 +326,7 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
         {
             try
             {
-               
+
                 ICollection<ParcelaCredz> complementData = new HashSet<ParcelaCredz>();
 
 
@@ -323,7 +352,7 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                             DtEntrace = DateTime.Today.AddDays(7),
                             PctDiscount = 0,
                             NrParcel = nrParcel,
-                            VlEntrace = 0,
+                            VlEntrace = 99,
                             Product = lead.Product.DsProduct,
                             CdSimulate = "",
                             ParcelaCredz = complementData,
@@ -337,7 +366,7 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                 if (nrParcel > 1 && ex.ToString().Contains("Valor de Parcela abaixo do valor mínimo permitido"))
                 {
                     nrParcel = nrParcel - 2;
-                    return GetValueAgreement(nrParcel, contract,lead);
+                    return GetValueAgreement(nrParcel, contract, lead);
                 }
                 else
                     return null;

@@ -59,7 +59,7 @@ try
             {
                 try
                 {
-                    AgreementParcel currentParcel = agreement.AgreementParcel.Where(p => p.DtParcel >= dtIni && p.DtParcel <= DateTime.Today.AddDays(20)).OrderBy(p => p.DtParcel).FirstOrDefault();
+                    AgreementParcel currentParcel = agreement.AgreementParcel.Where(p => p.DtParcel >= dtIni && p.DtParcel <= DateTime.Today.AddDays(30)).OrderBy(p => p.DtParcel).FirstOrDefault();
                     var product = agreement.StatusLead.Lead.Product;
                     var emails = product.Person.Email.Where(p => p.flBloqueado == false && Util.IsEmail(p.DsEmail)).Select(p => p.DsEmail).Distinct().ToList();
 
@@ -104,7 +104,7 @@ try
 
                     IList<PagamentoResponse> pgt = null;
 
-                    if (acordo != null)
+                    if (acordo != null && currentParcel != null)
                     {
                         var objectSend = new ObjectSend()
                         {
@@ -134,19 +134,41 @@ try
                                     pgt = CobmaisAPI.Pagamento(parcela.id_pagamento.Value);
                                     if (pgt != null && pgt.Count() > 0 && pgt.FirstOrDefault().pagamentos.Count() > 0)
                                     {
-                                        Util.SaveFile("Salvando pagamento");
-                                        new PaymentBLL().Add
-                                         (
-                                             new Payment()
-                                             {
-                                                 IdAgreementParcel = parcel.IdAgreementParcel,
-                                                 VlPayment = pgt.FirstOrDefault().pagamentos.FirstOrDefault().valor_pagamento,
-                                                 DtPayment = Convert.ToDateTime(pgt.FirstOrDefault().pagamentos.FirstOrDefault().data_pagamento),
-                                                 NmFile = "API Cobmais - " + parcela.id_pagamento,
-                                                 DtInsert = DateTime.Now
-                                             }
-                                         );
 
+                                        Util.SaveFile("Salvando pagamento");
+                                        if (pgt.FirstOrDefault().pagamentos.First().parcelas.Count() == 1)
+                                        {
+                                            new PaymentBLL().Add
+                                             (
+                                                 new Payment()
+                                                 {
+                                                     IdAgreementParcel = parcel.IdAgreementParcel,
+                                                     VlPayment = pgt.FirstOrDefault().pagamentos.FirstOrDefault().valor_pagamento,
+                                                     DtPayment = Convert.ToDateTime(pgt.FirstOrDefault().pagamentos.FirstOrDefault().data_pagamento),
+                                                     NmFile = "API Cobmais - " + parcela.id_pagamento,
+                                                     DtInsert = DateTime.Now
+                                                 }
+                                             );
+                                        }
+                                        else
+                                        {
+                                            foreach (var pcl in pgt.FirstOrDefault().pagamentos.First().parcelas)
+                                            {
+                                                parcel = agreement.AgreementParcel.Where(p => (p.NrParcel + 1) == Convert.ToInt32(pcl.numero)).FirstOrDefault();
+                                                new PaymentBLL().Add
+                                                (
+                                                    new Payment()
+                                                    {
+                                                        IdAgreementParcel = parcel.IdAgreementParcel,
+                                                        VlPayment = pcl.valor,
+                                                        DtPayment = Convert.ToDateTime(pgt.FirstOrDefault().pagamentos.FirstOrDefault().data_pagamento),
+                                                        NmFile = "API Cobmais - " + parcela.id_pagamento,
+                                                        DtInsert = DateTime.Now
+                                                    }
+                                                );
+                                            }
+                                            break;
+                                        }
                                         /* gerar boleto da proxima fatura*/
                                         if (string.IsNullOrEmpty(agreement.CdParcelPlan) || string.IsNullOrWhiteSpace(agreement.CdParcelPlan))
                                         {
@@ -232,12 +254,36 @@ try
                         {
                             if (product.Lead.Where(p => p.DtInsert >= DateTime.Today.AddDays(-1)).Count() > 0)
                             {
-                                Util.SaveFile("Enviando email quebra");
-                                objectSend.Email = product.Person.Email.Where(p => p.flBloqueado == false && Util.IsEmail(p.DsEmail)).Select(p => p.DsEmail).Distinct().ToList();
-                                var age = product.Lead.OrderByDescending(p => p.IdLead).FirstOrDefault().Age;
-                                objectSend.Discount = discounts.Where(p => (age >= p.MinAge && age <= p.MaxAge) && p.MaxParcel <= 1).FirstOrDefault();
-                                var envioEmailThread = new SendRemember(objectSend);
-                                envioEmailThread.SendEmailBroken();
+
+                                if (objectSend.Agreement == null)
+                                    objectSend.Agreement = agreement;
+                                if (agreement.CdParcelPlan.Trim() == "API CREDZ")
+                                {
+                                    Util.SaveFile("Enviando RCS quebra");
+                                    objectSend.Product = product;
+                                    objectSend.Phone = SendRemember.GetPhone(product.Person);
+                                    var envioEmailThread = new SendRemember(objectSend);
+                                    envioEmailThread.SendRCSBroken();
+                                }
+                                else
+                                {
+                                    Util.SaveFile("SMS");
+                                    objectSend.Product = product;
+                                    objectSend.Phone = SendRemember.GetPhone(product.Person);
+                                    var envioEmailThread = new SendRemember(objectSend);
+                                    envioEmailThread.SendSMS();
+                                }
+
+
+                                if (product.Person.Email.Count() > 0)
+                                {
+                                    Util.SaveFile("Enviando email quebra");
+                                    objectSend.Email = product.Person.Email.Where(p => p.flBloqueado == false && Util.IsEmail(p.DsEmail)).Select(p => p.DsEmail).Distinct().ToList();
+                                    // var lead = product.Lead.OrderByDescending(p => p.IdLead).FirstOrDefault();
+                                    // objectSend.Discount = discounts.Where(p => (lead.Age >= p.MinAge && lead.Age <= p.MaxAge) && p.MaxParcel <= 1).FirstOrDefault();
+                                    var envioEmailThread = new SendRemember(objectSend);
+                                    envioEmailThread.SendEmailBroken();
+                                }
                             }
                         }
                         else if ((!havePayment) && currentParcel != null && (acordo.id_status.Value == 1 || acordo.id_status.Value == 6))
@@ -250,6 +296,7 @@ try
                                 var dtParcel = new List<DateTime> { DateTime.Today, DateTime.Today.AddDays(2), DateTime.Today.AddDays(-3), DateTime.Today.AddDays(-5), DateTime.Today.AddDays(-7) };
 
                                 if (envios.Where(p => p.DtInsert >= DateTime.Today).Count() == 0 && dtParcel.Contains(currentParcel.DtParcel))
+                                //if (envios.Where(p => p.DtInsert >= DateTime.Today).Count() == 0)
                                 {
                                     Util.SaveFile("Enviando sms/rcs");
                                     Billet billet = null;
@@ -275,11 +322,14 @@ try
                                         {
                                             Ag ag = RestApi.Get<Ag>("https://10.40.0.30/credz/api", "agreement/" + product.DsProduct);
                                             IList<string> origem = new List<string> { "1", "/", "ura", "ope", "rcs" };
-                                            if (origem.Contains(ag.Product.Navigation.DsOrigem) || emails.Count == 0)
+                                            if (origem.Contains(ag.Product.Navigation.DsOrigem) || emails.Count == 0 || currentParcel.DtParcel < DateTime.Today)
                                             {
-                                                if (string.IsNullOrEmpty(currentParcel.Agreement.CdParcelPlan) &&
-                                                    currentParcel.Agreement.IdAgreementStatus == 1 &&
-                                                    currentParcel.NrParcel == 0 && envios.Count == 0)
+                                                /*if (
+                                                        (string.IsNullOrEmpty(currentParcel.Agreement.CdParcelPlan) &&
+                                                        currentParcel.Agreement.IdAgreementStatus == 1 &&
+                                                        currentParcel.NrParcel == 0 && envios.Count == 0) ||
+                                                        (currentParcel.DtParcel < DateTime.Today)
+                                                    )
                                                 {
                                                     objectSend.DtParcel = billet.DtBillet;
                                                     objectSend.Line = billet.Line;
@@ -293,17 +343,17 @@ try
 
                                                 }
                                                 else
-                                                {
-                                                    objectSend.Line = billet.Line;
-                                                    objectSend.DtParcel = billet.DtBillet;
-                                                    objectSend.Phone = SendRemember.GetPhone(product.Person);
+                                                {*/
+                                                objectSend.Line = billet.Line;
+                                                objectSend.DtParcel = billet.DtBillet;
+                                                objectSend.Phone = SendRemember.GetPhone(product.Person);
 
-                                                    if (!string.IsNullOrEmpty(objectSend.Phone))
-                                                    {
-                                                        var envioEmailThread = new SendRemember(objectSend);
-                                                        envioEmailThread.SendSMS();
-                                                    }
+                                                if (!string.IsNullOrEmpty(objectSend.Phone))
+                                                {
+                                                    var envioEmailThread = new SendRemember(objectSend);
+                                                    envioEmailThread.SendSMS();
                                                 }
+                                                //}
                                             }
                                         }
                                         catch (Exception ex)
@@ -353,6 +403,62 @@ try
                                     {
                                         Util.SaveFile("Erro ao gerar o boleto para parcela: " + currentParcel.IdAgreementParcel);
                                     }
+                                }
+                            }
+                        }
+                    }
+
+                    if (agreement.IdAgreementStatus != acordo.id_status.Value)
+                    {
+                        Console.WriteLine(acordo.id + " - " + acordo.id_status + " - " + agreement.IdAgreementStatus);
+                        agreement.IdAgreementStatus = acordo.id_status.Value;
+                        agreementBLL.Update(agreement);
+
+
+
+                        if (acordo.id_status.Value == 2)
+                        {
+                            var objectSend = new ObjectSend()
+                            {
+                                IdAgreement = agreement.IdAgreement,
+                                Name = product.Person.DsName.Trim(),
+                                CardName = product.ProductSpecification != null ? product.ProductSpecification.Description : "Cartão CredZ",
+                                CardNumber = product.DsProduct.StartsWith("000") ? product.DsProduct.Substring(3, 8) + "********" : product.DsProduct.Substring(0, 8),
+                                aVista = agreement.QtParcel == 0,
+                                Product = product,
+                                CardUrl = product.ProductSpecification != null ? product.ProductSpecification.UrlImage : "",
+                            };
+                            if (product.Lead.Where(p => p.DtInsert >= DateTime.Today.AddDays(-1)).Count() > 0)
+                            {
+
+                                if (objectSend.Agreement == null)
+                                    objectSend.Agreement = agreement;
+                                if (agreement.CdParcelPlan.Trim() == "API CREDZ")
+                                {
+                                    Util.SaveFile("Enviando RCS quebra");
+                                    objectSend.Product = product;
+                                    objectSend.Phone = SendRemember.GetPhone(product.Person);
+                                    var envioEmailThread = new SendRemember(objectSend);
+                                    envioEmailThread.SendRCSBroken();
+                                }
+                                else
+                                {
+                                    Util.SaveFile("SMS");
+                                    objectSend.Product = product;
+                                    objectSend.Phone = SendRemember.GetPhone(product.Person);
+                                    var envioEmailThread = new SendRemember(objectSend);
+                                    envioEmailThread.SendSMS();
+                                }
+
+
+                                if (product.Person.Email.Count() > 0)
+                                {
+                                    Util.SaveFile("Enviando email quebra");
+                                    objectSend.Email = product.Person.Email.Where(p => p.flBloqueado == false && Util.IsEmail(p.DsEmail)).Select(p => p.DsEmail).Distinct().ToList();
+                                    // var lead = product.Lead.OrderByDescending(p => p.IdLead).FirstOrDefault();
+                                    // objectSend.Discount = discounts.Where(p => (lead.Age >= p.MinAge && lead.Age <= p.MaxAge) && p.MaxParcel <= 1).FirstOrDefault();
+                                    var envioEmailThread = new SendRemember(objectSend);
+                                    envioEmailThread.SendEmailBroken();
                                 }
                             }
                         }

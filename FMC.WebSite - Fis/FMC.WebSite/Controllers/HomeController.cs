@@ -75,7 +75,7 @@ namespace FMC.Fis.Controllers
                     {
                         userLogin = HttpHelper.POST<UserLogin, Login>(Utils.API.Fis.Uri.Login(), login);
                     }
-                    catch
+                    catch(Exception ex)
                     {
                         TempData["Message"] = "Ops! Não foi possível realizar seu login. Tente Novamente.";
                         return RedirectToAction("Login", "Home");

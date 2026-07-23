@@ -47,9 +47,10 @@ try
             long idPerson = 0;
             int count = 0;
 
-            foreach (var person in listPerson.OrderBy(p => p.NrCNPJCPF).ToList())
+            //foreach (var person in listPerson.OrderBy(p=>p.Product.).OrderBy(p => p.NrCNPJCPF).ToList())
+            foreach (var person in listPerson)
             {
-                if (count > 1800)
+               if (count > 2000)
                     break;
                 else
                     Console.WriteLine("Total: " + count);
@@ -59,7 +60,7 @@ try
 
                     Console.WriteLine(idPerson);
 
-                    var product = person.Product.Where(p => p.Lead.Where(l => l.DtInsert >= DateTime.Today).Any()).FirstOrDefault();
+                    var product = person.Product.Where(p => p.Lead.Where(l => l.DtInsert >= DateTime.Today.AddDays(-1)).Any()).FirstOrDefault();
 
                     if (product != null && !listPhone.Where(p => person.Phone.Where(e => e.NrPhone == p).Any()).Any())
                     {
@@ -71,7 +72,7 @@ try
                         {*/
                         try
                         {
-                            var lead = product.Lead.Where(p => p.DtInsert >= DateTime.Today).OrderByDescending(p => p.IdLead).FirstOrDefault();
+                            var lead = product.Lead.Where(p => p.DtInsert >= DateTime.Today.AddDays(-1)).OrderByDescending(p => p.IdLead).FirstOrDefault();
 
                             if (lead != null && lead.Age > 77)
                             {
@@ -80,10 +81,11 @@ try
                                     (
                                         new RCS()
                                         {
+                                            Total = count,
                                             IdPerson = person.IdPerson,
                                             IdProduct = product.IdProduct,
                                             Nome = person.DsName.Trim(),
-                                            //Phones = phones,
+                                            DtNascimento = person.DtBirth.Value,
                                             Atraso = lead.Age,
                                             Desconto = Discounts.Where(p => (lead.Age >= p.MinAge && lead.Age <= p.MaxAge) && p.MaxParcel == 1).FirstOrDefault().MaxDiscount,
                                             Lead = lead,

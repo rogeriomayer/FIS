@@ -9,7 +9,7 @@ using FMC.FIS.Business.Models;
 using FMC.Generic;
 using FMC.FIS.Business.Models.Boleto;
 using FMC.FIS.Business.DAO;
-using BoletoNetCore;
+
 
 namespace FMC.FIS.BLL
 {
@@ -90,8 +90,8 @@ namespace FMC.FIS.BLL
                 }
 
 
-                BilletResponse billet2;
-                billet2 = this.GetBilletBradescoP2FIS(billetParameter, salvarPDF);
+                BilletResponse billet2 = null;
+                //billet2 = this.GetBilletBradescoP2FIS(billetParameter, salvarPDF);
                 return billet2;
             }
             catch (Exception ex)
@@ -200,7 +200,8 @@ namespace FMC.FIS.BLL
             });
         }
 
-
+        /*
+        
         private BilletResponse GetBilletBradescoP2FIS(BilletParameterP2 billetParameter, bool salvarPDF)
         {
             try
@@ -214,7 +215,7 @@ namespace FMC.FIS.BLL
                 double valorBoleto = Convert.ToDouble(billetParameter.ValorDocumento);
                 Convert.ToInt32(billetParameter.TotaldeParcelas);
 
-                /*Dados conta FMC Boleto Online*/
+                
                 billetParameter.Agencia = "4150";
                 billetParameter.ContaCorrente = "9999997";
                 billetParameter.AgenciaBeneficiario = "4150";
@@ -226,7 +227,7 @@ namespace FMC.FIS.BLL
                 billetParameter.Instrucao1 = "*** AO PAGADOR(A),  VALORES EXPRESSOS EM REAIS ***";
                 billetParameter.Instrucao2 = "<br /><br />SR(A) CAIXA, NÃO RECEBER APÓS O VENCIMENTO ";
                 billetParameter.ComplementoInstrucao += "<br /><br /><br />Assessoria  FIS - Fidelity National Serviços e Contact Center Ltda - CNPJ 19.581.571/0001-95, prestadora de serviço do Banco Bradesco";
-                /*Fim dados conta FMC Boleto Online*/
+                //Fim dados conta FMC Boleto Online
 
                 var contaBancaria = new ContaBancaria
                 {
@@ -351,6 +352,8 @@ namespace FMC.FIS.BLL
                 throw ex;
             }
         }
+
+        */
 
         private long AddNewBillet(string carteira, string cpfCnpjBeneficiario, string agenciaBeneficiario, string contaBeneficiario, long idCedente, string cpfCnpjSacado, string nomeSacado, string enderecoSacado, string numeroSacado, string complementoSacado, string bairroSacado, string cidadeSacado, string ufSacado, string cepSacado, string codigoCarteira, int codigoBanco, string nossoNumero, string documento, DateTime dtVencimento, DateTime dtDocumento, DateTime dtProcessamento, int qtdParcelas, Decimal valor, string aceite, long idLead, string idAcordo, string idParcela, int nrParcela, string codigoBarras, string linhaDigitavel, string controleParticipante, byte[] pdf, bool registradoOnline, KeyValuePair<string, string>? registroOnline, bool salvarPDF)
         {

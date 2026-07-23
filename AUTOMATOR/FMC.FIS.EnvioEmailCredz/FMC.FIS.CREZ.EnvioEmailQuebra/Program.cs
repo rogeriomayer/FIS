@@ -204,10 +204,10 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                 var totalParcel = 24;
                 for (int i = 24; i > 0; i--)
                 {
-                    decimal vlParcel = 50;
+                    decimal vlParcel = 99;
                     totalParcel = i;
                     vlParcel = (contrato.parcelas.FirstOrDefault().valor - (contrato.parcelas.FirstOrDefault().valor * (desconto / 100))) / i;
-                    if (vlParcel > 70)
+                    if (vlParcel > 99)
                     {
                         break;
                     }
@@ -219,7 +219,7 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
 
 
                 body.Append("</p>");
-                if (avista.ValueEntrace <= 400)
+                if (avista.ValueEntrace <= 200)
                     body.Append("Pague apenas R$").Append(avista.ValueEntrace.ToString("N2")).Append(" no pagamento a vista!");
                 else
                 {
@@ -291,7 +291,7 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                             DtEntrace = DateTime.Today.AddDays(7),
                             PctDiscount = 0,
                             NrParcel = nrParcel,
-                            VlEntrace = 0,
+                            VlEntrace = 99,
                             Product = lead.Product.DsProduct,
                             CdSimulate = "",
                             ParcelaCredz = complementData,
