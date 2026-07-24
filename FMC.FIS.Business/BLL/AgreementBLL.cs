@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using FMC.FIS.Business.Models.OneB2K;
 using System.Globalization;
+using FMC.FIS.Business.Code.Api.Digicob;
 
 namespace FMC.FIS.Business.BLL
 {
@@ -26,7 +27,9 @@ namespace FMC.FIS.Business.BLL
 
             if (productType == Constants.ProductType.CREDZ)
             {
-                agreementSimulate = GetAgreementSimulateCredz(agreementSimulateRequest);
+                agreementSimulate = GetAgreementSimulateDigicob(agreementSimulateRequest);
+                if (agreementSimulate == null)
+                    agreementSimulate = GetAgreementSimulateCredz(agreementSimulateRequest);
             }
             else
             {
@@ -131,7 +134,75 @@ namespace FMC.FIS.Business.BLL
             return agreementSimulate;
         }
 
+        private AgreementSimulateResponse GetAgreementSimulateDigicob(AgreementSimulateRequest agreementSimulateRequest)
+        {
+            try
+            {
+                AgreementSimulateResponse agreementSimulate = new AgreementSimulateResponse();
 
+                try
+                {
+                    var agreementPlans = new DigicobAPI().PostAgreementPlansAsync
+                        (
+                           Convert.ToInt64(agreementSimulateRequest.ParcelaCredz.FirstOrDefault().numero_parcela_original),
+                            new Digicob.DM.Models.AgreementPlanRequest()
+                            {
+                                IdPortalAccess = 0,
+                                Channel = "Portal",
+                                DownPaymentDate = DateTime.Today.AddDays(7).ToString("yyyy-MM-dd"),
+                                Contracts = new List<Digicob.DM.Models.AgreementContractRequest>()
+                                {
+                                    new Digicob.DM.Models.AgreementContractRequest()
+                                        {
+                                            IdContract = Convert.ToInt64( agreementSimulateRequest.ParcelaCredz.FirstOrDefault().valor),
+                                            ContractId = agreementSimulateRequest.ParcelaCredz.FirstOrDefault().negociacao_id,
+                                            CollectionIds = agreementSimulateRequest.ParcelaCredz.Select(p => p.id_parcela_original).ToList()
+                                        }
+                                }
+                            }
+                        ).GetAwaiter().GetResult();
+
+                    var agreementPlan = agreementPlans.OrderBy(p => p.InstallmentCount).FirstOrDefault();
+                    agreementSimulate.PctDiscount = agreementPlan.DiscountValue;
+                    agreementSimulate.DateEntrace = agreementPlan.DownPaymentDate;
+                    agreementSimulate.DateFirstParcel = agreementPlan.SecondInstallmentDate.HasValue ? agreementPlan.SecondInstallmentDate.Value : agreementPlan.DownPaymentDate;
+
+                    agreementSimulate.VlDue = agreementPlan.PrincipalValue;
+
+                    agreementSimulate.VlFull = agreementPlan.TotalValue;
+
+                    agreementSimulate.PctInterest = agreementPlan.InterestValue;
+
+                    foreach (var parcel in agreementPlans.OrderBy(p => p.InstallmentCount).ToList())
+                        agreementSimulate.ParcelResponse.Add
+                            (
+                                new ParcelResponse()
+                                {
+                                    NrParcel = parcel.Installments.FirstOrDefault().Number,
+                                    ValueEntrace = agreementPlan.DownPaymentValue,
+                                    DtParcel = parcel.Installments.FirstOrDefault().DueDate,
+                                    VlDiscount = agreementPlan.DiscountValue,
+                                    VlParcel = parcel.Installments.FirstOrDefault().Value,
+                                    VlFull = agreementPlan.TotalValue,
+                                    //PctMonthCET = Convert.ToDecimal(pctMonthCET),
+                                    //PctYearCET = Convert.ToDecimal(pctYearCET),
+                                    //VlMonthCET = Convert.ToDecimal(vlMonthCET),
+                                    //VlYearCET = Convert.ToDecimal(vlYearCET)
+                                }
+                            );
+                }
+                catch
+                {
+
+                }
+
+                return agreementSimulate;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
         private AgreementSimulateResponse GetAgreementSimulateCredz(AgreementSimulateRequest agreementSimulateRequest)
         {
             try

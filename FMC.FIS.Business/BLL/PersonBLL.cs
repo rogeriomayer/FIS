@@ -277,7 +277,7 @@ namespace FMC.FIS.Business.BLL
                 //preenche dados da base/mailing
                 personResponse.IdPerson = person.IdPerson;
                 personResponse.CPF = person.NrCNPJCPF;
-                personResponse.Name = person.DsName;
+                personResponse.Name = person.DsName.ToUpper();
                 personResponse.DtBirth = person.DtBirth.HasValue ? person.DtBirth.Value : new DateTime(1900, 01, 01);
                 personResponse.Address = new AddressResponse();
                 if (person.Address.Count > 0)
@@ -307,8 +307,6 @@ namespace FMC.FIS.Business.BLL
                                                 }
                                         ).ToList();
 
-
-
                 personResponse.Cards = CreateCardResponse(person, dsProduct);
 
             }
@@ -323,7 +321,7 @@ namespace FMC.FIS.Business.BLL
                 try
                 {
 
-                    var contractDigicob =  new DigicobAPI().GetContractAsync(cpf, "").GetAwaiter().GetResult();
+                    var contractDigicob = new DigicobAPI().GetContractAsync(cpf, "").GetAwaiter().GetResult();
                     if (contractDigicob != null)
                     {
                         FillCardsDigicob(products, contractDigicob.ToList(), person, personResponse);
@@ -353,7 +351,7 @@ namespace FMC.FIS.Business.BLL
                     }
 
 
-                    
+
                 }
                 catch (Exception ex)
                 {
@@ -838,72 +836,36 @@ namespace FMC.FIS.Business.BLL
                     }
                     if (card != null)
                     {
-                        //var parcelas = contract.parcelas.ToList();
                         var parcelas = contract.Collections.ToList();
 
                         if (parcelas != null && parcelas.Count > 0)
                         {
-                            //var valor = parcelas.Sum(p => p.valor);
                             var vencimento = parcelas.OrderBy(p => p.DueDate).FirstOrDefault().DueDate;
 
                             card.VlDue = contract.PrincipalValue.Value;
                             card.DtDue = vencimento;
 
-                            //var saldoTotal = contract.dados_adicionais.Where(p => p.nome == "Saldo Total").FirstOrDefault();
-                            //card.VlFull = saldoTotal != null ? Convert.ToDecimal(saldoTotal.valor) : valor;
                             card.VlFull = contract.UpdatedValue.Value;
-                            //var minimo = contract.dados_adicionais.Where(p => p.nome == "Valor de Pagamento Mínimo").FirstOrDefault();
-                            //card.VlMinimum = minimo != null ? Convert.ToDecimal(minimo.valor) : valor;
                             card.VlMinimum = contract.PrincipalValue.Value;
-                            card.Age = DateTime.Today.Subtract(vencimento.Value).Days;
-
-                            /*
+                            card.Age = contract.AgingMax;
+                            card.AccountNumber = contract.Id.ToString();
                             foreach (var parcela in parcelas)
-                            {
                                 card.ParcelaCredz.Add
                                     (
                                         new ParcelaCredz()
                                         {
-                                            id_parcela_original = parcela.id,
-                                            negociacao_id = contract.negociacao_id,
-                                            numero_parcela_original = parcela.numero,
-                                            vencimento = parcela.vencimento,
-                                            valor = parcela.valor
+                                            id_parcela_original = parcela.Id,
+                                            negociacao_id = contract.Id,
+                                            numero_parcela_original = contract.CustomerId.ToString(),
+                                            vencimento = parcela.DueDate.Value,
+                                            valor = contract.IdContract,
                                         }
                                     );
-                            }
-
-                            */
-                            /*
-                            card.ComplementData.Add(new ComplementData() { Name = "id_parcela_original", Value = parcelas.OrderBy(p => p.vencimento).FirstOrDefault().id.ToString() });
-                            card.ComplementData.Add(new ComplementData() { Name = "negociacao_id", Value = contract.negociacao_id.ToString() });
-                            card.ComplementData.Add(new ComplementData() { Name = "numero_parcela_original", Value = parcelas.OrderBy(p => p.vencimento).FirstOrDefault().numero.ToString() });
-                            */
                         }
 
-
-                        //string finalCartao = contract.dados_adicionais.Where(p => p.nome == "Final Número Cartão").Count() > 0 ? contract.dados_adicionais.Where(p => p.nome == "Final Número Cartão").FirstOrDefault().valor : "";
-
-                        /* Verificar o numero do cartão e nome do cartão*/
                         card.CardNumber = contract.Product;
-                        //card.CardNumber = Convert.ToInt64(contract.product).ToString().Substring(0, 6).PadRight(finalCartao.Length >= 3 ? 12 : 16, '*') + finalCartao;
                         card.CardName = contract.Store;
-                        //card.CardName = String.IsNullOrEmpty(contract.filial_descricao) ? (string.IsNullOrEmpty(card.CardName) ? "CredZ" : card.CardName) : contract.filial_descricao;
-
-                        /*
-                         * Alteração DIGICOB
-                         var cobrador = contract.dados_adicionais.Where(p => p.nome.ToUpper() == "COBRADOR").FirstOrDefault();
-                        if (cobrador.valor == "ZZZ")
-                            card.AvailableBilling = false;
-                        else
-                        {
-                            var unvailableBilling = new UnvailableBillingBLL().GetByProduct(contract.numero_contrato);
-                            card.AvailableBilling = unvailableBilling != null ? false : true;
-                        }
-                        */
-
-
-                        ///validar acordos
+                        card.AvailableBilling = contract.CollectionCount > 0;
 
                         FillAgreementDigicob(personResponse.CPF, ref card, contract);
                     }
@@ -1053,7 +1015,7 @@ namespace FMC.FIS.Business.BLL
             }
         }
 
-        private void FillAgreementDigicob(string cpf, ref Models.Customer.CardResponse cardResponse,Digicob.DM.Models.ContractResponse contrato)
+        private void FillAgreementDigicob(string cpf, ref Models.Customer.CardResponse cardResponse, Digicob.DM.Models.ContractResponse contrato)
         {
             try
             {
