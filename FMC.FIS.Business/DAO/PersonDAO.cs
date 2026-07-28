@@ -310,7 +310,7 @@ namespace FMC.FIS.Business.DAO
 
         public ICollection<Person> GetPersonSendRCSNews()
         {
-            var query = new StringBuilder();
+             var query = new StringBuilder();
 
             query.Append(" select distinct pe.*, debitbalance, age ");
             query.Append(" from Lead a  WITH(NOLOCK) ");
@@ -324,8 +324,8 @@ namespace FMC.FIS.Business.DAO
             //query.Append("  inner join CREDZ.dbo.TempCobranca on CPFCNPJ = pe.NrCNPJCPF AND ULTIMOEVENTO like '%Proposta de Acordo%'");
 
             query.Append(" where a.DtInsert >= CONVERT(date, getdate()  )  ");
-            //query.Append(" and a.age between 84 and 200");
-            query.Append(" and a.age between 360 and 7720");
+            query.Append(" and a.age between 97 and 120");
+            //query.Append(" and a.age between 360 and 7720");
             //query.Append(" and (dsproduct not like '%8' or dsproduct not like '%9' )");
             //query.Append(" and (dsproduct like '%9' or dsproduct like '%8' or dsproduct like '%5' or dsproduct like '%0' or dsproduct like '%4' or dsproduct like '%6' )");
             //query.Append(" and ph.IdPhoneStatus in(1,5,6,7) ");

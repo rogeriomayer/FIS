@@ -32,7 +32,7 @@
         <ul>
             @if (pessoa != null && pessoa.Cards.Count() > 0)
             {
-                foreach (var conta in pessoa.Cards.OrderByDescending(p => p.AvailableBilling).ThenByDescending(p => p.Age).Where(p => p.VlFull > 0).ToList())
+                foreach (var conta in pessoa.Cards.OrderByDescending(p => p.AvailableBilling).ThenByDescending(p => p.Age).ToList())
                 {
                     AgreementParcelResponse agreementParcelResponse = null;
                     var statusLead = conta.StatusLeadResponse.Where(p => p.AgreementResponse != null).OrderByDescending(p => p.IdStatusLead).FirstOrDefault();
@@ -42,7 +42,7 @@
                     }
                     if (agreement != null)
                     {
-                        agreementParcelResponse = @agreement.AgreementParcelResponse.OrderBy(p=> p.NrParcel).Where(p => p.Status == "EmAberto" && p.DtParcel >= DateTime.Today.AddDays(-10)).FirstOrDefault();
+                        agreementParcelResponse = @agreement.AgreementParcelResponse.OrderBy(p=> p.NrParcel).Where(p => p.Status.Contains("Aberto") && p.DtParcel >= DateTime.Today.AddDays(-10)).FirstOrDefault();
                     }
                     string imageCard = "~/images/cartao/cardgenerico-v2.png";
                     if (!string.IsNullOrEmpty(conta.CardImage))
@@ -65,7 +65,7 @@
                                 }
                                 <br />
                                 <br />
-                                @if (conta.Age >= 78 && conta.AvailableBilling)
+                                @if (conta.AvailableBilling)
                                 {
 
                                     <span>

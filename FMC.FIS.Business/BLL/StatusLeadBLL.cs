@@ -38,26 +38,31 @@ namespace FMC.FIS.BLL
 
         public StatusLeadResponse Add(StatusLead statusLead, string cpf, string telefone, Constants.ProductType productType)
         {
+            StatusLead statusLeadReturn = null;
 
-            var newStatusLead = Add(cpf, statusLead, productType);
+            var lead = new LeadBLL().GetByCPF(cpf, 3);
 
+            statusLeadReturn = lead.StatusLead.Where(p => p.Agreement.Where(a => a.CdAgreement == statusLead.Agreement.FirstOrDefault().CdAgreement).Any()).OrderByDescending(p=> p.IdStatusLead).FirstOrDefault();
+
+            if (statusLeadReturn == null)
+                statusLeadReturn = Add(cpf, statusLead, productType);
 
             if (productType == Constants.ProductType.AFINZ)
             {
-                string ocorrencia = new StatusBLL().GetBykey(newStatusLead.IdStatus).CdStatus;
-                string complemento = newStatusLead.DsDescription;
+                string ocorrencia = new StatusBLL().GetBykey(statusLeadReturn.IdStatus).CdStatus;
+                string complemento = statusLeadReturn.DsDescription;
 
-                string dtAgenda = DateTime.Today.AddDays(newStatusLead.Status.DaysSystem).ToString("yyyy-MM-dd");
-                if (newStatusLead.Promisse.Count > 0)
+                string dtAgenda = DateTime.Today.AddDays(statusLeadReturn.Status.DaysSystem).ToString("yyyy-MM-dd");
+                if (statusLeadReturn.Promisse.Count > 0)
                 {
                     var billetDAO = new BilletDAO();
-                    var billets = billetDAO.GetByIdProduct(newStatusLead.Lead.IdProduct);
+                    var billets = billetDAO.GetByIdProduct(statusLeadReturn.Lead.IdProduct);
                     Billet billet = billets.Where(p => p.DtInsert >= DateTime.Today
                                                 && p.VlBillet == statusLead.Promisse.FirstOrDefault().VlPromisse
                                                 && p.DtBillet.Date == statusLead.Promisse.FirstOrDefault().DtPromisse).FirstOrDefault();
                     if (billet != null)
                     {
-                        var statusLeadPromisse = new StatusLeadDAO().GetBykey(newStatusLead.IdStatusLead);
+                        var statusLeadPromisse = new StatusLeadDAO().GetBykey(statusLeadReturn.IdStatusLead);
                         if (statusLeadPromisse.Promisse != null && statusLeadPromisse.Promisse.Count > 0)
                         {
                             billet.IdPromisse = statusLeadPromisse.Promisse.FirstOrDefault().IdPromisse;
@@ -65,15 +70,15 @@ namespace FMC.FIS.BLL
                         }
                     }
 
-                    if (newStatusLead.Promisse.FirstOrDefault().DtPromisse < DateTime.Today.AddDays(4))
-                        dtAgenda = newStatusLead.Promisse.FirstOrDefault().DtPromisse.AddDays(1).ToString("yyyy-MM-dd");
+                    if (statusLeadReturn.Promisse.FirstOrDefault().DtPromisse < DateTime.Today.AddDays(4))
+                        dtAgenda = statusLeadReturn.Promisse.FirstOrDefault().DtPromisse.AddDays(1).ToString("yyyy-MM-dd");
                     else
-                        dtAgenda = newStatusLead.Promisse.FirstOrDefault().DtPromisse.ToString("yyyy-MM-dd");
+                        dtAgenda = statusLeadReturn.Promisse.FirstOrDefault().DtPromisse.ToString("yyyy-MM-dd");
                 }
-                if (newStatusLead.Agreement.Count > 0)
+                if (statusLeadReturn.Agreement.Count > 0)
                 {
                     var billetDAO = new BilletDAO();
-                    var billets = billetDAO.GetByIdProduct(newStatusLead.Lead.IdProduct);
+                    var billets = billetDAO.GetByIdProduct(statusLeadReturn.Lead.IdProduct);
                     Billet billet = billets.Where(p => p.DtInsert >= DateTime.Today
                                                 && p.VlBillet == statusLead.Promisse.FirstOrDefault().VlPromisse
                                                 && p.DtBillet.Date == statusLead.Promisse.FirstOrDefault().DtPromisse).FirstOrDefault();
@@ -85,17 +90,17 @@ namespace FMC.FIS.BLL
                 }
 
 
-                if (newStatusLead.CallBack != null && newStatusLead.CallBack.Count > 0)
+                if (statusLeadReturn.CallBack != null && statusLeadReturn.CallBack.Count > 0)
                 {
-                    dtAgenda = newStatusLead.CallBack.FirstOrDefault().DtCallBack.ToString("yyyy-MM-dd");
-                    telefone = newStatusLead.CallBack.FirstOrDefault().NrPhone;
+                    dtAgenda = statusLeadReturn.CallBack.FirstOrDefault().DtCallBack.ToString("yyyy-MM-dd");
+                    telefone = statusLeadReturn.CallBack.FirstOrDefault().NrPhone;
                 }
 
 
             }
 
 
-            return CreateStatusLeadResponse(newStatusLead);
+            return CreateStatusLeadResponse(statusLeadReturn);
         }
 
         internal static StatusLeadResponse CreateStatusLeadResponse(StatusLead newStatusLead)
@@ -142,13 +147,13 @@ namespace FMC.FIS.BLL
                         agreementResponse.DtInsert = a.DtInsert;
                         agreementResponse.IdAgreementStatus = a.IdAgreementStatus;
                         agreementResponse.Status = a.AgreementStatus != null ? a.AgreementStatus.DsAgreementStatus : "EmAberto";
-                        foreach (var ap in a.AgreementParcel.OrderBy(p=> p.NrParcel).ToList())
+                        foreach (var ap in a.AgreementParcel.OrderBy(p => p.NrParcel).ToList())
                         {
                             var agreementParcelResponse = new AgreementParcelResponse();
                             agreementParcelResponse.IdAgreementParcel = ap.IdAgreementParcel;
                             agreementParcelResponse.NrParcel = ap.NrParcel;
                             agreementParcelResponse.DtParcel = ap.DtParcel;
-                            agreementParcelResponse.Status = ap.IdAgreementStatus == null ? "EmAberto" : (ap.IdAgreementStatus == 2 ? "Quebrado" : "Pago");
+                            agreementParcelResponse.Status = ap.IdAgreementStatus == null || ap.IdAgreementStatus == 1  ? "EmAberto" : (ap.IdAgreementStatus == 2 ? "Quebrado" : "Pago");
                             agreementParcelResponse.VlParcel = ap.VlParcel;
 
                             foreach (var b in ap.Billet)

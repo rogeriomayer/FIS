@@ -322,44 +322,41 @@ namespace FMC.FIS.Business.BLL
                 {
 
                     var contractDigicob = new DigicobAPI().GetContractAsync(cpf, "").GetAwaiter().GetResult();
-                    if (contractDigicob != null)
+                    if (contractDigicob != null && contractDigicob.Count > 0)
                     {
                         FillCardsDigicob(products, contractDigicob.ToList(), person, personResponse);
                     }
-                    else
+
+                    var personCobmais = CobmaisAPI.GetPessoa(cpf);
+                    IList<Models.Cobmais.Contrato> cobmaisContracts = null;
+                    if (personCobmais != null)
                     {
-                        var personCobmais = CobmaisAPI.GetPessoa(cpf);
-                        IList<Models.Cobmais.Contrato> cobmaisContracts = null;
-                        if (personCobmais != null)
-                        {
-                            FillPersonDataCredz(personCobmais, personResponse);
-                            cobmaisContracts = CobmaisAPI.GetContratos(cpf, "0", "0");
-                        }
-
-                        if (personCobmais == null && (cobmaisContracts == null || cobmaisContracts.Count == 0))
-                            return null;
-
-                        if (person == null)
-                        {
-                            person = CreatePersonCredz(personCobmais, cobmaisContracts);
-
-                            products = person.Product.Where(p => p.IdProductType == Convert.ToByte(productType)).Select(p => p.DsProduct).ToList();
-
-                            personResponse = CreatePersonResponse(person, products);
-                        }
-                        FillCardsCredz(products, cobmaisContracts, person, personResponse);
+                        FillPersonDataCredz(personCobmais, personResponse);
+                        cobmaisContracts = CobmaisAPI.GetContratos(cpf, "0", "0");
                     }
 
+                    //if (personCobmais == null && (cobmaisContracts == null || cobmaisContracts.Count == 0))
+                    //    return null;
 
+                    if (person == null)
+                    {
+                        person = CreatePersonCredz(personCobmais, cobmaisContracts);
+
+                        products = person.Product.Where(p => p.IdProductType == Convert.ToByte(productType)).Select(p => p.DsProduct).ToList();
+
+                        personResponse = CreatePersonResponse(person, products);
+                    }
+                    if (cobmaisContracts != null)
+                        FillCardsCredz(products, cobmaisContracts, person, personResponse);
 
                 }
                 catch (Exception ex)
                 {
-                    if (ex.Message.Contains("não encontrado"))
+                    /*if (ex.Message.Contains("não encontrado"))
                     {
                         if (personResponse.Cards != null)
                             personResponse.Cards.ToList().ForEach(p => p.AvailableBilling = false);
-                    }
+                    }*/
                 }
                 //FillAgreementCredz(person.NrCNPJCPF, personResponse.);
             }
@@ -841,12 +838,13 @@ namespace FMC.FIS.Business.BLL
                         if (parcelas != null && parcelas.Count > 0)
                         {
                             var vencimento = parcelas.OrderBy(p => p.DueDate).FirstOrDefault().DueDate;
-
-                            card.VlDue = contract.PrincipalValue.Value;
+                            if (string.IsNullOrEmpty(card.CardImage))
+                                card.CardImage = "https://negociadordm.fmcbrasil.com.br/images/DM-generic.png";
+                            card.VlDue = contract.PrincipalValue.HasValue ? contract.PrincipalValue.Value : 0;
                             card.DtDue = vencimento;
 
-                            card.VlFull = contract.UpdatedValue.Value;
-                            card.VlMinimum = contract.PrincipalValue.Value;
+                            card.VlFull = contract.UpdatedValue.HasValue ? contract.UpdatedValue.Value : 0;
+                            card.VlMinimum = contract.PrincipalValue.HasValue ? contract.PrincipalValue.Value : 0;
                             card.Age = contract.AgingMax;
                             card.AccountNumber = contract.Id.ToString();
                             foreach (var parcela in parcelas)

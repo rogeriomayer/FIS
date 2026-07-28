@@ -47,6 +47,5 @@ namespace FMC.FIS.API.Controllers
             return Ok(result);
         }
 
-
     }
 }

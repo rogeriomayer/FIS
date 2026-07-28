@@ -47,12 +47,19 @@ namespace FMC.FIS.Business.Code.Api.Cobmais
 
         public static Models.Cobmais.Pessoa GetPessoa(string cpf)
         {
-            var token = GetToken();
-            var headers = new Dictionary<string, string>();
+            try
+            {
+                var token = GetToken();
+                var headers = new Dictionary<string, string>();
 
-            headers.Add("Authorization", "Bearer " + token);
+                headers.Add("Authorization", "Bearer " + token);
 
-            return RestApi.Get<Models.Cobmais.Pessoa>(Constants.UrlApiCobmaisCredz, "clientes/dadosCadastrais/" + cpf, null, headers);
+                return RestApi.Get<Models.Cobmais.Pessoa>(Constants.UrlApiCobmaisCredz, "clientes/dadosCadastrais/" + cpf, null, headers);
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
         public static IList<Models.Cobmais.Contrato> GetContratos(string cpf, string credor, string numeroContrato)
         {

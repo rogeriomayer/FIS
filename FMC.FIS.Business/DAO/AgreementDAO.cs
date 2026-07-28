@@ -12,6 +12,11 @@ namespace FMC.FIS.Business.DAO
     {
         public AgreementDAO() : base("CNN_FIS") { }
 
+        public Agreement GetAgreement(string cdAgreement)
+        {
+            return Context.Where(p => p.CdAgreement == cdAgreement).FirstOrDefault();
+        }
+
         public ICollection<Agreement> GetRemember(DateTime dtIni, DateTime dtFim)
         {
             var query = new StringBuilder();

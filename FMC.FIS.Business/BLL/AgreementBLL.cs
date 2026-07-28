@@ -17,9 +17,14 @@ namespace FMC.FIS.Business.BLL
 {
     public class AgreementBLL : BLL<Agreement, AgreementDAO>
     {
+        public Agreement GetAgreement(string cdAgreement)
+        {
+            return persistence.GetAgreement(cdAgreement);
+        }
+
         public AgreementSimulateResponse GetAgreementSimulate(AgreementSimulateRequest agreementSimulateRequest, Constants.ProductType productType)
         {
-            var agreementSimulate = new AgreementSimulateResponse();
+            AgreementSimulateResponse agreementSimulate = null;
             //if (productType == Constants.ProductType.AFINZ)
             //{
             //    agreementSimulate = GetAgreementSimulateAfins(agreementSimulateRequest);
@@ -138,7 +143,7 @@ namespace FMC.FIS.Business.BLL
         {
             try
             {
-                AgreementSimulateResponse agreementSimulate = new AgreementSimulateResponse();
+                AgreementSimulateResponse agreementSimulate = null;
 
                 try
                 {
@@ -162,34 +167,40 @@ namespace FMC.FIS.Business.BLL
                             }
                         ).GetAwaiter().GetResult();
 
-                    var agreementPlan = agreementPlans.OrderBy(p => p.InstallmentCount).FirstOrDefault();
-                    agreementSimulate.PctDiscount = agreementPlan.DiscountValue;
-                    agreementSimulate.DateEntrace = agreementPlan.DownPaymentDate;
-                    agreementSimulate.DateFirstParcel = agreementPlan.SecondInstallmentDate.HasValue ? agreementPlan.SecondInstallmentDate.Value : agreementPlan.DownPaymentDate;
+                    if (agreementPlans.Count > 0)
+                    {
+                        var agreementPlan = agreementPlans.OrderBy(p => p.InstallmentCount).FirstOrDefault();
 
-                    agreementSimulate.VlDue = agreementPlan.PrincipalValue;
+                        agreementSimulate = new AgreementSimulateResponse();
+                        agreementSimulate.PctDiscount = agreementPlan.DiscountValue;
+                        agreementSimulate.DateEntrace = agreementPlan.DownPaymentDate;
+                        agreementSimulate.DateFirstParcel = agreementPlan.SecondInstallmentDate.HasValue ? agreementPlan.SecondInstallmentDate.Value : agreementPlan.DownPaymentDate;
 
-                    agreementSimulate.VlFull = agreementPlan.TotalValue;
+                        agreementSimulate.VlDue = agreementPlan.PrincipalValue;
 
-                    agreementSimulate.PctInterest = agreementPlan.InterestValue;
+                        agreementSimulate.VlFull = agreementPlan.UpdatedValue;
 
-                    foreach (var parcel in agreementPlans.OrderBy(p => p.InstallmentCount).ToList())
-                        agreementSimulate.ParcelResponse.Add
-                            (
-                                new ParcelResponse()
-                                {
-                                    NrParcel = parcel.Installments.FirstOrDefault().Number,
-                                    ValueEntrace = agreementPlan.DownPaymentValue,
-                                    DtParcel = parcel.Installments.FirstOrDefault().DueDate,
-                                    VlDiscount = agreementPlan.DiscountValue,
-                                    VlParcel = parcel.Installments.FirstOrDefault().Value,
-                                    VlFull = agreementPlan.TotalValue,
+                        agreementSimulate.PctInterest = agreementPlan.InterestValue;
+
+                        foreach (var parcel in agreementPlans.OrderBy(p => p.InstallmentCount).ToList())
+                            agreementSimulate.ParcelResponse.Add
+                                (
+                                    new ParcelResponse()
+                                    {
+                                        CdParcel = parcel.PlanUuid,
+                                        NrParcel = parcel.InstallmentCount - 1,
+                                        ValueEntrace = parcel.DownPaymentValue,
+                                        DtParcel = parcel.Installments.FirstOrDefault().DueDate,
+                                        VlDiscount = agreementPlan.UpdatedValue - parcel.TotalValue,
+                                        VlParcel = parcel.InstallmentValue == 0 ? parcel.DownPaymentValue : parcel.InstallmentValue,
+                                        VlFull = parcel.TotalValue,
                                     //PctMonthCET = Convert.ToDecimal(pctMonthCET),
                                     //PctYearCET = Convert.ToDecimal(pctYearCET),
                                     //VlMonthCET = Convert.ToDecimal(vlMonthCET),
                                     //VlYearCET = Convert.ToDecimal(vlYearCET)
                                 }
-                            );
+                                );
+                    }
                 }
                 catch
                 {
@@ -550,46 +561,113 @@ namespace FMC.FIS.Business.BLL
         {
             try
             {
-                var discount = new DiscountBLL().GetDiscount(3, agreementSimulateRequest.Age, agreementSimulateRequest.NrParcel);
-                return CobmaisAPI.SetAcordo(new Models.Cobmais.SimulacaoAcordoRequest()
+                if (agreementSimulateRequest.CdSimulate != null)
                 {
-                    valor_entrada = agreementSimulateRequest.VlEntrace,
-                    data_calculo = agreementSimulateRequest.DtEntrace,
-                    descontos = new Models.Cobmais.Descontos()
+                    var agreement = new DigicobAPI().GetAgreementAsync(Convert.ToInt64(agreementSimulateRequest.ParcelaCredz.FirstOrDefault().numero_parcela_original), agreementSimulateRequest.CdSimulate).GetAwaiter().GetResult();
+
+                    var entrace = agreement.Installments.OrderBy(p => p.Number).FirstOrDefault();
+
+                    if (entrace.Billets == null || entrace.Billets.Count == 0)
+                        agreement = new DigicobAPI().GetAgreementBilletAsync(agreement.CustomerId, agreement.Id, entrace.Id).GetAwaiter().GetResult();
+
+                    return new Models.Cobmais.Acordo()
                     {
-                        principal = discount.MaxDiscount,
-                        multa = 100,
-                        juros = 100,
-                        honorarios = 0,
-                        desconto_maximo = true,
-                        desconto_relativo_campanha = false
-                    },
-                    forma_pagamento = "Boleto",
-                    quantidade_parcelas = agreementSimulateRequest.NrParcel,
-                    parcelas_originais = agreementSimulateRequest.ParcelaCredz.Select(p =>
-                            new Models.Cobmais.ParcelaOriginal()
-                            {
-                                negociacao_id = p.negociacao_id,
-                                id = p.id_parcela_original,
-                                numero = p.numero_parcela_original,
-                                vencimento = p.vencimento,
-                                valor = p.valor
-                            }
-                        ).ToList()
-                    /*
-                    parcelas_originais = new System.Collections.Generic.List<Models.Cobmais.ParcelaOriginal>()
+                        id = agreement.Id,
+                        status_descricao = agreement.Status,
+                        status = agreement.Status,
+                        status_id = 1,
+                        id_status = 1,
+                        numero = agreement.ParentAgreementId.ToString(),
+                        data = agreement.DownPaymentDate.Value,
+                        quantidade_parcelas = agreement.InstallmentCount,
+                        principal = agreement.PrincipalValue,
+                        multa = agreement.PenaltyValue,
+                        juros = agreement.InterestValue,
+                        honorarios = agreement.InterestRateValue,
+                        despesas = agreement.FinancialCostValue,
+                        taxa_parcelamento = agreement.FinancialCostPercentage,
+                        desconto_principal = agreement.PrincipalDiscountValue,
+                        desconto_multa = agreement.PrincipalDiscountValue,
+                        desconto_juros = agreement.InterestDiscountValue,
+                        desconto_honorario = agreement.InterestDiscountValue,
+                        total = agreement.TotalValue,
+                        repasse_principal = 0,
+                        repasse_multa = 0,
+                        repasse_juros = 0,
+                        repasse_despesas = 0,
+                        repasse_taxa_parcelamento = 0,
+                        total_repasse = 0,
+                        operador_vinculado = agreement.User,
+                        parcial = false,
+                        parcelas_originais = null,
+                        parcelas_novas = agreement.Installments.Select(p => new Models.Cobmais.ParcelasNova()
                         {
-                            new Models.Cobmais.ParcelaOriginal()
+                            id = p.Id,
+                            parcela = p.Number.ToString(),
+                            vencimento = p.DueDate,
+                            valor = p.Value,
+                            id_contrato = p.CollectionId,
+                            data_pagamento = null,
+                            id_pagamento = null
+                        }).ToList(),
+                        boletos = agreement.Installments.FirstOrDefault().Billets.Select(p => new Models.Cobmais.BoletoSimples()
+                        {
+                            id = p.Id,
+                            acordo_id = p.IdAgreementInstallment,
+                            nosso_numero = p.OurNumber,
+                            vencimento = p.DueDate,
+                            valor = p.Value,
+                            codigo_barra = p.Barcode,
+                            linha_digitavel = p.PaymentLine,
+                            url = p.BilletUrl
+
+                        }).ToList()
+                    };
+                }
+                else
+                {
+                    var discount = new DiscountBLL().GetDiscount(3, agreementSimulateRequest.Age, agreementSimulateRequest.NrParcel);
+
+                    return CobmaisAPI.SetAcordo(new Models.Cobmais.SimulacaoAcordoRequest()
+                    {
+                        valor_entrada = agreementSimulateRequest.VlEntrace,
+                        data_calculo = agreementSimulateRequest.DtEntrace,
+                        descontos = new Models.Cobmais.Descontos()
+                        {
+                            principal = discount.MaxDiscount,
+                            multa = 100,
+                            juros = 100,
+                            honorarios = 0,
+                            desconto_maximo = true,
+                            desconto_relativo_campanha = false
+                        },
+                        forma_pagamento = "Boleto",
+                        quantidade_parcelas = agreementSimulateRequest.NrParcel,
+                        parcelas_originais = agreementSimulateRequest.ParcelaCredz.Select(p =>
+                                new Models.Cobmais.ParcelaOriginal()
+                                {
+                                    negociacao_id = p.negociacao_id,
+                                    id = p.id_parcela_original,
+                                    numero = p.numero_parcela_original,
+                                    vencimento = p.vencimento,
+                                    valor = p.valor
+                                }
+                            ).ToList()
+                        /*
+                        parcelas_originais = new System.Collections.Generic.List<Models.Cobmais.ParcelaOriginal>()
                             {
-                                negociacao_id = Convert.ToInt64(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "negociacao_id").FirstOrDefault().Value),
-                                id = Convert.ToInt64(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "id").FirstOrDefault().Value),
-                                numero = agreementSimulateRequest.ComplementData.Where(p=> p.Name == "numero").FirstOrDefault().Value,
-                                vencimento = Convert.ToDateTime(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "vencimento").FirstOrDefault().Value),
-                                valor = Convert.ToDecimal(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "valor").FirstOrDefault().Value),
+                                new Models.Cobmais.ParcelaOriginal()
+                                {
+                                    negociacao_id = Convert.ToInt64(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "negociacao_id").FirstOrDefault().Value),
+                                    id = Convert.ToInt64(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "id").FirstOrDefault().Value),
+                                    numero = agreementSimulateRequest.ComplementData.Where(p=> p.Name == "numero").FirstOrDefault().Value,
+                                    vencimento = Convert.ToDateTime(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "vencimento").FirstOrDefault().Value),
+                                    valor = Convert.ToDecimal(agreementSimulateRequest.ComplementData.Where(p=> p.Name == "valor").FirstOrDefault().Value),
+                                }
                             }
-                        }
-                    */
-                });
+                        */
+                    });
+                }
             }
             catch (Exception ex)
             {

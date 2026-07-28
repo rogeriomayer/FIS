@@ -95,7 +95,19 @@ namespace FMC.WebSite.FIS.Utils
                     {
                         NrParcel = 0,
                         DtParcel = acordoCredz.data,
-                        VlParcel = acordoCredz.total
+                        VlParcel = acordoCredz.total,
+                        Billet = acordoCredz.boletos.Select(p=> new BilletAdd()
+                        {
+                            IdProduct = 0,
+                            VlBillet = p.valor,
+                            DtBillet = p.vencimento,
+                            Barcode = p.codigo_barra,
+                            Line = p.linha_digitavel,
+                            DocumentNumber = p.nosso_numero,
+                            CdAgreement = acordoCredz.id.ToString(),
+                            URL = p.url,
+                            DtInsert = DateTime.Now
+                        }).ToList()
                     }
                 }
             };

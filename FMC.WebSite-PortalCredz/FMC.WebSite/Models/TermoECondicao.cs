@@ -18,6 +18,6 @@ namespace FMC.WebSite.FIS.Models
         public decimal CETAnual { get; set; }
         public decimal VlCETMensal { get; set; }
         public decimal VlCETAnual { get; set; }
-        public string CarteiraNacc { get; set; }
+        public string cdParcel { get; set; }
     }
 }

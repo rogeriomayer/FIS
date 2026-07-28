@@ -610,7 +610,8 @@ namespace FMC.WebSite.FIS.Controllers
                     {
                         DataEntrada = dtEntrada.DayOfWeek == DayOfWeek.Sunday ? dtEntrada.AddDays(1).ToString("dd/MM/yyyy") : dtEntrada.ToString("dd/MM/yyyy"),
                         Entrada = vlEntrada < 99 ? Convert.ToDecimal(99).ToString("N2") : vlEntrada.ToString("N2"),
-                        FixedEntraceValue = true
+                        FixedEntraceValue = true,
+
                         //Parcela = "0"
                     };
                     cache.AddCache<SimulaParcelamento>("simulaParcelamento", simulaParcelamento);
@@ -658,7 +659,8 @@ namespace FMC.WebSite.FIS.Controllers
                     Age = conta.Age,
                     Product = conta.AccountNumber, //conta.Account,
                     PctDiscount = 0,
-                    NrParcel = 25
+                    NrParcel = 25,
+                    //CdSimulate = 
                 };
 
                 if (simulacaoAcordo.AccountIBI(_produto, conta, agreementSimulateRequest, simulaParcelamento, message, cache))
@@ -798,6 +800,7 @@ namespace FMC.WebSite.FIS.Controllers
                         PctDiscount = vlDiscount,
                         CPF = pessoa.CPF,
                         Product = conta.Account,
+                        CdSimulate = termo.cdParcel
                     };
 
                     var acordoCredz = FisAPI.SetAgreementCredz(agreementSimulateRequest);
@@ -822,6 +825,7 @@ namespace FMC.WebSite.FIS.Controllers
                                 }
                             }
                         };
+
 
                         var newStatuLead = FisAPI.PostStatusLead(statusLead, pessoa.CPF, pessoa.Phones.FirstOrDefault().NrPhone, 3, "");
 
@@ -867,7 +871,6 @@ namespace FMC.WebSite.FIS.Controllers
 
                     if (boleto == null)
                     {
-
                         try
                         {
                             var billetRequest = new BilletRequest()
@@ -881,7 +884,7 @@ namespace FMC.WebSite.FIS.Controllers
                                 CPF = cache.Get<PersonResponse>("Pessoa").CPF
                             };
 
-                            boleto = FisAPI.AddBillet(billetRequest, 1, "");
+                            boleto = FisAPI.AddBillet(billetRequest, 3, "");
 
                         }
                         catch (Exception ex)
@@ -914,7 +917,7 @@ namespace FMC.WebSite.FIS.Controllers
                 }
 
                 //IList<object> data = new List<object> { model, boleto, statusLead.AgreementResponse, statusLead.AgreementResponse.AgreementParcelResponse.FirstOrDefault(), titulo };
-                IList<object> data = new List<object> { model, boleto, titulo, pessoa.Cards.Count(), string.IsNullOrEmpty(statusLead.AgreementResponse.CdParcelPlan) };
+                IList<object> data = new List<object> { model, boleto, titulo, pessoa.Cards.Count(), !statusLead.AgreementResponse.CdParcelPlan.Contains("CREDZ") };
 
                 return View(data);
             }
@@ -1011,7 +1014,7 @@ namespace FMC.WebSite.FIS.Controllers
                 }
 
                 //IList<object> data = new List<object> { model, boletoGerado, acordo, parcelaAtual, titulo };
-                IList<object> data = new List<object> { model, boletoGerado, titulo, pessoa.Cards.Count(), string.IsNullOrEmpty(acordo.CdParcelPlan) };
+                IList<object> data = new List<object> { model, boletoGerado, titulo, pessoa.Cards.Count(), !acordo.CdParcelPlan.Contains("CREDZ") };
 
                 return View(data);
             }
@@ -1544,7 +1547,8 @@ namespace FMC.WebSite.FIS.Controllers
                         Age = Convert.ToInt32(conta.Age),
                         NrParcel = Convert.ToInt32(totalParcel),
                         DateEntranceParcel = dataEntrada,
-                        DateParcel = parcela != null ? parcela.DtParcel : DateTime.Today
+                        DateParcel = parcela != null ? parcela.DtParcel : DateTime.Today,
+                        cdParcel = parcela != null ? parcela.CdParcel : null
                     };
 
                     if (parcelamento != null)
@@ -1995,7 +1999,8 @@ namespace FMC.WebSite.FIS.Controllers
                 }
                 //else
                 //    pessoa = cache.Get<PersonResponse>("Pessoa");
-                if (pessoa.Cards.Any(x => x.Age > 77) || pessoa.Cards.Any(c => c.StatusLeadResponse.Any(p => p.AgreementResponse.Status.Contains("EmAndamento") || p.AgreementResponse.Status.Contains("EmAberto"))))
+                //if (pessoa.Cards.Any(x => x.Age > 77) || pessoa.Cards.Any(c => c.StatusLeadResponse.Any(p => p.AgreementResponse.Status.Contains("EmAndamento") || p.AgreementResponse.Status.Contains("EmAberto"))))
+                if (pessoa.Cards.Any() || pessoa.Cards.Any(c => c.StatusLeadResponse.Any()))
                 {
                     //pessoa.Contas = contas.ToList();
 
