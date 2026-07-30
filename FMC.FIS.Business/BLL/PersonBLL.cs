@@ -24,7 +24,8 @@ namespace FMC.FIS.Business.BLL
                 if (person == null)
                     return null;
 
-                var products = person.Product.Where(p => p.IdProductType == Convert.ToByte(productType)).Select(p => p.DsProduct).ToList();
+                //var products = person.Product.Where(p => p.IdProductType == Convert.ToByte(productType)).Select(p => p.DsProduct).ToList();
+                var products = person.Product.Where(p => p.IdProductType > 3).Select(p => p.DsProduct).ToList();
 
                 var personResponse = this.CreatePersonResponse(person, products);
 

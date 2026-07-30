@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Text;
+using FMC.FIS.EnvioRCSNews;
 
 var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
 
@@ -35,8 +37,25 @@ try
 
     while (DateTime.Now.DayOfWeek != DayOfWeek.Sunday)
     {
-        IList<Discount> Discounts = new DiscountBLL().GetByProductType(3).ToList();
-        IList<Person> listPerson = new PersonBLL().GetPersonSendRCSNews().ToList();
+        //IList<Discount> Discounts = new DiscountBLL().GetByProductType(3).ToList();
+        //IList<Person> listPerson = new PersonBLL().GetPersonSendRCSNews().ToList();
+        var query =
+    " select distinct top 2000 pe.IdPerson, p.idproduct, pe.DsName,Age, case when Store is null then Subproduct else Store end Store, h.contato " +
+    " from FIS.dbo.Lead l " +
+    " 	inner join FIS.dbo.Product p " +
+    " 		on l.IdProduct = p.IdProduct " +
+    " 	inner join FIS.dbo.Person pe " +
+    " 		on pe.IdPerson = p.IdPerson " +
+    " 	inner join WORK.dbo.[BASEHOTDM-20072026] h " +
+    " 		on  RIGHT('00000000000' + CPF, 11) = pe.NrCNPJCPF " +
+    " 	inner join bi.dbo.Person bip " +
+    " 		on bip.NrCNPJCPF = pe.NrCNPJCPF " +
+    " 	inner join DIGICOB.dbo.Contract co " +
+    " 		on co.idperson = bip.IdPerson " +
+    " where l.DtInsert >= CONVERT(Date, getdate()) " +
+    " and age between 90 and 150 " +
+    " order by Age asc ";
+        var listPerson = new GenericQueryBLL<PersonRet>().GetCollection(query);
         Util.SaveFile("Foram encontrados " + listPerson.Count + " CPFs ");
 
         if (listPerson.Count > 0)
@@ -50,7 +69,7 @@ try
             //foreach (var person in listPerson.OrderBy(p=>p.Product.).OrderBy(p => p.NrCNPJCPF).ToList())
             foreach (var person in listPerson)
             {
-               if (count > 2000)
+                if (count > 2000)
                     break;
                 else
                     Console.WriteLine("Total: " + count);
@@ -60,59 +79,60 @@ try
 
                     Console.WriteLine(idPerson);
 
-                    var product = person.Product.Where(p => p.Lead.Where(l => l.DtInsert >= DateTime.Today.AddDays(-1)).Any()).FirstOrDefault();
+                    //var product = person.Product.Where(p => p.Lead.Where(l => l.DtInsert >= DateTime.Today.AddDays(-1)).Any()).FirstOrDefault();
 
-                    if (product != null && !listPhone.Where(p => person.Phone.Where(e => e.NrPhone == p).Any()).Any())
+                    //if (product != null && !listPhone.Where(p => person.Phone.Where(e => e.NrPhone == p).Any()).Any())
+                    //{
+                    /*var phones = person.Phone
+                        .Where(p => p.IdPhoneStatus == 1 && Convert.ToInt32(p.NrPhone.Substring(2, 1)) >= 6 && p.Blacklist == false)
+                        .Select(p => p.NrPhone).FirstOrDefault();
+
+                    if (phones != null && phones.Count() > 0)
+                    {*/
+                    try
                     {
-                        /*var phones = person.Phone
-                            .Where(p => p.IdPhoneStatus == 1 && Convert.ToInt32(p.NrPhone.Substring(2, 1)) >= 6 && p.Blacklist == false)
-                            .Select(p => p.NrPhone).FirstOrDefault();
+                        //var lead = product.Lead.Where(p => p.DtInsert >= DateTime.Today.AddDays(-1)).OrderByDescending(p => p.IdLead).FirstOrDefault();
 
-                        if (phones != null && phones.Count() > 0)
-                        {*/
-                        try
-                        {
-                            var lead = product.Lead.Where(p => p.DtInsert >= DateTime.Today.AddDays(-1)).OrderByDescending(p => p.IdLead).FirstOrDefault();
+                        //if (lead != null && lead.Age > 77)
+                        //{
 
-                            if (lead != null && lead.Age > 77)
-                            {
-
-                                var envioRCS = new EnvioRCS
-                                    (
-                                        new RCS()
-                                        {
-                                            Total = count,
-                                            IdPerson = person.IdPerson,
-                                            IdProduct = product.IdProduct,
-                                            Nome = person.DsName.Trim(),
-                                            DtNascimento = person.DtBirth.Value,
-                                            Atraso = lead.Age,
-                                            Desconto = Discounts.Where(p => (lead.Age >= p.MinAge && lead.Age <= p.MaxAge) && p.MaxParcel == 1).FirstOrDefault().MaxDiscount,
-                                            Lead = lead,
-                                            NomeCartao = product.ProductSpecification != null ? product.ProductSpecification.Description : "Cartão Credz",
-                                            NumeroCartao = product.DsProduct.StartsWith("000") ? product.DsProduct.Substring(3, 8) + "********" : product.DsProduct.Substring(0, 8),
-                                            UrlCartao = product.ProductSpecification != null ? product.ProductSpecification.UrlImage : ""
+                        var envioRCS = new EnvioRCS
+                            (
+                                new RCS()
+                                {
+                                    Total = count,
+                                    IdPerson = person.IdPerson,
+                                    IdProduct = person.idproduct,
+                                    Nome = person.DsName.Split(' ').FirstOrDefault(),
+                                    Phones = { person.contato },
+                                            //DtNascimento = person.DtBirth.Value,
+                                            Atraso = person.Age,
+                                            //Desconto = Discounts.Where(p => (lead.Age >= p.MinAge && lead.Age <= p.MaxAge) && p.MaxParcel == 1).FirstOrDefault().MaxDiscount,
+                                            //Lead = lead,
+                                            NomeCartao = person.Store// product.ProductSpecification != null ? product.ProductSpecification.Description : "Cartão Credz",
+                                                                     //NumeroCartao = product.DsProduct.StartsWith("000") ? product.DsProduct.Substring(3, 8) + "********" : product.DsProduct.Substring(0, 8),
+                                                                     //UrlCartao = product.ProductSpecification != null ? product.ProductSpecification.UrlImage : ""
                                         }
-                                    );
-                                if (!string.IsNullOrEmpty(envioRCS.Send()))
-                                    count++;
+                            );
+                        if (!string.IsNullOrEmpty(envioRCS.Send()))
+                            count++;
 
-                            }
-
-                        }
-                        catch (Exception ex)
-                        {
-                            string erro = ex.Message + " | " + ex.StackTrace + Environment.NewLine;
-                            while (ex.InnerException != null)
-                            {
-                                ex = ex.InnerException;
-                                erro += ex.Message + " | " + ex.StackTrace + Environment.NewLine;
-                            }
-                            //Util.SaveFile("Laço: Erro ao enviar RCS para " + phones + " conta " + product.DsProduct);
-                            Util.SaveFile(erro);
-                        }
                         //}
+
                     }
+                    catch (Exception ex)
+                    {
+                        string erro = ex.Message + " | " + ex.StackTrace + Environment.NewLine;
+                        while (ex.InnerException != null)
+                        {
+                            ex = ex.InnerException;
+                            erro += ex.Message + " | " + ex.StackTrace + Environment.NewLine;
+                        }
+                        //Util.SaveFile("Laço: Erro ao enviar RCS para " + phones + " conta " + product.DsProduct);
+                        Util.SaveFile(erro);
+                    }
+                    //}
+                    //}
                 }
             }
         }
@@ -130,4 +150,6 @@ catch (Exception ex)
     }
     Util.SaveFile("Erro:" + erro);
 }
+
+
 

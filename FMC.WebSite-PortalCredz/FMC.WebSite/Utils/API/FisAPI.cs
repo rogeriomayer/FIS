@@ -20,8 +20,8 @@ public class FisAPI
 
     */
 
-    private static string Url_FIS_API = "https://www2.fmcatendimento.com.br/fis/api"; 
-    //private static string Url_FIS_API = "http://localhost:5831/api";
+    //private static string Url_FIS_API = "https://www2.fmcatendimento.com.br/fis/api"; 
+    private static string Url_FIS_API = "http://localhost:5831/api";
 
 
     /*

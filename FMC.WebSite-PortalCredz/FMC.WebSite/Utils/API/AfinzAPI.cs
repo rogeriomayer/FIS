@@ -6,8 +6,8 @@ using System.Collections.Generic;
 
 public class AfinzAPI
 {
-    //private static string AFINZ_URL = "https://10.40.0.30/credz/api";
-    private static string AFINZ_URL = "https://www2.fmcatendimento.com.br/credz/api";
+    private static string AFINZ_URL = "https://10.40.0.30/credz/api";
+    //private static string AFINZ_URL = "https://www2.fmcatendimento.com.br/credz/api";
     public static Navigation SetNavigation(Navigation navigation)
     {
         try

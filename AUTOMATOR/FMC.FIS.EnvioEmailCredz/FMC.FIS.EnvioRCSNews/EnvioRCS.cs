@@ -92,11 +92,12 @@ namespace FMC.FIS.EnvioEmailCredz
 
         private string SendRCSOtima()
         {
-            var contrato = GetContratos();
+            //var contrato = GetContratos();
             if (envioRCS.Phones.Count() > 0)
             {
                 //string description = envioRCS.Atraso < 181 ? Get78_180(envioRCS.Nome, envioRCS.NumeroCartao, envioRCS.NomeCartao, contrato) : Get181_9999(envioRCS.Nome, envioRCS.NumeroCartao, envioRCS.NomeCartao, envioRCS.Desconto.ToString("N0"), contrato);
-                string description = Get181_9999(envioRCS.Nome, envioRCS.NumeroCartao, envioRCS.NomeCartao, envioRCS.Desconto.ToString("N0"), contrato);
+                //string description = Get181_9999(envioRCS.Nome, envioRCS.NumeroCartao, envioRCS.NomeCartao, envioRCS.Desconto.ToString("N0"), contrato);
+                string description = GetBody(envioRCS.Nome, envioRCS.NomeCartao);
                 var listSuggestions = new List<Suggestions>();
                 listSuggestions.Add
                     (
@@ -104,7 +105,7 @@ namespace FMC.FIS.EnvioEmailCredz
                         {
                             Type = "OPEN_URL",
                             Text = "CLIQUE AQUI E RENEGOCIE",
-                            Url = "https://fmc.digital/rcs",
+                            Url = "https://fmc.digital/dm",
                             ReplyId = "CLICK_NEW"
                         }
                     );
@@ -160,14 +161,15 @@ namespace FMC.FIS.EnvioEmailCredz
                                             BrokerCode = "500",
                                             CustomerCode = "190001774623071",
                                             Solution = "SMS",
-                                            Text = FailOver(envioRCS.Nome, envioRCS.NumeroCartao, envioRCS.NomeCartao, contrato),
+                                            //Text = FailOver(envioRCS.Nome, envioRCS.NumeroCartao, envioRCS.NomeCartao, contrato),
+                                            Text = "Ola," + envioRCS.Nome + "! Vamos facilitar a regularizacao do seu cartao DM referente a loja " + envioRCS.NomeCartao + " Whatsapp: https://zaps.chat/r/credz."
                                         },
                                         Content = new MessageContent()
                                         {
                                             Type = "RICHCARD",
-                                            Title = "PORTAL NEGOCIAÇÃO " + envioRCS.NomeCartao,
+                                            Title = "NEGOCIADOR DM",// "PORTAL NEGOCIAÇÃO " + envioRCS.NomeCartao,
                                             Description = description,
-                                            ImageUrl = envioRCS.UrlCartao,
+                                            ImageUrl = "https://negociadordm.fmcbrasil.com.br/images/richcard_vertical_tall_2x1.jpg",
                                             CardOrientation = "VERTICAL",
                                             Size = "TALL",
                                             Suggestions = listSuggestions
@@ -209,19 +211,20 @@ namespace FMC.FIS.EnvioEmailCredz
 
         private string SendRCS()
         {
-            var contrato = GetContratos();
+            //var contrato = GetContratos();
             if (envioRCS.Phones.Count() > 0)
             {
                 //string description = envioRCS.Atraso < 181 ? Get78_180(envioRCS.Nome, envioRCS.NumeroCartao, envioRCS.NomeCartao, contrato) : Get181_9999(envioRCS.Nome, envioRCS.NumeroCartao, envioRCS.NomeCartao, envioRCS.Desconto.ToString("N0"), contrato);
-                string description = Get181_9999(envioRCS.Nome, envioRCS.NumeroCartao, envioRCS.NomeCartao, envioRCS.Desconto.ToString("N0"), contrato);
+                //string description = Get181_9999(envioRCS.Nome, envioRCS.NumeroCartao, envioRCS.NomeCartao, envioRCS.Desconto.ToString("N0"), contrato);
+                var description = GetBody(envioRCS.Nome, envioRCS.NomeCartao);
                 var listSuggestions = new List<Suggestion>();
                 listSuggestions.Add
                     (
                         new Suggestion()
                         {
                             type = "OPEN_URL",
-                            text = "CLIQUE AQUI E RENEGOCIE",
-                            url = "https://fmc.digital/rcs",
+                            text = "PORTAL",
+                            url = "https://fmc.digital/dm",
                             postbackData = "CLICK_NEW"
                         }
                     );
@@ -231,31 +234,12 @@ namespace FMC.FIS.EnvioEmailCredz
                          new Suggestion()
                          {
                              type = "OPEN_URL",
-                             text = "RENEGOCIAR PELO WHATSSAPP",
+                             text = "WHATSSAPP",
                              url = "https://zaps.chat/r/credz",
                              postbackData = "CLICK_WHATSAPP"
                          }
                      );
-                /*listSuggestions.Add
-                    (
-                        new Suggestion()
-                        {
-                            type = "OPEN_URL",
-                            text = "CONTRATAR A VISTA",
-                            url = "https://zaps.chat/r/credz",
-                            postbackData = "CLICK_WHATSAPP"
-                        }
-                    );
-                listSuggestions.Add
-                    (
-                        new Suggestion()
-                        {
-                            type = "OPEN_URL",
-                            text = "CONTRATAR PARCELADO",
-                            url = "https://zaps.chat/r/credz",
-                            postbackData = "CLICK_WHATSAPP"
-                        }
-                    );*/
+
 
                 if (!string.IsNullOrEmpty(description))
                 {
@@ -271,11 +255,11 @@ namespace FMC.FIS.EnvioEmailCredz
                                     type = "CARD",
                                     content = new ContentChild()
                                     {
-                                        title = "PORTAL NEGOCIAÇÃO " + envioRCS.NomeCartao,
+                                        title = "NEGOCIADOR DM", //+ envioRCS.NomeCartao,
                                         description = description,
                                         media = new Media()
                                         {
-                                            file = new File() { url = envioRCS.UrlCartao },
+                                            file = new File() { url = "https://negociadordm.fmcbrasil.com.br/images/richcard_vertical_tall_2x1.jpg" },
                                             thumbnail = new Thumbnail() { url = "https://negociadorcredz.fmcbrasil.com.br/images/topo/credz-logo-new.png" },
                                             height = "TALL"
                                         },
@@ -288,7 +272,8 @@ namespace FMC.FIS.EnvioEmailCredz
                                     smsFailover = new SmsFailover()
                                     {
                                         sender = "fmcbrasil",
-                                        text = FailOver(envioRCS.Nome, envioRCS.NumeroCartao, envioRCS.NomeCartao, contrato)
+                                        //text = FailOver(envioRCS.Nome, envioRCS.NumeroCartao, envioRCS.NomeCartao, contrato)
+                                        text = "Ola," + envioRCS.Nome + "! Vamos facilitar a regularizacao do seu cartao DM referente a loja " + envioRCS.NomeCartao + " Whatsapp: https://zaps.chat/r/credz."
                                     }
                                 },
                                 new Webhooks()
@@ -316,6 +301,13 @@ namespace FMC.FIS.EnvioEmailCredz
             }
             else
                 return String.Empty;
+        }
+
+        private string GetBody(string nome, string store)
+        {
+            return string.Format("Olá, {0}!"
+                                + Environment.NewLine + Environment.NewLine + "Temos condições que podem facilitar a regularização do seu cartão DM referente a loja {1}." 
+                                + Environment.NewLine + Environment.NewLine + "Clique em uma das opções abaixo para acessar o Portal ou falar conosco pelo WhatsApp e verificar as alternativas disponíveis.", nome, store);
         }
 
 
@@ -479,6 +471,7 @@ namespace FMC.FIS.EnvioEmailCredz
 
         private string FailOver(string nome, string cartao, string nomeCartao, Contrato contrato)
         {
+
             StringBuilder message = new StringBuilder();
             /*AgreementSimulateResponse simulate = null;
 
