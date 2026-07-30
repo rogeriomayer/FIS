@@ -31,7 +31,7 @@ public class RestAPI
             if (response.StatusCode == HttpStatusCode.OK)
                 return JsonConvert.DeserializeObject<Resp>(response.Content);
             else
-                throw new Exception("Falha no metodo GET " + response.StatusCode.ToString() + " " + response.Content + " " +response.ErrorMessage + " " + response.ErrorException );
+                throw new Exception("Falha no metodo GET " + response.StatusCode.ToString() + " " + response.Content + " " + response.ErrorMessage + " " + response.ErrorException);
         }
         catch (Exception ex)
         {
@@ -239,10 +239,9 @@ public class RestAPI
                 request.Timeout = timeout;
             }
 
-
-
             if (param != null)
                 request.AddParameter("application/json", JsonConvert.SerializeObject(param), ParameterType.RequestBody);
+
             IRestResponse response = client.Execute(request);
 
             if (response.StatusCode == HttpStatusCode.OK)

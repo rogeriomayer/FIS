@@ -116,30 +116,11 @@ namespace FMC.FIS.EnvioEmailCredz
                          {
                              Type = "OPEN_URL",
                              Text = "RENEGOCIAR PELO WHATSSAPP",
-                             Url = "https://zaps.chat/r/credz",
+                             Url = "https://zaps.chat/r/dm",
                              ReplyId = "CLICK_WHATSAPP"
                          }
                      );
-                /*listSuggestions.Add
-                    (
-                        new Suggestion()
-                        {
-                            type = "OPEN_URL",
-                            text = "CONTRATAR A VISTA",
-                            url = "https://zaps.chat/r/credz",
-                            postbackData = "CLICK_WHATSAPP"
-                        }
-                    );
-                listSuggestions.Add
-                    (
-                        new Suggestion()
-                        {
-                            type = "OPEN_URL",
-                            text = "CONTRATAR PARCELADO",
-                            url = "https://zaps.chat/r/credz",
-                            postbackData = "CLICK_WHATSAPP"
-                        }
-                    );*/
+                
 
                 if (!string.IsNullOrEmpty(description))
                 {
@@ -162,7 +143,7 @@ namespace FMC.FIS.EnvioEmailCredz
                                             CustomerCode = "190001774623071",
                                             Solution = "SMS",
                                             //Text = FailOver(envioRCS.Nome, envioRCS.NumeroCartao, envioRCS.NomeCartao, contrato),
-                                            Text = "Ola," + envioRCS.Nome + "! Vamos facilitar a regularizacao do seu cartao DM referente a loja " + envioRCS.NomeCartao + " Whatsapp: https://zaps.chat/r/credz."
+                                            Text = "Ola," + envioRCS.Nome + "! Vamos facilitar a regularizacao do seu cartao DM referente a loja " + envioRCS.NomeCartao + " Whatsapp: https://zaps.chat/r/dm."
                                         },
                                         Content = new MessageContent()
                                         {
@@ -235,7 +216,7 @@ namespace FMC.FIS.EnvioEmailCredz
                          {
                              type = "OPEN_URL",
                              text = "WHATSSAPP",
-                             url = "https://zaps.chat/r/credz",
+                             url = "https://zaps.chat/r/dm",
                              postbackData = "CLICK_WHATSAPP"
                          }
                      );
@@ -273,7 +254,7 @@ namespace FMC.FIS.EnvioEmailCredz
                                     {
                                         sender = "fmcbrasil",
                                         //text = FailOver(envioRCS.Nome, envioRCS.NumeroCartao, envioRCS.NomeCartao, contrato)
-                                        text = "Ola," + envioRCS.Nome + "! Vamos facilitar a regularizacao do seu cartao DM referente a loja " + envioRCS.NomeCartao + " Whatsapp: https://zaps.chat/r/credz."
+                                        text = "Ola," + envioRCS.Nome + "! Vamos facilitar a regularizacao do seu cartao DM referente a loja " + envioRCS.NomeCartao + " Whatsapp: https://zaps.chat/r/dm."
                                     }
                                 },
                                 new Webhooks()

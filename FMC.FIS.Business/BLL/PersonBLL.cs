@@ -328,7 +328,7 @@ namespace FMC.FIS.Business.BLL
                         FillCardsDigicob(products, contractDigicob.ToList(), person, personResponse);
                     }
 
-                    var personCobmais = CobmaisAPI.GetPessoa(cpf);
+                    /*var personCobmais = CobmaisAPI.GetPessoa(cpf);
                     IList<Models.Cobmais.Contrato> cobmaisContracts = null;
                     if (personCobmais != null)
                     {
@@ -349,7 +349,7 @@ namespace FMC.FIS.Business.BLL
                     }
                     if (cobmaisContracts != null)
                         FillCardsCredz(products, cobmaisContracts, person, personResponse);
-
+                    */
                 }
                 catch (Exception ex)
                 {
@@ -864,7 +864,7 @@ namespace FMC.FIS.Business.BLL
 
                         card.CardNumber = contract.Product;
                         card.CardName = contract.Store;
-                        card.AvailableBilling = contract.CollectionCount > 0;
+                        card.AvailableBilling = contract.CollectionCount > 0 && contract.AgingMax >= 90;
 
                         FillAgreementDigicob(personResponse.CPF, ref card, contract);
                     }

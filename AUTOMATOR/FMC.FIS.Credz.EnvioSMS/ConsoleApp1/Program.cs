@@ -18,7 +18,7 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
     public class Cpf
     {
         [Key]
-        public string item { get; set; } 
+        public string item { get; set; }
     }
 
     internal class Program
@@ -39,7 +39,7 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
 
             try
             {
-                
+
                 foreach (var process in System.Diagnostics.Process.GetProcessesByName(currentProcess.ProcessName))
                 {
 
@@ -53,10 +53,25 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                 }
 
                 DateTime dtLead = DateTime.Now.Hour > 11 ? DateTime.Today : DateTime.Today.AddDays(-1);
-                IList<Person> listPerson = new PersonBLL().GetPersonSendSMS(dtLead).ToList();
-                
+                //IList<Person> listPerson = new PersonBLL().GetPersonSendSMS(dtLead).ToList();
 
-                IList<Discount> discounts = new DiscountBLL().GetByProductType(3).ToList();
+                var query =
+    " select distinct top 3000 pe.IdPerson, p.idproduct, pe.DsName,Age, case when Store is null then Subproduct else Store end Store, h.contato " +
+    " from FIS.dbo.Lead l " +
+    " 	inner join FIS.dbo.Product p " +
+    " 		on l.IdProduct = p.IdProduct " +
+    " 	inner join FIS.dbo.Person pe " +
+    " 		on pe.IdPerson = p.IdPerson " +
+    " 	inner join WORK.dbo.[BASEHOTDM-20072026] h " +
+    " 		on  RIGHT('00000000000' + CPF, 11) = pe.NrCNPJCPF " +
+    " 	inner join bi.dbo.Person bip " +
+    " 		on bip.NrCNPJCPF = pe.NrCNPJCPF " +
+    " 	inner join DIGICOB.dbo.Contract co " +
+    " 		on co.idperson = bip.IdPerson " +
+    " where l.DtInsert >= CONVERT(Date, getdate()) " +
+    " and age between 360 and 1500 ";
+
+                var listPerson = new GenericQueryBLL<PersonRet>().GetCollection(query);
 
                 if (listPerson.Count > 0)
                 {
@@ -69,9 +84,7 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
 
                     foreach (var person in listPerson.Distinct().ToList())
                     {
-                        phones.Clear();
                         if (count > 2000) break;
-                        Console.WriteLine(person.NrCNPJCPF);
                         Console.WriteLine("Total: " + count);
                         //var phones = person.Phone.Where(p => p.IdPhoneStatus == 1 && Convert.ToInt32(p.NrPhone.Substring(2, 1)) >= 6).Select(p => p.NrPhone).ToList();
                         //if (phones == null || phones.Count == 0)
@@ -81,59 +94,41 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                         //}
                         try
                         {
-                            var lead = person.Product.Where(pr => pr.Lead.Where(p => p.DtInsert >= DateTime.Today.AddDays(0)).Any()).FirstOrDefault().Lead.OrderByDescending(p => p.IdLead).FirstOrDefault();
 
-                            if (cpf != person.NrCNPJCPF)
+                            var obj = SendSMS(person.contato, person.DsName.Split(' ').FirstOrDefault(), person.Store);
+                            if (obj != null)
                             {
-                                cpf = person.NrCNPJCPF;
-                                contract = GetContratos(lead);
-                            }
-
-
-
-                            if (lead != null && phones.Count() > 0 && contract != null)
-                            {
-                                var product = person.Product.FirstOrDefault();
-                                var products = person.Product.Select(p => p.DsProduct).ToList();
-                                var phone = phones.FirstOrDefault();
-
-                                if (contract != null && phone != null)
-                                {
-                                    var obj = SendSMS(lead, phone, contract, discounts);
-                                    if (obj != null)
-                                    {
-                                        count++;
-                                        listSend.Add(obj);
-                                        listSMS.Add
-                                            (
-                                                new Business.Models.FIS.SMS()
-                                                {
-                                                    idPerson = person.IdPerson,
-                                                    age = lead.Age,
-                                                    telefone = Convert.ToInt64(phone),
-                                                    dtEnvio = DateTime.Now
-                                                }
-                                            );
-                                        Console.WriteLine(listSend.Count);
-                                        if (listSend.Count > 20)
+                                count++;
+                                listSend.Add(obj);
+                                listSMS.Add
+                                    (
+                                        new Business.Models.FIS.SMS()
                                         {
-                                            if (new BvSmsBLL().SmsBulk(new BulkRequest() { bulk = listSend }) == "OK")
-                                            {
-                                                try
-                                                {
-                                                    new SmsBLL().AddRangeNormal(listSMS.ToList());
-                                                }
-                                                catch (Exception ex)
-                                                {
+                                            idPerson = person.IdPerson,
+                                            age = person.Age,
+                                            telefone = Convert.ToInt64(person.contato),
+                                            dtEnvio = DateTime.Now
+                                        }
+                                    );
+                                Console.WriteLine(listSend.Count);
+                                if (listSend.Count > 20)
+                                {
+                                    if (new BvSmsBLL().SmsBulk(new BulkRequest() { bulk = listSend }) == "OK")
+                                    {
+                                        try
+                                        {
+                                            new SmsBLL().AddRangeNormal(listSMS.ToList());
+                                        }
+                                        catch (Exception ex)
+                                        {
 
-                                                }
-                                            }
-                                            listSend = new List<SingleRequest>();
-                                            listSMS = new List<SMS>();
                                         }
                                     }
+                                    listSend = new List<SingleRequest>();
+                                    listSMS = new List<SMS>();
                                 }
                             }
+
                         }
                         catch (Exception ex)
                         {
@@ -143,11 +138,8 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                                 ex = ex.InnerException;
                                 erro += ex.Message + " | " + ex.StackTrace + Environment.NewLine;
                             }
-                            Util.SaveFile("Laço: Erro ao enviar sms para " + phones.FirstOrDefault() + " cpf " + person.NrCNPJCPF);
                             Util.SaveFile(erro);
                         }
-
-
                     }
 
                     if (listSend.Count > 1)
@@ -169,95 +161,9 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                 Util.SaveFile("Erro:" + erro);
             }
         }
-        private static SingleRequest SendSMS(Lead lead, string phone, Contrato contrato, IList<Discount> discounts)
+        private static SingleRequest SendSMS(string phone, string nome, string loja)
         {
-            StringBuilder message = new StringBuilder();
-
-            //if (lead.Age > 281)
-            //{
-            //var contrato = GetContratos(lead);
-
-            AgreementSimulateResponse simulate = null;
-            //var discount = discounts.Where(p => (lead.Age >= p.MinAge && lead.Age <= p.MaxAge) && p.MaxParcel == 1).FirstOrDefault().MaxDiscount;
-            if (contrato != null)
-            {
-                /*
-                decimal vlParcel = 50;
-                var parcela = 24;
-                for (int i = 24; i > 0; i--)
-                {
-                    parcela = i;
-                    vlParcel = (contrato.parcelas.FirstOrDefault().valor - (contrato.parcelas.FirstOrDefault().valor * (discount / 100))) / i;
-                    if (vlParcel > 70)
-                    {
-                        break;
-                    }
-                }*/
-                simulate = GetValueAgreement(0, contrato, lead);
-            }
-
-            if (simulate != null && simulate.ParcelResponse != null && simulate.ParcelResponse.Count > 0 /*&& simulate.ParcelResponse.FirstOrDefault().ValueEntrace < 1000*/)
-            {
-
-
-
-                var firstName = lead.Product.Person.DsName.Split(' ').FirstOrDefault();
-                var productName = lead.Product.ProductSpecification?.Description ?? "Credz Visa";
-                var vlFull = simulate.ParcelResponse.FirstOrDefault().ValueEntrace;
-                var vlOriginal = simulate.ParcelResponse.FirstOrDefault().VlParcel + simulate.ParcelResponse.FirstOrDefault().VlDiscount;
-
-
-                // Versão principal — com contraste de valores
-                message.Append(firstName);
-                message.Append(", quite seu ");
-                message.Append(productName);
-                message.Append(" que era R$");
-                message.Append(vlOriginal.ToString("N2"));
-                message.Append(" por apenas R$");
-                message.Append(vlFull.ToString("N2"));
-                //message.Append(" a vista: Envie SIM p/ confirmar ou acesse https://fmc.digital/scredz");
-                //message.Append(" a vista: Whatsapp: https://wa.me/553496400333");
-                message.Append(" a vista: Whatsapp: https://zaps.chat/r/credz");
-
-                // Fallback nível 1 — remove o nome do produto
-                if (message.Length > 160)
-                {
-                    message.Clear();
-                    message.Append("CREDZ: ");
-                    message.Append(firstName);
-                    message.Append(", quite sua divida de R$");
-                    message.Append(vlOriginal.ToString("N2"));
-                    message.Append(" por apenas R$");
-                    message.Append(vlFull.ToString("N2"));
-                    //    message.Append(" a vista: Envie SIM p/ confirmar ou acesse https://fmc.digital/scredz");
-                    message.Append(" a vista: Whatsapp: https://zaps.chat/r/credz");
-                }
-
-                // Fallback nível 2 — versão mínima, ainda com contraste
-                if (message.Length > 160)
-                {
-                    message.Clear();
-                    message.Append("CREDZ: ");
-                    message.Append(firstName);
-                    message.Append(" quite por R$");
-                    message.Append(vlFull.ToString("N2"));
-                    message.Append(" (era R$");
-                    message.Append(vlOriginal.ToString("N2"));
-                    //message.Append("): Envie SIM p/ confirmar ou acesse https://fmc.digital/scredz");
-                    message.Append(" a vista: Whatsapp: https://zaps.chat/r/credz");
-                }
-
-            }
-            else
-                return null;
-            /*}
-            else
-            {
-                message.Append(lead.Product.Person.DsName.Split(' ').FirstOrDefault());
-                message.Append(" não vire o ano com dividas, renegocie agora seu ");
-                message.Append(lead.Product.ProductSpecification.Description);
-                message.Append(" em https://fmc.digital/credz ou ligue 40034031");
-            }*/
+            string message = "Ola," + nome + "! Vamos facilitar a regularizacao do seu cartao DM referente a loja " + loja + "? Whatsapp: https://zaps.chat/r/dm.";
 
             if (message.Length <= 160)
             {
@@ -281,103 +187,5 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
             }
         }
 
-        static IList<string> phones = new List<string>();
-        private static Contrato GetContratos(Lead lead)
-        {
-
-
-            var person = CobmaisAPI.GetPessoa(lead.Product.Person.NrCNPJCPF);
-
-
-            var phoneUra = new GenericQueryBLL<PhoneUra>().GetCollection("select top 1 CONVERT(varchar(11),telefone) telefone, dtLigacao from CREDZ.dbo.RetornoUra where SUBSTRING(CONVERT(varchar(11), telefone), 3,1) > 6 and  cpf = '" + lead.Product.Person.NrCNPJCPF + "' order by dtLigacao desc");
-
-            if (phoneUra.Count() > 0)
-                phones = phoneUra.Select(p => p.telefone).ToList();
-
-            if (phones == null || phones.Count <= 0)
-                phones = person.telefones.Where(p => p.ativo && p.contato && Convert.ToInt32(p.numero.Substring(2, 1)) >= 6).Select(p => p.numero).ToList();
-
-
-
-            if (phones == null || phones.Count <= 0)
-            {
-                var phone = person.telefones.Where(p => p.ativo && Convert.ToInt32(p.numero.Substring(2, 1)) >= 6).Select(p => p.numero).ToList().FirstOrDefault();
-                if (phone != null)
-                    phones.Add(phone);
-            }
-
-            if (phones.Count > 0)
-            {
-
-                var contracts = CobmaisAPI.GetContratos(lead.Product.Person.NrCNPJCPF, "0", "0");
-
-                if (contracts != null)
-                {
-                    var contract = contracts.Where(p => p.numero_contrato == lead.Product.DsProduct).FirstOrDefault();
-
-                    return contract;
-                }
-            }
-            return null;
-        }
-
-
-        private static AgreementSimulateResponse GetValueAgreement(int nrParcel, Contrato contract, Lead lead)
-        {
-            try
-            {
-
-                ICollection<ParcelaCredz> complementData = new HashSet<ParcelaCredz>();
-
-
-                complementData = contract.parcelas.Select(p =>
-                        new ParcelaCredz()
-                        {
-                            id_parcela_original = p.id,
-                            negociacao_id = contract.negociacao_id,
-                            numero_parcela_original = p.numero,
-                            vencimento = p.vencimento,
-                            valor = p.valor
-                        }
-
-                    ).ToList();
-
-
-                return new AgreementBLL().GetOnlyOneSimulateCredz
-                    (
-                        new Business.Models.Customer.AgreementSimulateRequest()
-                        {
-                            Age = lead.Age,
-                            CPF = lead.Product.Person.NrCNPJCPF,
-                            DtEntrace = DateTime.Today.AddDays(7),
-                            PctDiscount = 0,
-                            NrParcel = nrParcel,
-                            VlEntrace = 99,
-                            Product = lead.Product.DsProduct,
-                            CdSimulate = "",
-                            ParcelaCredz = complementData,
-                            FixedEntraceValue = false
-                        }
-                    );
-
-            }
-            catch (Exception ex)
-            {
-                if (nrParcel > 1 && ex.ToString().Contains("Valor de Parcela abaixo do valor mínimo permitido"))
-                {
-                    nrParcel = nrParcel - 2;
-                    return GetValueAgreement(nrParcel, contract, lead);
-                }
-                else
-                    return null;
-            }
-        }
-
-    }
-
-    public class PhoneUra
-    {
-        [Key]
-        public string telefone { get; set; }
     }
 }

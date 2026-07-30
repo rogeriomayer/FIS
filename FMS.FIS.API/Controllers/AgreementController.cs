@@ -43,8 +43,23 @@ namespace FMC.FIS.API.Controllers
         [HttpPost, Route("addCredz")]
         public IActionResult AddAgreementCredz([FromBody] AgreementSimulateRequest agreementSimulateRequest)
         {
-            var result = new AgreementBLL().AddAgreementCredz(agreementSimulateRequest);
-            return Ok(result);
+            try
+            {
+                var result = new AgreementBLL().AddAgreementCredz(agreementSimulateRequest);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                var error = ex.Message;
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                    error = error + " " + ex.Message;
+                }
+                
+
+                return BadRequest(error);
+            }
         }
 
     }
