@@ -69,7 +69,14 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
     " 	inner join DIGICOB.dbo.Contract co " +
     " 		on co.idperson = bip.IdPerson " +
     " where l.DtInsert >= CONVERT(Date, getdate()) " +
-    " and age between 360 and 1500 ";
+    " and age between 360 and 1500 " +
+    " and not exists " +
+    " ( " +
+    " 	select * from fis.CREDZ.SMS sm  " +
+    " 	where sm.IdPerson = p.IdPerson " +
+    " 	and sm.dtEnvio >= '2026-07-30' " +
+    " ) ";
+;
 
                 var listPerson = new GenericQueryBLL<PersonRet>().GetCollection(query);
 
@@ -84,14 +91,7 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
 
                     foreach (var person in listPerson.Distinct().ToList())
                     {
-                        if (count > 2000) break;
                         Console.WriteLine("Total: " + count);
-                        //var phones = person.Phone.Where(p => p.IdPhoneStatus == 1 && Convert.ToInt32(p.NrPhone.Substring(2, 1)) >= 6).Select(p => p.NrPhone).ToList();
-                        //if (phones == null || phones.Count == 0)
-                        //{
-                        //    phones = new List<string>();
-                        //    phones.Add(person.Phone.Where(p => p.Blacklist == false && p.IdPhoneStatus < 4 && Convert.ToInt32(p.NrPhone.Substring(2, 1)) >= 6).Select(p => p.NrPhone).FirstOrDefault());
-                        //}
                         try
                         {
 

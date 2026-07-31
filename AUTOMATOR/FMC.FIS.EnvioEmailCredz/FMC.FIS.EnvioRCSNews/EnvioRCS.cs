@@ -116,7 +116,7 @@ namespace FMC.FIS.EnvioEmailCredz
                          {
                              Type = "OPEN_URL",
                              Text = "RENEGOCIAR PELO WHATSSAPP",
-                             Url = "https://zaps.chat/r/dm",
+                             Url = "https://fmc.digital/wdm",
                              ReplyId = "CLICK_WHATSAPP"
                          }
                      );
@@ -216,7 +216,7 @@ namespace FMC.FIS.EnvioEmailCredz
                          {
                              type = "OPEN_URL",
                              text = "WHATSSAPP",
-                             url = "https://zaps.chat/r/dm",
+                             url = "https://fmc.digital/wdm",
                              postbackData = "CLICK_WHATSAPP"
                          }
                      );

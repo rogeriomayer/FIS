@@ -33,112 +33,82 @@ try
     Constants.PassCobmaisCredz = config.GetValue<string>("PassCobmaisCredz");
     Constants.UrlApiCobmaisCredz = config.GetValue<string>("UrlApiCobmaisCredz");
 
-    while (DateTime.Now.DayOfWeek != DayOfWeek.Sunday)
+    int i = 1;
+    while (i < 10)
     {
-        DateTime dtIni = DateTime.Now.Hour < 12 ? DateTime.Today.AddDays(-2) : DateTime.Today;
-        IList<Discount> Discounts = new DiscountBLL().GetByProductType(3).ToList();
-        IList<Person> listPerson = new PersonBLL().GetByMailSend(3, dtIni, 7600, 331, 99999, 7).ToList();
+        i++;
+        var query =
+    " SELECT DISTINCT TOP (2000)  " +
+"     pe.IdPerson, " +
+"     p.IdProduct, " +
+"     pe.DsName, " +
+"     Age, " +
+"     CASE " +
+"         WHEN Store IS NULL THEN Subproduct " +
+"         ELSE Store " +
+"     END AS Store, " +
+"     Emails.Contato " +
+" FROM FIS.dbo.Lead l " +
+" INNER JOIN FIS.dbo.Product p " +
+"     ON l.IdProduct = p.IdProduct " +
+" INNER JOIN FIS.dbo.Person pe " +
+"     ON pe.IdPerson = p.IdPerson " +
+" INNER JOIN BI.dbo.Person bip " +
+"     ON bip.NrCNPJCPF = pe.NrCNPJCPF " +
+" INNER JOIN DIGICOB.dbo.Contract co " +
+"     ON co.IdPerson = bip.IdPerson " +
+" CROSS APPLY " +
+" ( " +
+"     SELECT STRING_AGG(em.DsEmail, ';') AS Contato " +
+"     FROM FIS.dbo.Email em " +
+"     WHERE em.IdPerson = pe.IdPerson " +
+" 	and (em.flBloqueado is null or em.flBloqueado = 0) " +
+" ) Emails " +
+" WHERE l.DtInsert >= CONVERT(date, GETDATE()) " +
+"   AND Emails.Contato like '%@%.%' " +
+"   AND Age BETWEEN 90 AND 150 " +
+"   AND NOT EXISTS " +
+" 	( " +
+" 		SELECT 1 " +
+" 		FROM fis.CREDZ.SendEmail rc " +
+" 		WHERE rc.IdPerson = p.IdPerson " +
+" 		  AND rc.DtInsert >= '2026-07-30' " +
+" 	) " +
+"   AND NOT EXISTS " +
+" 	( " +
+" 		SELECT 1 " +
+" 		FROM fis.CREDZ.SendRCS rc " +
+" 		WHERE rc.IdPerson = p.IdPerson " +
+" 		  AND rc.DtInsert >= '2026-07-30' " +
+" 	) " +
+"   AND NOT EXISTS " +
+" 	( " +
+" 		SELECT 1 " +
+" 		FROM fis.CREDZ.SMS rc " +
+" 		WHERE rc.IdPerson = p.IdPerson " +
+" 		  AND rc.dtEnvio >= '2026-07-30' " +
+" 	); ";
+        var listPerson = new GenericQueryBLL<PersonRet>().GetCollection(query);
         Util.SaveFile("Foram encontrados " + listPerson.Count + " CPFs ");
-        IList<EnviosBalance> enviosBalance = new List<EnviosBalance>();
 
         if (listPerson.Count > 0)
         {
-            string accout = "";
-            var listEmail = new List<string>();
-            var listPhone = new List<string>();
-
-            IList<KeyValuePair<string, int>> smtpServers = new List<KeyValuePair<string, int>>();
-            smtpServers.Add(new KeyValuePair<string, int>("10.40.0.21", 25));
-            smtpServers.Add(new KeyValuePair<string, int>("10.40.0.21", 25));
-            smtpServers.Add(new KeyValuePair<string, int>("10.40.0.21", 25));
-            smtpServers.Add(new KeyValuePair<string, int>("10.40.0.21", 25));
-
-            //smtpServers.Add(new KeyValuePair<string, int>("10.40.0.92", 26));
-            //smtpServers.Add(new KeyValuePair<string, int>("10.40.0.94", 26));
-            //smtpServers.Add(new KeyValuePair<string, int>("10.40.0.82", 25));
-
-            int balance = 0;
             long idPerson = 0;
-            int countYahoo = 0;
 
-            foreach (var person in listPerson.OrderBy(p => p.NrCNPJCPF).ToList())
+
+            foreach (var person in listPerson.OrderBy(p => p.IdPerson).ToList())
             {
                 if (idPerson != person.IdPerson)
                 {
                     idPerson = person.IdPerson;
-
-                    foreach (var product in person.Product.Where(p => p.Lead.Where(l => l.DtInsert >= DateTime.Today.AddDays(-1)).Any()))
-                    {
-                        if (accout != product.DsProduct)
-                        {
-                            accout = product.DsProduct;
-                            listEmail.Clear();
-                            listPhone.Clear();
-                        }
-                        if (!listEmail.Where(p => person.Email.Where(e => e.DsEmail == p).Any()).Any())
-                        {
-                            var emails = product.Person.Email.Where(p => p.flBloqueado == false && Util.IsEmail(p.DsEmail)).Select(p => p.DsEmail).Distinct().ToList();
-                            /*var emails = product.Person.Email.Where(p => Util.IsEmail(p.DsEmail)
-                                && (!p.DsEmail.Contains("outlook"))
-                                && (!p.DsEmail.Contains("hotmail"))
-                                && (!p.DsEmail.Contains("yahoo"))
-                            ).Select(p => p.DsEmail).ToList();*/
-
-                            countYahoo = countYahoo + emails.Where(p => p.Contains("yahoo")).Count();
-                            if (countYahoo > 50)
-                                emails = emails.Where(p => !p.Contains("yahoo")).ToList();
-
-                            if (emails != null && emails.Count() > 0)
-                            {
-                                try
-                                {
-                                    var lead = product.Lead.Where(p => p.DtInsert >= dtIni).OrderByDescending(p => p.IdLead).FirstOrDefault();
-
-                                    if (lead != null && lead.Age > 77)
-                                    {
-
-                                        var envioEmailThread = new EnvioEmailThread
-                                            (
-                                                new EnvioEmailSMS()
-                                                {
-                                                    IdPerson = person.IdPerson,
-                                                    IdProduct = product.IdProduct,
-                                                    Nome = person.DsName.Trim(),
-                                                    Email = emails,
-                                                    Atraso = lead.Age,
-                                                    Desconto = Discounts.Where(p => (lead.Age >= p.MinAge && lead.Age <= p.MaxAge) && p.MaxParcel == 1).FirstOrDefault().MaxDiscount,
-                                                    Lead = lead,
-                                                    NomeCartao = product.ProductSpecification != null ? product.ProductSpecification.Description : "Cartão Credz",
-                                                    NumeroCartao = product.DsProduct.StartsWith("000") ? product.DsProduct.Substring(3, 8) + "********" : product.DsProduct.Substring(0, 8),
-                                                    SmtpServer = emails.Contains("yahoo") ? smtpServers.ToArray()[0] : smtpServers.ToArray()[balance],
-                                                    UrlCartao = product.ProductSpecification != null ? product.ProductSpecification.UrlImage : ""
-                                                }
-                                            );
-                                        envioEmailThread.SendMail();
-                                        balance++;
-                                        if (balance >= smtpServers.Count()) balance = 0;
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    string erro = ex.Message + " | " + ex.StackTrace + Environment.NewLine;
-                                    while (ex.InnerException != null)
-                                    {
-                                        ex = ex.InnerException;
-                                        erro += ex.Message + " | " + ex.StackTrace + Environment.NewLine;
-                                    }
-                                    Util.SaveFile("Laço: Erro ao enviar e-mail para " + emails.FirstOrDefault() + " conta " + product.DsProduct);
-                                    Util.SaveFile(erro);
-                                }
-                            }
-                        }
-                    }
+                    System.Threading.Thread.Sleep(500);
+                    Console.WriteLine("Enviando para " + person.Contato);
+                    EnvioEmailThread.SendMail(person);
                 }
             }
-        }
 
-        break;
-        Util.SaveFile("Processo finalizado!");
+            Util.SaveFile("Processo finalizado!");
+        }
     }
 }
 catch (Exception ex)
@@ -150,11 +120,4 @@ catch (Exception ex)
         erro += " | " + ex.Message;
     }
     Util.SaveFile("Erro:" + erro);
-}
-
-public class EnviosBalance
-{
-    public string provedor { get; set; }
-
-    public string smtp { get; set; }
 }

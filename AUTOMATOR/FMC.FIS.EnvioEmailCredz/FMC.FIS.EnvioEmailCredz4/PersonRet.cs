@@ -1,0 +1,17 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+public class PersonRet
+{
+    [Key]
+    public long IdPerson { get; set; }
+    public long IdProduct { get; set; }
+    public string DsName { get; set; }
+    public int Age { get; set; }
+    public string Store { get; set; }
+    public string Contato { get; set; }
+}
