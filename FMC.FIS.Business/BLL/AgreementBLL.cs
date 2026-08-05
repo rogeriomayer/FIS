@@ -153,7 +153,7 @@ namespace FMC.FIS.Business.BLL
                             new Digicob.DM.Models.AgreementPlanRequest()
                             {
                                 IdPortalAccess = 0,
-                                Channel = "Portal",
+                                Channel = "Whatsapp",
                                 DownPaymentDate = DateTime.Today.AddDays(7).ToString("yyyy-MM-dd"),
                                 Contracts = new List<Digicob.DM.Models.AgreementContractRequest>()
                                 {

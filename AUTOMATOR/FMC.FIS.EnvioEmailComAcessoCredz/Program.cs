@@ -130,7 +130,7 @@ namespace FMC.FIS.EnvioEmailComAcessoCredz
             var message = new StringBuilder();
 
             var firstName = simulacao.DsName.Split(' ').FirstOrDefault();
-            
+
 
             // Versão principal — com contraste de valores
             message.Append(firstName);
@@ -155,7 +155,7 @@ namespace FMC.FIS.EnvioEmailComAcessoCredz
             var body = new StringBuilder();
             body.Append("<html>");
             if (simulacao.QtdSimulacoes == 0)
-                body = GetBody0(simulacao.DsName, simulacao.DtNav.ToString("dd/MM/yyyy"), simulacao.DsProduct.Substring(3, 6) + "**********", simulacao.Description);
+                body = GetBody0(simulacao.DsName, simulacao.DtNav.ToString("dd/MM/yyyy"), simulacao.Store.Substring(3, 6) + "**********", simulacao.Description);
             else if (simulacao.QtdSimulacoes == 1)
                 body = GetBody1(simulacao.DsName, simulacao.DtNav.ToString("dd/MM/yyyy"));
             else
@@ -166,10 +166,8 @@ namespace FMC.FIS.EnvioEmailComAcessoCredz
             body.Append("<p>Caso já tenha efetuado o pagamento favor desconsiderar este e-mail.</p>");
             body.Append("<br>");
             body.Append("<br>");
-            body.Append("<p><b>Equipe Negociador Credz</b></p>");
+            body.Append("<p><b>Equipe Negociador DM</b></p>");
             body.Append("<p><b>Whatsapp: <a href='https://zaps.chat/r/credz'>34 99640-0333</a> </b> </p>");
-            body.Append("<p><img alt=\"\" style=\"width:100px\" src=\"https://negociadorcredz.fmcbrasil.com.br/images/topo/credz-logo-new.png\">  </p>");
-            body.Append("<p><img alt=\"\" style=\"width:150px\" src=\"").Append(simulacao.UrlImage).Append("\">  </p>");
             body.Append("<br>");
             body.Append("<br>");
             body.Append("<a href=\"http://fmcbrasil.com.br/descadastrar\" target=\"_blank\" rel=\"noopener noreferrer\" data-auth=\"NotApplicable\" style=\"color:#e60014; text-decoration:none\" data-linkindex=\"2\">Descadastre-se! <em>(Unsubscribe)</em></a>");
@@ -192,19 +190,19 @@ namespace FMC.FIS.EnvioEmailComAcessoCredz
             return body.ToString();
         }
 
-        private static StringBuilder GetBody0(string nome, string dataAcesso, string numeroCartao, string nomeCartao)
+        private static StringBuilder GetBody0(string nome, string dataAcesso, string nomeCartao)
         {
             var body = new StringBuilder();
             body.Append("<p>Olá ").Append(nome).Append("!").Append("</p>");
             body.Append("<p>Vimos que você acessou nosso portal de negociação no dia ").Append(dataAcesso);
-            body.Append(", mas faltou validar os dados para garantir que você realmente é o titular do cartão e ter acesso ao super desconto que oferecemos para o seu cartão ");
-            body.Append(numeroCartao).Append(" ").Append(nomeCartao).Append(".</p>");
+            body.Append(", mas faltou validar os dados para garantir que você realmente é o titular da conta e ter acesso ao super desconto que oferecemos para o seu cartão ");
+            body.Append(" ").Append(nomeCartao).Append(".</p>");
             body.Append("<p>Pedimos esta confirmação para que dados sensíveis do devedor não seja passado a terceiros!").Append("</p>");
             body.Append("<p>Reforçamos que o site é seguro e que pode realizar sua negociação com rapidez e segurança, ");
             body.Append("basta clicar no link abaixo.</p>");
-            body.Append("<p>Portal Negociação Credz: <a href='https://fmc.digital/ecredz'>www.negociadorcredz.fmcbrasil.com.br</a> </p>");
+            body.Append("<p>Portal Negociação DM: <a href='https://fmc.digital/edm'>www.negociadordm.fmcbrasil.com.br</a> </p>");
             body.Append("<p>Em caso de dúvidas, pode entrar em contato com nossa central de atendimento");
-            body.Append("<p>pelo <b>Whatsapp: <a href='https://zaps.chat/r/credz'>34 99640-0333</a> </b> </p>");
+            body.Append("<p>pelo <b>Whatsapp: <a href='https://zaps.chat/r/dm'>34 99797-3742</a> </b> </p>");
 
             return body;
         }
@@ -223,9 +221,9 @@ namespace FMC.FIS.EnvioEmailComAcessoCredz
             body.Append("<p>Não perca essa oportunidade!</p>");
             body.Append("<p>Reforçamos que o site é seguro e que pode realizar sua negociação com rapidez e segurança, ");
             body.Append("basta clicar no link abaixo.</p>");
-            body.Append("<p>Portal Negociação Credz: <a href='https://fmc.digital/ecredz'>www.negociadorcredz.fmcbrasil.com.br</a> </p>");
+            body.Append("<p>Portal Negociação DM: <a href='https://fmc.digital/edm'>www.negociadordm.fmcbrasil.com.br</a> </p>");
             body.Append("<p>Em caso de dúvidas, pode entrar em contato com nossa central de atendimento");
-            body.Append("<p>pelo <b>Whatsapp: <a href='https://zaps.chat/r/credz'>34 99640-0333</a> </b> </p>");
+            body.Append("<p>pelo <b>Whatsapp: <a href='https://zaps.chat/r/dm'>34 99797-3742</a> </b> </p>");
             return body;
         }
 
@@ -240,9 +238,9 @@ namespace FMC.FIS.EnvioEmailComAcessoCredz
             body.Append("<p>Não perca essa oportunidade!</p>");
             body.Append("<p>Reforçamos que o site é seguro e que pode realizar sua negociação com rapidez e segurança, ");
             body.Append("clique no link abaixo.</p>");
-            body.Append("<p>Portal Negociação Credz: <a href='https://fmc.digital/ecredz'>www.negociadorcredz.fmcbrasil.com.br</a> </p>");
+            body.Append("<p>Portal Negociação DM: <a href='https://fmc.digital/edm'>www.negociadordm.fmcbrasil.com.br</a> </p>");
             body.Append("<p>Em caso de dúvidas, pode entrar em contato com nossa central de atendimento");
-            body.Append("<p>pelo <b>Whatsapp: <a href='https://zaps.chat/r/credz'>34 99640-0333</a> </b> </p>");
+            body.Append("<p>pelo <b>Whatsapp: <a href='https://zaps.chat/r/dm'>34 99797-3742</a> </b> </p>");
             return body;
         }
 
@@ -284,49 +282,45 @@ namespace FMC.FIS.EnvioEmailComAcessoCredz
             get
             {
                 var query = new StringBuilder();
-                query.Append(" select distinct count(IdSimulate) as 'QtdSimulacoes', convert(date, nav.DtInsert) as 'DtNav', cpf, per.IdPerson, pro.IdProduct, DsName, DsProduct, MaxDiscount, ps.Description, ps.UrlImage, em.DsEmail ");
-                query.Append(" from CREDZ.dbo.Navigation nav ");
-                query.Append(" 	inner join CREDZ.dbo.Product prd ");
-                query.Append(" 		on nav.IdNavigation = prd.IdNavigation ");
-                query.Append(" 	left join CREDZ.dbo.Simulate sim ");
-                query.Append(" 		on prd.IdProduct = sim.IdProduct ");
-                query.Append(" 	inner join FIS.dbo.Person per ");
-                query.Append(" 		on per.NrCNPJCPF = nav.CPF ");
-                query.Append(" 	inner join FIS.dbo.Product pro ");
-                query.Append(" 		on pro.IdPerson = per.IdPerson ");
-                query.Append(" 			and pro.DsProduct = prd.Account ");
-                query.Append(" 	inner join FIS.dbo.ProductSpecification ps ");
-                query.Append(" 		on ps.IdProductSpecification = pro.IdProductSpecification ");
-                query.Append(" 	inner join fis.dbo.Lead le ");
-                query.Append(" 		on le.IdProduct = pro.IdProduct  ");
-                query.Append(" 		and le.DtInsert >= CONVERT(Date, getdate()-1) ");
-                query.Append(" 	inner join fis.dbo.Discount dis ");
-                query.Append(" 		on le.Age between dis.MinAge and dis.MaxAge ");
-                query.Append(" 			and dis.IdProductType = 3 ");
-                query.Append(" 			and dis.MaxParcel = 1 ");
-                query.Append(" left join fis.dbo.Email em ");
-                query.Append(" 		on em.IdPerson = per.IdPerson ");
-                query.Append(" 		and flBloqueado = 0 ");
-                query.Append(" where  nav.dtinsert between  DATEADD(hour,-2,getdate()) and DATEADD(minute,-15,getdate()) ");
-                query.Append(" and  nav.IdNavigation = (select MAX(idnavigation) from CREDZ.dbo.Navigation nv where nv.CPF = nav.CPF) ");
-                query.Append(" and not exists ");
-                query.Append(" ( ");
-                query.Append(" 	select *  ");
-                query.Append(" 	from CREDZ.dbo.Agreement ag ");
-                query.Append(" 		inner join CREDZ.dbo.Product pr ");
-                query.Append(" 			on pr.IdProduct = ag.IdProduct ");
-                query.Append(" 	where pr.Account = prd.Account ");
-                query.Append(" ) ");
-                query.Append(" and not exists ");
-                query.Append(" ( ");
-                query.Append(" 	select *  ");
-                query.Append(" 	from CREDZ.ResendEmail rem ");
-                query.Append(" 	where rem.idperson = per.idperson ");
-                query.Append(" 	and rem.dtinsert >= getdate() -1 ");
-                query.Append(" ) ");
-                query.Append(" group by cpf, per.IdPerson, convert(date, nav.DtInsert),DsName, DsProduct, ps.Description, ps.UrlImage, MaxDiscount, le.age, pro.IdProduct, em.DsEmail ");
-                query.Append(" order by IdPerson, DsEmail, convert(date, nav.DtInsert), MaxDiscount ");
-                //query.Append(" order by 1");
+                query.Append(" 	select distinct count(distinct pplan.IdAgreementPlan) as 'QtdSimulacoes', convert(date, nav.DtInsert) as 'DtNav', cpf, per.IdPerson, per.DsName, ");
+                query.Append(" 	Store, em.DsEmail, IdProduct");
+                query.Append(" 	--pro.IdProduct, DsName, DsProduct, MaxDiscount, ps.Description, ps.UrlImage,  ");
+                query.Append(" 	from DIGICOB.dbo.PortalAccess nav ");
+                query.Append(" 		inner join FIS.dbo.Person per ");
+                query.Append(" 			on per.NrCNPJCPF = nav.CPF ");
+
+                query.Append(" 		left join fis.dbo.Product pr ");
+                query.Append(" 		        on pr.IdPerson = per.IdPerson ");
+                query.Append(" 		left join FIS.dbo.Email em ");
+                query.Append(" 			on em.IdPerson = per.IdPerson ");
+                query.Append(" 			and flBloqueado = 0 ");
+                query.Append(" 		inner join bi.dbo.Person biper ");
+                query.Append(" 			on biper.NrCNPJCPF = nav.CPF ");
+                query.Append(" 		LEFT join DIGICOB.dbo.Contract co ");
+                query.Append(" 			on co.IdPerson = biper.IdPerson ");
+                query.Append(" 		left join DIGICOB.dbo.PortalAccessAgrementPlan pplan ");
+                query.Append(" 			on pplan.IdPortalAccess = nav.IdPortalAccess ");
+                query.Append(" 		left join DIGICOB.dbo.AgreementPlan ap ");
+                query.Append(" 			on ap.IdAgreementPlan = pplan.IdAgreementPlan ");
+                query.Append(" 	where nav.Portfolio = 'DM' ");
+                //query.Append(" 		and nav.dtinsert between  DATEADD(hour,-2,getdate()) and DATEADD(minute,-15,getdate()) ");
+                query.Append(" 		and nav.dtinsert between  DATEADD(hour,-24,getdate()) and DATEADD(minute,-15,getdate()) ");
+                query.Append(" 		and  nav.IdPortalAccess = (select MAX(nv.IdPortalAccess) from DIGICOB.dbo.PortalAccess nv where nv.CPF = nav.CPF) ");
+                query.Append(" 		and not exists ");
+                query.Append(" 		( ");
+                query.Append(" 			select *  ");
+                query.Append(" 			from DIGICOB.dbo.Agreement ag ");
+                query.Append(" 			where ag.PlanUuid = ap.PlanUuid ");
+                query.Append(" 		) ");
+                query.Append(" 	and not exists ");
+                query.Append(" 	( ");
+                query.Append(" 		select *  ");
+                query.Append(" 		from CREDZ.ResendEmail rem ");
+                query.Append(" 		where rem.idperson = per.idperson ");
+                query.Append(" 		and rem.dtinsert >= getdate() -1 ");
+                query.Append(" 	) ");
+                query.Append(" 	group by cpf, per.IdPerson, convert(date, nav.DtInsert),per.DsName, Store,em.DsEmail, IdProduct ");
+                query.Append(" 	order by IdPerson, DsEmail, convert(date, nav.DtInsert) ");
 
                 return query.ToString();
             }
@@ -386,10 +380,10 @@ namespace FMC.FIS.EnvioEmailComAcessoCredz
         public long IdProduct { get; set; }
         public string cpf { get; set; }
         public string DsName { get; set; }
-        public string DsProduct { get; set; }
-        public decimal? MaxDiscount { get; set; }
-        public string? Description { get; set; }
-        public string? UrlImage { get; set; }
+        public string Store { get; set; }
+        //public decimal? MaxDiscount { get; set; }
+        //public string? Description { get; set; }
+        //public string? UrlImage { get; set; }
         public string? DsEmail { get; set; }
     }
 

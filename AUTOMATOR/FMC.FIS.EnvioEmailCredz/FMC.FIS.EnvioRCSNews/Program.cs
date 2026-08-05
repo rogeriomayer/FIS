@@ -40,7 +40,7 @@ try
         //IList<Discount> Discounts = new DiscountBLL().GetByProductType(3).ToList();
         //IList<Person> listPerson = new PersonBLL().GetPersonSendRCSNews().ToList();
         var query =
-    " select distinct top 2500 pe.IdPerson, p.idproduct, pe.DsName,Age, case when Store is null then Subproduct else Store end Store, h.contato " +
+    " select distinct top 2500 pe.IdPerson, p.idproduct, pe.DsName,Age, IdContract, case when Store is null then Subproduct else Store end Store, h.contato " +
     " from FIS.dbo.Lead l " +
     " 	inner join FIS.dbo.Product p " +
     " 		on l.IdProduct = p.IdProduct " +
@@ -75,7 +75,7 @@ try
             //foreach (var person in listPerson.OrderBy(p=>p.Product.).OrderBy(p => p.NrCNPJCPF).ToList())
             foreach (var person in listPerson)
             {
-                if (count > 2000)
+                if (count > 2400)
                     break;
                 else
                     Console.WriteLine("Total: " + count);
@@ -111,13 +111,9 @@ try
                                     IdProduct = person.idproduct,
                                     Nome = person.DsName.Split(' ').FirstOrDefault(),
                                     Phones = { person.contato },
-                                    //DtNascimento = person.DtBirth.Value,
+                                    IdContract = person.IdContract,
                                     Atraso = person.Age,
-                                    //Desconto = Discounts.Where(p => (lead.Age >= p.MinAge && lead.Age <= p.MaxAge) && p.MaxParcel == 1).FirstOrDefault().MaxDiscount,
-                                    //Lead = lead,
-                                    NomeCartao = person.Store// product.ProductSpecification != null ? product.ProductSpecification.Description : "Cartão Credz",
-                                                             //NumeroCartao = product.DsProduct.StartsWith("000") ? product.DsProduct.Substring(3, 8) + "********" : product.DsProduct.Substring(0, 8),
-                                                             //UrlCartao = product.ProductSpecification != null ? product.ProductSpecification.UrlImage : ""
+                                    NomeCartao = person.Store
                                 }
                             );
                         if (!string.IsNullOrEmpty(envioRCS.Send()))

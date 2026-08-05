@@ -56,7 +56,7 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                 //IList<Person> listPerson = new PersonBLL().GetPersonSendSMS(dtLead).ToList();
 
                 var query =
-    " select distinct top 3000 pe.IdPerson, p.idproduct, pe.DsName,Age, case when Store is null then Subproduct else Store end Store, h.contato " +
+    " select distinct top 4000 pe.IdPerson, p.idproduct, pe.DsName,Age, case when Store is null then Subproduct else Store end Store, h.contato " +
     " from FIS.dbo.Lead l " +
     " 	inner join FIS.dbo.Product p " +
     " 		on l.IdProduct = p.IdProduct " +
@@ -76,7 +76,7 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
     " 	where sm.IdPerson = p.IdPerson " +
     " 	and sm.dtEnvio >= '2026-07-30' " +
     " ) ";
-;
+                ;
 
                 var listPerson = new GenericQueryBLL<PersonRet>().GetCollection(query);
 
@@ -163,29 +163,23 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
         }
         private static SingleRequest SendSMS(string phone, string nome, string loja)
         {
-            string message = "Ola," + nome + "! Vamos facilitar a regularizacao do seu cartao DM referente a loja " + loja + "? Whatsapp: https://zaps.chat/r/dm.";
+            string message = nome + "!Você tem condições especiais para quitar seu Cartão DM " + loja + " pelo WhatsApp: https://zaps.chat/r/dm ou 34997973742";
 
-            if (message.Length <= 160)
+            if (message.Length > 160)
             {
-                //var ret = new BvSmsBLL().SmsSingle
-                //               (
-                return new SingleRequest()
-                {
-                    celular = phone,
-                    mensagem = message.ToString(),
-                    carteiraId = 1064,
-                    parceiroId = "credZ" + DateTime.Now.ToString("ddMMyyyyHHmmss")
-                };
-                //               );
-
-                //return ret.ToUpper() == "OK";
-
+                message = nome + "!Você tem condições especiais para quitar seu Cartão DM " + loja + " pelo WhatsApp: https://zaps.chat/r/dm";
             }
-            else
+            else if (message.Length > 160)
             {
                 return null;
             }
+            return new SingleRequest()
+            {
+                celular = phone,
+                mensagem = message.ToString(),
+                carteiraId = 1064,
+                parceiroId = "credZ" + DateTime.Now.ToString("ddMMyyyyHHmmss")
+            };
         }
-
     }
 }

@@ -19,7 +19,7 @@ namespace FMC.FIS.EnvioEmailCredz
         {
             try
             {
-                string body = GetBody(personRet.DsName, personRet.Store);
+                string body = GetBody(personRet.DsName, personRet.Store, personRet.IdContract);
 
                 string title = "Regularize seu Cartão DM com condições especiais";
                 var emails = personRet.Contato.Split(';').Where(p => Util.IsEmail(p)).ToList();
@@ -98,7 +98,7 @@ namespace FMC.FIS.EnvioEmailCredz
         }
 
 
-        public static string GetBody(string nomeCliente, string loja)
+        public static string GetBody(string nomeCliente, string loja, long idContract)
         {
             var html = new StringBuilder();
 
@@ -148,8 +148,8 @@ namespace FMC.FIS.EnvioEmailCredz
             // Botões
             html.AppendLine("<tr>");
             html.AppendLine("<td align=\"center\" style=\"padding:15px 0 10px 0;\">");
-
-            html.AppendLine("<a href=\"https://fmc.digital/edm\"");
+            string url = "https://negociadordm.fmcbrasil.com.br?d=email&id=" + idContract;
+            html.AppendLine("<a href=\"" + url + "\"");
             html.AppendLine("style=\"background:#00AEEF;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:5px;display:inline-block;font-size:15px;font-weight:bold;margin:5px;\">");
             html.AppendLine("Acessar Portal");
             html.AppendLine("</a>");

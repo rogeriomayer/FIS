@@ -1,7 +1,9 @@
 ﻿using FMC.FIS.BLL;
 using FMC.FIS.Business.BLL;
 using FMC.FIS.Business.Code.Api.Cobmais;
+using FMC.FIS.Business.Code.Api.Digicob;
 using FMC.FIS.Business.Models.Cobmais;
+using FMC.FIS.Business.Models.Customer;
 using FMC.FIS.Business.Models.FIS;
 using FMC.FIS.Credz.Remember;
 using Microsoft.AspNetCore.Hosting;
@@ -11,7 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using static FMC.FIS.Credz.Remember.SendRemember;
+
 
 try
 {
@@ -63,56 +65,36 @@ try
                     var product = agreement.StatusLead.Lead.Product;
                     var emails = product.Person.Email.Where(p => p.flBloqueado == false && Util.IsEmail(p.DsEmail)).Select(p => p.DsEmail).Distinct().ToList();
 
-                    int count = 0;
-                    Acordo acordo = null;
+                    IList<FMC.Digicob.DM.Models.AgreementResponse> agreementsDigicob = null;
+                    DigicobAPI digicobAPI = new DigicobAPI();
 
-                    while (count < 3)
-                    {
-                        try
-                        {
-                            countAgreement++;
-                            System.Threading.Thread.Sleep(500);
-                            Util.SaveFile("Buscando acordo no Cobmais " + agreement.IdAgreement);
+                    countAgreement++;
+                    System.Threading.Thread.Sleep(500);
+                    Util.SaveFile("Buscando acordo no Cobmais " + agreement.IdAgreement);
 
-                            acordo = CobmaisAPI.Acordo(Convert.ToInt64(agreement.CdAgreement));
-                            count = 4;
-                        }
-                        catch (Exception ex)
-                        {
-                            Util.SaveFile(ex.Message);
-                            if (ex.Message.Contains("Rate limit is exceeded. Try again in"))
-                            {
-                                DateTime horaErro = DateTime.Now;
-                                int i = 0;
-                                if (ex.Message.Contains("seconds"))
-                                    i = Convert.ToInt32(ex.Message.Substring(ex.Message.IndexOf("seconds") - 4, 4));
-                                if (ex.Message.Contains("segundos"))
-                                    i = Convert.ToInt32(ex.Message.Substring(ex.Message.IndexOf("segundos") - 4, 4));
+                    //acordo = CobmaisAPI.Acordo(Convert.ToInt64(agreement.CdAgreement));
+                    var contracts = await digicobAPI.GetContractAsync(product.Person.NrCNPJCPF, product.Person.DtBirth.Value.ToString("yyyy-MM-dd"));
+                    foreach (var contract in contracts)
+                        foreach (var agg in contract.Agreements)
+                            agreementsDigicob.Add(agg);
 
-                                if (ex.Message.Contains("minute"))
-                                    i = Convert.ToInt32(ex.Message.Substring(ex.Message.IndexOf("minute") - 3, 3)) * 60;
-
-                                System.Threading.Thread.Sleep(1000 * (i + 2));
-                                count++;
-                            }
-                            else
-                                count = 4;
-
-                        }
-                    }
                     bool havePayment = false;
 
-                    IList<PagamentoResponse> pgt = null;
+                    var agreementDigicob = agreementsDigicob.Where(p => p.Id.ToString() == agreement.CdAgreement).FirstOrDefault();
+                    var idStatus = agreementDigicob.Status == "Pago" ? 6 : (agreementDigicob.Status == "Quebrado" ? 2 : 1);
 
-                    if (acordo != null && currentParcel != null)
+                    if (agreementDigicob != null && currentParcel != null)
                     {
+                        var contract = contracts.Where(p => p.Id == agreementDigicob.Contracts.FirstOrDefault().ContractId).FirstOrDefault();
+
                         var objectSend = new ObjectSend()
                         {
                             IdAgreement = agreement.IdAgreement,
                             IdAgreementParcel = currentParcel.IdAgreementParcel,
                             Name = product.Person.DsName.Trim(),
-                            CardName = product.ProductSpecification != null ? product.ProductSpecification.Description : "Cartão CredZ",
-                            CardNumber = product.DsProduct.StartsWith("000") ? product.DsProduct.Substring(3, 8) + "********" : product.DsProduct.Substring(0, 8),
+                            //CardName = product.ProductSpecification != null ? product.ProductSpecification.Description : "Cartão CredZ",
+                            CardName = contract.Store,
+                            //CardNumber = product.DsProduct.StartsWith("000") ? product.DsProduct.Substring(3, 8) + "********" : product.DsProduct.Substring(0, 8),
                             aVista = agreement.QtParcel == 0,
                             Parcel = currentParcel.NrParcel,
                             Product = product,
@@ -120,137 +102,98 @@ try
                         };
 
                         Util.SaveFile("Verificando parcelas");
-                        foreach (var parcela in acordo.parcelas_novas.Where(p => p.id_pagamento != null && p.id_pagamento > 0).OrderBy(p => p.vencimento).ToList())
+                        //foreach (var installment in agreementDigicob.Installments.Where(p => p.id_pagamento != null && p.id_pagamento > 0).OrderBy(p => p.vencimento).ToList())
+                        foreach (var installment in agreementDigicob.Installments.Where(p => p.Status == "Pago").OrderBy(p => p.DueDate).ToList())
                         {
                             try
                             {
-                                var parcel = agreement.AgreementParcel.Where(p => (p.NrParcel + 1).ToString() == parcela.parcela).FirstOrDefault();
+                                var parcel = agreement.AgreementParcel.Where(p => (p.NrParcel + 1) == installment.Number).FirstOrDefault();
 
                                 if (havePayment == false)
                                     havePayment = currentParcel != null && (currentParcel.IdAgreementParcel == parcel.IdAgreementParcel);
 
-                                if (parcel.Payment.Where(p => p.NmFile == "API Cobmais - " + parcela.id_pagamento).Count() == 0)
+                                if (parcel.Payment.Where(p => p.NmFile == "API Digicob - " + installment.UpdatedAt.ToString("yyyy-MM-dd")).Count() == 0)
                                 {
-                                    pgt = CobmaisAPI.Pagamento(parcela.id_pagamento.Value);
-                                    if (pgt != null && pgt.Count() > 0 && pgt.FirstOrDefault().pagamentos.Count() > 0)
+
+                                    Util.SaveFile("Salvando pagamento");
+                                    new PaymentBLL().Add
+                                     (
+                                         new Payment()
+                                         {
+                                             IdAgreementParcel = parcel.IdAgreementParcel,
+                                             VlPayment = installment.Value,
+                                             DtPayment = installment.UpdatedAt,
+                                             NmFile = "API Cobmais - " + installment.UpdatedAt.ToString("yyyy-MM-dd"),
+                                             DtInsert = DateTime.Now
+                                         }
+                                     );
+                                    /* gerar boleto da proxima fatura -- Implementar*/
+
+                                    /*
+                                    if (string.IsNullOrEmpty(agreement.CdParcelPlan) || string.IsNullOrWhiteSpace(agreement.CdParcelPlan))
                                     {
+                                        Util.SaveFile("gerando boleto proxima fatura");
 
-                                        Util.SaveFile("Salvando pagamento");
-                                        if (pgt.FirstOrDefault().pagamentos.First().parcelas.Count() == 1)
+                                        var payments = new PaymentBLL().GetPayments(agreement.IdAgreement);
+                                        if (payments != null && currentParcel.DtParcel >= DateTime.Today.AddDays(-15))
                                         {
-                                            new PaymentBLL().Add
-                                             (
-                                                 new Payment()
-                                                 {
-                                                     IdAgreementParcel = parcel.IdAgreementParcel,
-                                                     VlPayment = pgt.FirstOrDefault().pagamentos.FirstOrDefault().valor_pagamento,
-                                                     DtPayment = Convert.ToDateTime(pgt.FirstOrDefault().pagamentos.FirstOrDefault().data_pagamento),
-                                                     NmFile = "API Cobmais - " + parcela.id_pagamento,
-                                                     DtInsert = DateTime.Now
-                                                 }
-                                             );
-                                        }
-                                        else
-                                        {
-                                            foreach (var pcl in pgt.FirstOrDefault().pagamentos.First().parcelas)
+                                            var lastPayment = payments.OrderByDescending(p => p.DtPayment).FirstOrDefault();
+
+                                            var parcelNewBillet = agreement.AgreementParcel.Where(p => p.NrParcel > lastPayment.AgreementParcel.NrParcel).OrderBy(p => p.NrParcel).FirstOrDefault();
+
+                                            var billetResponse = SendRemember.GetBillet(agreement, parcelNewBillet, product);
+
+                                            if (billetResponse != null)
                                             {
-                                                parcel = agreement.AgreementParcel.Where(p => (p.NrParcel + 1) == Convert.ToInt32(pcl.numero)).FirstOrDefault();
-                                                new PaymentBLL().Add
-                                                (
-                                                    new Payment()
-                                                    {
-                                                        IdAgreementParcel = parcel.IdAgreementParcel,
-                                                        VlPayment = pcl.valor,
-                                                        DtPayment = Convert.ToDateTime(pgt.FirstOrDefault().pagamentos.FirstOrDefault().data_pagamento),
-                                                        NmFile = "API Cobmais - " + parcela.id_pagamento,
-                                                        DtInsert = DateTime.Now
-                                                    }
-                                                );
-                                            }
-                                            break;
-                                        }
-                                        /* gerar boleto da proxima fatura*/
-                                        if (string.IsNullOrEmpty(agreement.CdParcelPlan) || string.IsNullOrWhiteSpace(agreement.CdParcelPlan))
-                                        {
-                                            Util.SaveFile("gerando boleto proxima fatura");
+                                                objectSend.Email = emails;
+                                                objectSend.DtParcel = billetResponse.DtBillet;
+                                                objectSend.Line = billetResponse.Line;
+                                                objectSend.BilletUrl = billetResponse.URL;
+                                                objectSend.Value = billetResponse.VlBillet;
+                                                objectSend.Pdf = new System.Net.WebClient().DownloadData(billetResponse.URL);
+                                                objectSend.IdAgreementParcel = currentParcel.IdAgreementParcel;
+                                                objectSend.Parcel = currentParcel.NrParcel;
 
-                                            var payments = new PaymentBLL().GetPayments(agreement.IdAgreement);
-                                            if (payments != null && currentParcel.DtParcel >= DateTime.Today.AddDays(-15))
-                                            {
-                                                var lastPayment = payments.OrderByDescending(p => p.DtPayment).FirstOrDefault();
+                                                var envioEmailThread = new SendRemember(objectSend);
 
-                                                var parcelNewBillet = agreement.AgreementParcel.Where(p => p.NrParcel > lastPayment.AgreementParcel.NrParcel).OrderBy(p => p.NrParcel).FirstOrDefault();
 
-                                                var billetResponse = SendRemember.GetBillet(agreement, parcelNewBillet, product);
-
-                                                if (billetResponse != null)
+                                                Ag ag = RestApi.Get<Ag>("https://10.40.0.30/credz/api", "agreement/" + product.DsProduct);
+                                                IList<string> origem = new List<string> { "1", "/", "ura", "ope", "rcs", "d=d", "9" };
+                                                if (origem.Contains(ag.Product.Navigation.DsOrigem) || product.Person.Email.Count == 0)
                                                 {
-                                                    objectSend.Email = emails;
-                                                    objectSend.DtParcel = billetResponse.DtBillet;
-                                                    objectSend.Line = billetResponse.Line;
-                                                    objectSend.BilletUrl = billetResponse.URL;
-                                                    objectSend.Value = billetResponse.VlBillet;
-                                                    objectSend.Pdf = new System.Net.WebClient().DownloadData(billetResponse.URL);
-                                                    objectSend.IdAgreementParcel = currentParcel.IdAgreementParcel;
-                                                    objectSend.Parcel = currentParcel.NrParcel;
-
-                                                    var envioEmailThread = new SendRemember(objectSend);
-
-
-                                                    Ag ag = RestApi.Get<Ag>("https://10.40.0.30/credz/api", "agreement/" + product.DsProduct);
-                                                    IList<string> origem = new List<string> { "1", "/", "ura", "ope", "rcs", "d=d", "9" };
-                                                    if (origem.Contains(ag.Product.Navigation.DsOrigem) || product.Person.Email.Count == 0)
-                                                    {
-                                                        objectSend.Phone = SendRemember.GetPhone(product.Person);
-                                                        if (!string.IsNullOrEmpty(objectSend.Phone))
-                                                            envioEmailThread.SendSMSPagamento();
-                                                    }
-
-                                                    if (emails.Count > 0)
-                                                        envioEmailThread.SendMailPagamento();
+                                                    objectSend.Phone = SendRemember.GetPhone(product.Person);
+                                                    if (!string.IsNullOrEmpty(objectSend.Phone))
+                                                        envioEmailThread.SendSMSPagamento();
                                                 }
+
+                                                if (emails.Count > 0)
+                                                    envioEmailThread.SendMailPagamento();
                                             }
                                         }
-
                                     }
+
+                                    */
                                 }
                             }
                             catch (Exception ex)
                             {
-                                Util.SaveFile("pgt " + ex.Message);
-                                if (ex.Message.Contains("Rate limit is exceeded. Try again in"))
-                                {
-                                    DateTime horaErro = DateTime.Now;
-                                    int i = 0;
-                                    if (ex.Message.Contains("seconds"))
-                                        i = Convert.ToInt32(ex.Message.Substring(ex.Message.IndexOf("seconds") - 4, 4));
-                                    if (ex.Message.Contains("segundos"))
-                                        i = Convert.ToInt32(ex.Message.Substring(ex.Message.IndexOf("segundos") - 4, 4));
 
-                                    if (ex.Message.Contains("minute"))
-                                        i = Convert.ToInt32(ex.Message.Substring(ex.Message.IndexOf("minute") - 3, 3)) * 60;
-
-                                    System.Threading.Thread.Sleep(1000 * (i + 2));
-                                    count++;
-                                }
-                                else
-                                    count = 4;
                             }
                         }
 
-                        Util.SaveFile("Alterando Status " + agreement.IdAgreementStatus.ToString() + " => " + acordo.id_status.Value.ToString());
+                        Util.SaveFile("Alterando Status " + agreement.IdAgreementStatus.ToString() + " => " + agreementDigicob.Status);
 
 
-                        Console.WriteLine(acordo.id + " - " + acordo.id_status + " - " + agreement.IdAgreementStatus);
-                        if (agreement.IdAgreementStatus != acordo.id_status.Value)
+                        Console.WriteLine(agreementDigicob.Id + " - " + agreementDigicob.Status);
+                        
+                        if (agreement.IdAgreementStatus != idStatus)
                         {
-
-                            agreement.IdAgreementStatus = acordo.id_status.Value;
+                            agreement.IdAgreementStatus = idStatus;
                             agreementBLL.Update(agreement);
                         }
 
 
-                        if (acordo.id_status.Value == 2)
+                        if (idStatus == 2)
                         {
                             if (product.Lead.Where(p => p.DtInsert >= DateTime.Today.AddDays(-1)).Count() > 0)
                             {
@@ -286,7 +229,7 @@ try
                                 }
                             }
                         }
-                        else if ((!havePayment) && currentParcel != null && (acordo.id_status.Value == 1 || acordo.id_status.Value == 6))
+                        else if ((!havePayment) && currentParcel != null && (idStatus == 1 || idStatus == 6))
                         {
                             Util.SaveFile("Enviando remember");
                             if (string.IsNullOrEmpty(agreement.CdParcelPlan))
@@ -299,8 +242,17 @@ try
                                 //if (envios.Where(p => p.DtInsert >= DateTime.Today).Count() == 0)
                                 {
                                     Util.SaveFile("Enviando sms/rcs");
-                                    Billet billet = null;
+                                    //Billet billet = null;
+                                    FMC.Digicob.DM.Models.BilletResponse billet = null;
+                                    var installment = agreementDigicob.Installments.Where(p => p.Number == currentParcel.NrParcel + 1).FirstOrDefault();
 
+                                    if (installment.Billets != null && installment.Billets.Count > 0)
+                                        billet = installment.Billets.FirstOrDefault();
+                                    else
+                                    {
+
+                                    }
+                                    /*
                                     if (currentParcel.Billet != null && currentParcel.Billet.Count > 0)
                                         billet = currentParcel.Billet.FirstOrDefault();
                                     else
@@ -314,7 +266,7 @@ try
                                                 URL = billetResponse.URL,
                                                 VlBillet = billetResponse.VlBillet
                                             };
-                                    }
+                                    }*/
 
                                     if (billet != null)
                                     {
@@ -344,8 +296,8 @@ try
                                                 }
                                                 else
                                                 {*/
-                                                objectSend.Line = billet.Line;
-                                                objectSend.DtParcel = billet.DtBillet;
+                                                objectSend.Line = billet.PaymentLine;
+                                                objectSend.DtParcel = billet.DueDate;
                                                 objectSend.Phone = SendRemember.GetPhone(product.Person);
 
                                                 if (!string.IsNullOrEmpty(objectSend.Phone))
@@ -372,11 +324,11 @@ try
                                                     if (billet != null)
                                                     {
                                                         objectSend.Email = emails;
-                                                        objectSend.DtParcel = billet.DtBillet;
-                                                        objectSend.Line = billet.Line;
-                                                        objectSend.BilletUrl = billet.URL;
-                                                        objectSend.Value = billet.VlBillet;
-                                                        objectSend.Pdf = new System.Net.WebClient().DownloadData(billet.URL);
+                                                        objectSend.DtParcel = billet.DueDate;
+                                                        objectSend.Line = billet.PaymentLine;
+                                                        objectSend.BilletUrl = billet.BarcodeUrl;
+                                                        objectSend.Value = billet.Value;
+                                                        objectSend.Pdf = new System.Net.WebClient().DownloadData(billet.BarcodeUrl);
                                                         objectSend.Product = product;
                                                         var envioEmailThread = new SendRemember(objectSend);
 
@@ -408,22 +360,22 @@ try
                         }
                     }
 
-                    if (agreement.IdAgreementStatus != acordo.id_status.Value)
+                    if (agreement.IdAgreementStatus != idStatus)
                     {
-                        Console.WriteLine(acordo.id + " - " + acordo.id_status + " - " + agreement.IdAgreementStatus);
-                        agreement.IdAgreementStatus = acordo.id_status.Value;
+                        Console.WriteLine(agreementDigicob.Id + " - " + agreementDigicob.Status);
+                        agreement.IdAgreementStatus = idStatus;
                         agreementBLL.Update(agreement);
 
 
 
-                        if (acordo.id_status.Value == 2)
+                        if (idStatus == 2)
                         {
                             var objectSend = new ObjectSend()
                             {
                                 IdAgreement = agreement.IdAgreement,
                                 Name = product.Person.DsName.Trim(),
-                                CardName = product.ProductSpecification != null ? product.ProductSpecification.Description : "Cartão CredZ",
-                                CardNumber = product.DsProduct.StartsWith("000") ? product.DsProduct.Substring(3, 8) + "********" : product.DsProduct.Substring(0, 8),
+                                CardName = contracts.FirstOrDefault().Store ,
+                                //CardNumber = product.DsProduct.StartsWith("000") ? product.DsProduct.Substring(3, 8) + "********" : product.DsProduct.Substring(0, 8),
                                 aVista = agreement.QtParcel == 0,
                                 Product = product,
                                 CardUrl = product.ProductSpecification != null ? product.ProductSpecification.UrlImage : "",

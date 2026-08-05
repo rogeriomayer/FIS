@@ -12,6 +12,7 @@ public class PersonRet
     public long IdProduct { get; set; }
     public string DsName { get; set; }
     public int Age { get; set; }
+    public long IdContract { get; set; }
     public string Store { get; set; }
     public string Contato { get; set; }
 }

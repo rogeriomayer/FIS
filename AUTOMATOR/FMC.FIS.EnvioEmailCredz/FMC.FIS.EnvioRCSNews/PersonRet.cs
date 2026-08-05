@@ -14,6 +14,8 @@ namespace FMC.FIS.EnvioRCSNews
         public long idproduct { get; set; }
         public string DsName { get; set; }
         public int Age { get; set; }
+
+        public long IdContract { get; set; }
         public string Store { get; set; }
         public string contato { get; set; }
     }

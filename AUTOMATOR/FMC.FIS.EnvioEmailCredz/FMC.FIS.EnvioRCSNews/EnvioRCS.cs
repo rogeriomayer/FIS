@@ -35,7 +35,7 @@ namespace FMC.FIS.EnvioEmailCredz
 
             try
             {
-                if (envioRCS.Atraso >= 78)
+                if (envioRCS.Atraso >= 90)
                 {
                     string ret = "";
                     if (envioRCS.Total > 1000)
@@ -105,7 +105,8 @@ namespace FMC.FIS.EnvioEmailCredz
                         {
                             Type = "OPEN_URL",
                             Text = "CLIQUE AQUI E RENEGOCIE",
-                            Url = "https://fmc.digital/dm",
+                            //Url = "https://fmc.digital/dm",
+                            Url = "https://negociadordm.fmcbrasil.com.br?id=" + envioRCS.IdContract,
                             ReplyId = "CLICK_NEW"
                         }
                     );
@@ -120,7 +121,7 @@ namespace FMC.FIS.EnvioEmailCredz
                              ReplyId = "CLICK_WHATSAPP"
                          }
                      );
-                
+
 
                 if (!string.IsNullOrEmpty(description))
                 {
@@ -205,7 +206,8 @@ namespace FMC.FIS.EnvioEmailCredz
                         {
                             type = "OPEN_URL",
                             text = "PORTAL",
-                            url = "https://fmc.digital/dm",
+                            //url = "https://fmc.digital/dm",
+                            url = "https://negociadordm.fmcbrasil.com.br?d=email&id=" + envioRCS.IdContract,
                             postbackData = "CLICK_NEW"
                         }
                     );
@@ -287,7 +289,7 @@ namespace FMC.FIS.EnvioEmailCredz
         private string GetBody(string nome, string store)
         {
             return string.Format("Olá, {0}!"
-                                + Environment.NewLine + Environment.NewLine + "Temos condições que podem facilitar a regularização do seu cartão DM referente a loja {1}." 
+                                + Environment.NewLine + Environment.NewLine + "Temos condições que podem facilitar a regularização do seu cartão DM referente a loja {1}."
                                 + Environment.NewLine + Environment.NewLine + "Clique em uma das opções abaixo para acessar o Portal ou falar conosco pelo WhatsApp e verificar as alternativas disponíveis.", nome, store);
         }
 
@@ -642,7 +644,7 @@ namespace FMC.FIS.EnvioEmailCredz
         public long IdPerson { get; set; }
         public long IdProduct { get; set; }
         public string Nome { get; set; }
-
+        public long IdContract { get; set; }
         public DateTime DtNascimento { get; set; }
         public string NumeroCartao { get; set; }
         public string NomeCartao { get; set; }

@@ -38,11 +38,11 @@ try
     {
         i++;
         var query =
-    " SELECT DISTINCT TOP (2000)  " +
+    " SELECT TOP (2000)  " +
 "     pe.IdPerson, " +
 "     p.IdProduct, " +
 "     pe.DsName, " +
-"     Age, " +
+"     Age, IdContract," +
 "     CASE " +
 "         WHEN Store IS NULL THEN Subproduct " +
 "         ELSE Store " +
@@ -66,7 +66,6 @@ try
 " ) Emails " +
 " WHERE l.DtInsert >= CONVERT(date, GETDATE()) " +
 "   AND Emails.Contato like '%@%.%' " +
-"   AND Age BETWEEN 90 AND 150 " +
 "   AND NOT EXISTS " +
 " 	( " +
 " 		SELECT 1 " +
@@ -87,7 +86,8 @@ try
 " 		FROM fis.CREDZ.SMS rc " +
 " 		WHERE rc.IdPerson = p.IdPerson " +
 " 		  AND rc.dtEnvio >= '2026-07-30' " +
-" 	); ";
+" 	) " +
+"   ORDER BY NEWID();";
         var listPerson = new GenericQueryBLL<PersonRet>().GetCollection(query);
         Util.SaveFile("Foram encontrados " + listPerson.Count + " CPFs ");
 

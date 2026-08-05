@@ -26,6 +26,9 @@ namespace FMC.FIS.Business.BLL
 
                 //var products = person.Product.Where(p => p.IdProductType == Convert.ToByte(productType)).Select(p => p.DsProduct).ToList();
                 var products = person.Product.Where(p => p.IdProductType > 3).Select(p => p.DsProduct).ToList();
+                var prodAg = person.Product.Where(p => p.Lead.Where(l => l.StatusLead.Where(s => s.Agreement.Where(a => a.IdAgreementStatus == 6).Any()).Any()).Any()).Select(p => p.DsProduct).ToList();
+                if (prodAg.Any())
+                    prodAg.ForEach(p => products.Add(p));
 
                 var personResponse = this.CreatePersonResponse(person, products);
 
@@ -322,34 +325,42 @@ namespace FMC.FIS.Business.BLL
                 try
                 {
 
-                    var contractDigicob = new DigicobAPI().GetContractAsync(cpf, "").GetAwaiter().GetResult();
-                    if (contractDigicob != null && contractDigicob.Count > 0)
+                    if (!person.Product.Where(p => p.Lead.Where(l => l.StatusLead.Where(s => s.Agreement.Where(a => a.IdAgreementStatus == 6).Any()).Any()).Any()).Any())
                     {
-                        FillCardsDigicob(products, contractDigicob.ToList(), person, personResponse);
+                        var contractDigicob = new DigicobAPI().GetContractAsync(cpf, "").GetAwaiter().GetResult();
+                        if (contractDigicob != null && contractDigicob.Count > 0)
+                            FillCardsDigicob(products, contractDigicob.ToList(), person, personResponse);
                     }
-
-                    /*var personCobmais = CobmaisAPI.GetPessoa(cpf);
-                    IList<Models.Cobmais.Contrato> cobmaisContracts = null;
-                    if (personCobmais != null)
+                    else
                     {
-                        FillPersonDataCredz(personCobmais, personResponse);
-                        cobmaisContracts = CobmaisAPI.GetContratos(cpf, "0", "0");
+
+                        var personCobmais = CobmaisAPI.GetPessoa(cpf);
+                        IList<Models.Cobmais.Contrato> cobmaisContracts = null;
+                        if (personCobmais != null)
+                        {
+                            FillPersonDataCredz(personCobmais, personResponse);
+                            cobmaisContracts = CobmaisAPI.GetContratos(cpf, "0", "0");
+                        }
+
+                        if (personCobmais == null && (cobmaisContracts == null || cobmaisContracts.Count == 0))
+                        {
+                            var contractDigicob = new DigicobAPI().GetContractAsync(cpf, "").GetAwaiter().GetResult();
+                            if (contractDigicob != null && contractDigicob.Count > 0)
+                                FillCardsDigicob(products, contractDigicob.ToList(), person, personResponse);
+                            return personResponse;
+                        }
+
+                        if (person == null)
+                        {
+                            person = CreatePersonCredz(personCobmais, cobmaisContracts);
+
+                            products = person.Product.Where(p => p.IdProductType == Convert.ToByte(productType)).Select(p => p.DsProduct).ToList();
+
+                            personResponse = CreatePersonResponse(person, products);
+                        }
+                        if (cobmaisContracts != null)
+                            FillCardsCredz(products, cobmaisContracts, person, personResponse);
                     }
-
-                    //if (personCobmais == null && (cobmaisContracts == null || cobmaisContracts.Count == 0))
-                    //    return null;
-
-                    if (person == null)
-                    {
-                        person = CreatePersonCredz(personCobmais, cobmaisContracts);
-
-                        products = person.Product.Where(p => p.IdProductType == Convert.ToByte(productType)).Select(p => p.DsProduct).ToList();
-
-                        personResponse = CreatePersonResponse(person, products);
-                    }
-                    if (cobmaisContracts != null)
-                        FillCardsCredz(products, cobmaisContracts, person, personResponse);
-                    */
                 }
                 catch (Exception ex)
                 {
@@ -378,7 +389,6 @@ namespace FMC.FIS.Business.BLL
 
             return personResponse;
         }
-
 
         private void FillDataOneB2k(Models.Customer.PersonResponse personResponse, Person person)
         {
