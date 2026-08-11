@@ -20,20 +20,6 @@ namespace FMC.FIS.Business.DAO
         public ICollection<Agreement> GetRemember(DateTime dtIni, DateTime dtFim)
         {
             var query = new StringBuilder();
-            query.Append(" SELECT ag.* ");
-            query.Append(" FROM WORK.dbo.Acerto1806 a ");
-            query.Append(" 	inner join FIS.DBO.PERSON B ");
-            query.Append(" 		ON A.[CPF_CNPJ] = B.NRCNPJCPF ");
-            query.Append(" 	inner join FIS.dbo.Product pr ");
-            query.Append(" 		on pr.IdPerson = b.IdPerson ");
-            query.Append(" 	inner join fis.dbo.Lead l ");
-            query.Append(" 		on l.IdProduct = pr.IdProduct ");
-            query.Append(" 	inner join fis.dbo.StatusLead sl ");
-            query.Append(" 		on l.IdLead = sl.IdLead ");
-            query.Append(" 	inner join fis.dbo.agreement ag ");
-            query.Append(" 		on ag.IdStatusLead = sl.IdStatusLead ");
-            query.Append(" where IdAgreementStatus = 1 ");
-            return Context.FromSqlRaw(query.ToString()).ToList();
             /*-----------------------------------------------------------*/
 
             query.Append(" SELECT DISTINCT [A].[IdAgreement] ");
@@ -60,9 +46,9 @@ namespace FMC.FIS.Business.DAO
             query.Append(" FROM [FIS].[dbo].[Agreement] A ");
             query.Append(" 		INNER JOIN [FIS].[dbo].[AgreementParcel] AP ");
             query.Append(" 			ON [A].[IdAgreement] = [AP].[IdAgreement] ");
-            //query.Append("  WHERE [A].[IdAgreementStatus] not in (2,5)");
-            query.Append("  WHERE [A].[IdAgreementStatus] in (2)"); 
-            query.Append("  and [A].[cdparcelplan]  in ('','API CREDZ')");
+            query.Append("  WHERE [A].[IdAgreementStatus] not in (2,5)");
+            //query.Append("  WHERE [A].[IdAgreementStatus] in (2)");
+            query.Append("  and [A].[cdparcelplan]  not in ('API CREDZ')");
             query.Append("    AND   [AP].[DtParcel] BETWEEN '").Append(dtIni.ToString("yyyy-MM-dd")).Append("' AND '").Append(dtFim.ToString("yyyy-MM-dd")).Append(" 23:59'");
 
 

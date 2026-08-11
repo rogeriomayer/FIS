@@ -26,9 +26,9 @@ namespace FMC.FIS.Business.BLL
 
                 //var products = person.Product.Where(p => p.IdProductType == Convert.ToByte(productType)).Select(p => p.DsProduct).ToList();
                 var products = person.Product.Where(p => p.IdProductType > 3).Select(p => p.DsProduct).ToList();
-                var prodAg = person.Product.Where(p => p.Lead.Where(l => l.StatusLead.Where(s => s.Agreement.Where(a => a.IdAgreementStatus == 6).Any()).Any()).Any()).Select(p => p.DsProduct).ToList();
+                /*var prodAg = person.Product.Where(p => p.Lead.Where(l => l.StatusLead.Where(s => s.Agreement.Where(a => a.IdAgreementStatus == 6 || a.IdAgreementStatus == 1).Any()).Any()).Any()).Select(p => p.DsProduct).ToList();
                 if (prodAg.Any())
-                    prodAg.ForEach(p => products.Add(p));
+                    prodAg.ForEach(p => products.Add(p));*/
 
                 var personResponse = this.CreatePersonResponse(person, products);
 
@@ -325,12 +325,13 @@ namespace FMC.FIS.Business.BLL
                 try
                 {
 
-                    if (!person.Product.Where(p => p.Lead.Where(l => l.StatusLead.Where(s => s.Agreement.Where(a => a.IdAgreementStatus == 6).Any()).Any()).Any()).Any())
-                    {
+                    //if (!person.Product.Where(p => p.Lead.Where(l => l.StatusLead.Where(s => s.Agreement.Where(a => a.IdAgreementStatus == 6).Any()).Any()).Any()).Any())
+                    //{
                         var contractDigicob = new DigicobAPI().GetContractAsync(cpf, "").GetAwaiter().GetResult();
                         if (contractDigicob != null && contractDigicob.Count > 0)
                             FillCardsDigicob(products, contractDigicob.ToList(), person, personResponse);
-                    }
+                    //}
+                    /*
                     else
                     {
 
@@ -361,6 +362,7 @@ namespace FMC.FIS.Business.BLL
                         if (cobmaisContracts != null)
                             FillCardsCredz(products, cobmaisContracts, person, personResponse);
                     }
+                        */
                 }
                 catch (Exception ex)
                 {

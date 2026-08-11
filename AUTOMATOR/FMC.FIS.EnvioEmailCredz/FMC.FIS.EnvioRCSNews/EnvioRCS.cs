@@ -35,10 +35,10 @@ namespace FMC.FIS.EnvioEmailCredz
 
             try
             {
-                if (envioRCS.Atraso >= 90)
+                if (envioRCS.Atraso >= 91)
                 {
                     string ret = "";
-                    if (envioRCS.Total > 1000)
+                    if (envioRCS.Total > 1500)
                         ret = SendRCSOtima();
                     else
                         ret = SendRCS();
@@ -106,7 +106,7 @@ namespace FMC.FIS.EnvioEmailCredz
                             Type = "OPEN_URL",
                             Text = "CLIQUE AQUI E RENEGOCIE",
                             //Url = "https://fmc.digital/dm",
-                            Url = "https://negociadordm.fmcbrasil.com.br?id=" + envioRCS.IdContract,
+                            Url = "https://negociadordm.fmcbrasil.com.br?d=rcs&id=" + envioRCS.IdContract,
                             ReplyId = "CLICK_NEW"
                         }
                     );
@@ -207,7 +207,7 @@ namespace FMC.FIS.EnvioEmailCredz
                             type = "OPEN_URL",
                             text = "PORTAL",
                             //url = "https://fmc.digital/dm",
-                            url = "https://negociadordm.fmcbrasil.com.br?d=email&id=" + envioRCS.IdContract,
+                            url = "https://negociadordm.fmcbrasil.com.br?d=rcs&id=" + envioRCS.IdContract,
                             postbackData = "CLICK_NEW"
                         }
                     );
@@ -288,9 +288,32 @@ namespace FMC.FIS.EnvioEmailCredz
 
         private string GetBody(string nome, string store)
         {
-            return string.Format("Olá, {0}!"
-                                + Environment.NewLine + Environment.NewLine + "Temos condições que podem facilitar a regularização do seu cartão DM referente a loja {1}."
-                                + Environment.NewLine + Environment.NewLine + "Clique em uma das opções abaixo para acessar o Portal ou falar conosco pelo WhatsApp e verificar as alternativas disponíveis.", nome, store);
+            if (store.ToUpper().Contains("EMPRESTIMO") || store.ToUpper().Contains("EMPRÉSTIMO"))
+                return string.Format(
+                $@"Olá, {nome}! 😊
+
+Temos uma condição especial que pode facilitar a regularização do seu contrato DM, referente ao {store}.
+
+💰 Entrada a partir de apenas R$ 99,00!
+
+⏳ Essa oportunidade é por tempo limitado.
+
+Clique em uma das opções abaixo para acessar o Portal ou falar conosco pelo WhatsApp e consultar as alternativas disponíveis para você.
+
+Estamos à disposição para ajudar! 🤝", nome, store);
+            else
+                return string.Format(
+                    $@"Olá, {nome}! 😊
+
+Temos uma condição especial que pode facilitar a regularização do seu cartão DM, referente à loja {store}.
+
+💰 Entrada a partir de apenas R$ 99,00!
+
+⏳ Essa oportunidade é por tempo limitado.
+
+Clique em uma das opções abaixo para acessar o Portal ou falar conosco pelo WhatsApp e consultar as alternativas disponíveis para você.
+
+Estamos à disposição para ajudar! 🤝", nome, store);
         }
 
 

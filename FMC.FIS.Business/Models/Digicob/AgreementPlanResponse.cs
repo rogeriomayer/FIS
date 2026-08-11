@@ -37,7 +37,7 @@ namespace FMC.Digicob.DM.Models
         public string User { get; set; }
 
         [JsonPropertyName("request_log_id")]
-        public long RequestLogId { get; set; }
+        public long? RequestLogId { get; set; }
 
         [JsonPropertyName("parent_agreement_id")]
         public long? ParentAgreementId { get; set; }

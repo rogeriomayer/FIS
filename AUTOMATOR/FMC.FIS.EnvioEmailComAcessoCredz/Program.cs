@@ -32,19 +32,19 @@ namespace FMC.FIS.EnvioEmailComAcessoCredz
                 foreach (var process in System.Diagnostics.Process.GetProcessesByName(currentProcess.ProcessName))
                 {
 
-                    Util.SaveFile("Processo em execução:" + process.MainModule.FileName + " SessionID:" + process.Id);
-                    Util.SaveFile("Processo corrente:" + currentProcess.MainModule.FileName + " SessionID:" + currentProcess.Id);
                     if (process.MainModule.FileName == currentProcess.MainModule.FileName && process.Id != currentProcess.Id)
                     {
                         //Log.SaveFile("Matando processo " + process.MainModule.FileName + " SessionID:" + process.Id);
                         process.Kill();
                     }
                 }
+                string ultimoItem = "";
 
+                /*
                 var listSimulacoes = new GenericQueryBLL<Simulacao>().GetCollection(GetQuery);
                 Util.SaveFile(listSimulacoes.Count + " simulações encontradas");
 
-                string ultimoItem = "";
+                
 
                 foreach (var simulacao in listSimulacoes)
                 {
@@ -68,8 +68,8 @@ namespace FMC.FIS.EnvioEmailComAcessoCredz
                         }
                     }
                 }
-
-                var listSimulacoesSMS = new GenericQueryBLL<Simulacao>().GetCollection(GetQuerySMS);
+                */
+                var listSimulacoesSMS = new GenericQueryBLL<EnvioSMS>().GetCollection(GetQuerySMS);
                 Util.SaveFile(listSimulacoesSMS.Count + " simulações encontradas - SMS");
 
                 ultimoItem = "";
@@ -78,27 +78,26 @@ namespace FMC.FIS.EnvioEmailComAcessoCredz
                 {
 
                     var idPerson = simulacao.IdPerson.ToString();
-                    if (ultimoItem != idPerson)
+                    if (ultimoItem != idPerson && !string.IsNullOrEmpty(simulacao.Phone))
                     {
                         ultimoItem = idPerson;
-                        var phones = GetPhones(simulacao.cpf);
-                        foreach (var phone in phones.Where(p => p.Length >= 10 && Convert.ToInt32(p.Substring(2, 1)) >= 6).ToList())
+                        //var phones = GetPhones(simulacao.cpf);
+
+                        if (SendSMS(simulacao, simulacao.Phone) == "OK")
                         {
-                            if (SendSMS(simulacao, phone) == "OK")
-                            {
-                                new ResendEmailBLL().Add
-                                    (
-                                        new Business.Models.CREDZ.ResendEmail()
-                                        {
-                                            idPerson = simulacao.IdPerson,
-                                            IdProduct = simulacao.IdProduct,
-                                            nrSimulation = simulacao.QtdSimulacoes,
-                                            email = phone,
-                                            dtInsert = DateTime.Now
-                                        }
-                                    );
-                            }
+                            new ResendEmailBLL().Add
+                                (
+                                    new Business.Models.CREDZ.ResendEmail()
+                                    {
+                                        idPerson = simulacao.IdPerson,
+                                        IdProduct = simulacao.IdProduct,
+                                        nrSimulation = simulacao.Simulacoes,
+                                        email = simulacao.Phone,
+                                        dtInsert = DateTime.Now
+                                    }
+                                );
                         }
+
                     }
                 }
             }
@@ -113,7 +112,7 @@ namespace FMC.FIS.EnvioEmailComAcessoCredz
                 Util.SaveFile(erro);
             }
         }
-
+        /*
         private static bool SendEmail(Simulacao simulacao)
         {
             var body = GetBody(simulacao);
@@ -124,24 +123,27 @@ namespace FMC.FIS.EnvioEmailComAcessoCredz
             else
                 return false;
         }
+        */
 
-        private static string SendSMS(Simulacao simulacao, string phone)
+        private static string SendSMS(EnvioSMS simulacao, string phone)
         {
-            var message = new StringBuilder();
+            string message = "";
 
-            var firstName = simulacao.DsName.Split(' ').FirstOrDefault();
+            var firstName = simulacao.Nome.Split(' ').FirstOrDefault();
 
 
             // Versão principal — com contraste de valores
-            message.Append(firstName);
-            message.Append(", voce acessou o site CREDZ, mas nao concluiu o acordo. Fale com um especialista no WhatsApp e finalize seu acordo: https://zaps.chat/r/credz ");
+            message = firstName + ", voce acessou o site DM, mas não concluiu o acordo. Continue seu atendimento pelo Whatsapp: https://fmc.digital/dm ou 34997973742 ";
+
+            if(message.Length > 160)
+                message = firstName + ", voce acessou o site DM, mas não concluiu o acordo. Continue seu atendimento pelo Whatsapp: https://fmc.digital/dm"; ;
 
             return new BvSmsBLL().SmsSingle
                 (
                     new Business.Models.BvTelecom.SingleRequest()
                     {
                         carteiraId = 1064,
-                        parceiroId = "credZ" + DateTime.Now.ToString("ddMMyyyyHHmmss"),
+                        parceiroId = "DM" + DateTime.Now.ToString("ddMMyyyyHHmmss"),
                         celular = phone,
                         mensagem = message.ToString(),
 
@@ -149,7 +151,7 @@ namespace FMC.FIS.EnvioEmailComAcessoCredz
                 );
 
         }
-
+        /*
         private static string GetBody(Simulacao simulacao)
         {
             var body = new StringBuilder();
@@ -243,7 +245,7 @@ namespace FMC.FIS.EnvioEmailComAcessoCredz
             body.Append("<p>pelo <b>Whatsapp: <a href='https://zaps.chat/r/dm'>34 99797-3742</a> </b> </p>");
             return body;
         }
-
+        */
         private static IList<string> GetPhones(string nrCPF)
         {
             var person = CobmaisAPI.GetPessoa(nrCPF);
@@ -331,6 +333,72 @@ namespace FMC.FIS.EnvioEmailComAcessoCredz
             get
             {
                 var query = new StringBuilder();
+                query.Append(" select pe.IdPerson, max(pr.IdProduct) as IdProduct, a.CPF, count(p.IdAgreementPlan) as 'Simulacoes', bpe.DsName as Nome, c.Store, MAX(a.DtInsert) as 'DtAcesso', Phone ");
+                query.Append(" from DIGICOB.dbo.PortalAccess a ");
+                query.Append(" 	left join DIGICOB.dbo.PortalAccessAgrementPlan p ");
+                query.Append(" 		on a.IdPortalAccess = p.IdPortalAccess ");
+                query.Append(" 	inner join DIGICOB.dbo.Contract c ");
+                query.Append(" 		on c.IdContract = REPLACE(REPLACE(url, 'https://negociadordm.fmcbrasil.com.br/?d=email&id=', ''),'https://negociadordm.fmcbrasil.com.br/?d=rcs&id=', '')  ");
+                query.Append(" 	inner join bi.dbo.Person bpe ");
+                query.Append(" 		on bpe.IdPerson = c.IdPerson ");
+                query.Append(" 	inner join FIS.dbo.Person pe ");
+                query.Append(" 		on pe.NrCNPJCPF = bpe.NrCNPJCPF ");
+                query.Append(" 	inner join FIS.dbo.Product pr ");
+                query.Append(" 		on pr.IdPerson = pe.IdPerson ");
+                query.Append("  	OUTER APPLY (  ");
+                query.Append("  				select top 1 tel.Phone, tel.Fonte, tel.dt, tel.score  ");
+                query.Append("  				from   ");
+                query.Append("  				(  ");
+                query.Append("  					select contato as 'Phone', 'HOT DM' as Fonte,   ");
+                query.Append("                            COALESCE(  ");
+                query.Append("                            TRY_CONVERT(datetime, data_notificacao, 103),  ");
+                query.Append("                                TRY_CONVERT(datetime, data_notificacao, 120)");
+                query.Append("                            ) as dt, 10 as Score  ");
+                query.Append("  					from WORK.dbo.[BASEHOTDM-20072026] bh  ");
+                query.Append("  					where bh.cpf = bpe.NrCNPJCPF  ");
+                query.Append("  					union all  ");
+                query.Append("  					select  Phone, 'Site' as Fonte, DtInsert as dt, 9 as Score  ");
+                query.Append("  					from CREDZ.dbo.Billet bl (nolock)  ");
+                query.Append("  					where Phone is not null  ");
+                query.Append("  					and bl.CPF = bpe.NrCNPJCPF  ");
+                query.Append("  					union all  ");
+                query.Append("  					select CONVERT(varchar(11), telefone) as 'Phone', 'URA', ura.dtLigacao as dt, 8 as Score  ");
+                query.Append("  					from CREDZ.dbo.RetornoUra ura (nolock)  ");
+                query.Append("  					where ura.cpf = bpe.NrCNPJCPF  ");
+                query.Append("  					union all  ");
+                query.Append("  					select  NrPhone as 'Phone', 'BASE', DtUpdate as dt, ph.IdPhoneStatus as Score  ");
+                query.Append("  					from bi.dbo.Phone ph (nolock)  ");
+                query.Append("  					where ph.IdPerson = bpe.IdPerson  ");
+                query.Append("  				) as tel  ");
+                query.Append("  				order by tel.Score desc, Dt DESC  ");
+                query.Append("  				) phs ");
+                query.Append(" where a.DtInsert >= CONVERT(Date, getdate()-1) ");
+                query.Append(" and url like '%&id=%' ");
+                query.Append(" and not exists  ");
+                query.Append(" ( ");
+                query.Append(" select * ");
+                query.Append(" from DIGICOB.dbo.Agreement ag ");
+                query.Append(" where c.CustomerId = ag.CustomerId ");
+                query.Append(" ) ");
+                query.Append(" and not exists ");
+                query.Append(" (  ");
+                query.Append(" select *   ");
+                query.Append(" from FIS.CREDZ.ResendEmail rem  ");
+                query.Append(" where pe.IdPerson = rem.idPerson ");
+                query.Append(" and rem.dtinsert >= convert(date,getdate())   ");
+                query.Append(" ) ");
+                query.Append(" group by pe.IdPerson, a.CPF, bpe.DsName, c.Store,Phone ");
+                query.Append(" order by [DtAcesso] ");
+
+                return query.ToString();
+            }
+        }
+        /*
+        public static string GetQuerySMS
+        {
+            get
+            {
+                var query = new StringBuilder();
                 query.Append(" select distinct count(IdSimulate) as 'QtdSimulacoes', max(nav.DtInsert) as 'DtNav',cpf, per.IdPerson, pro.IdProduct, DsName, DsProduct, 0.0 as MaxDiscount, '' as Description, '' as UrlImage, '' as DsEmail ");
                 query.Append(" from CREDZ.dbo.Navigation nav ");
                 query.Append(" 	inner join CREDZ.dbo.Product prd  ");
@@ -369,6 +437,7 @@ namespace FMC.FIS.EnvioEmailComAcessoCredz
                 return query.ToString();
             }
         }
+        */
     }
 
     [Keyless]
@@ -382,9 +451,23 @@ namespace FMC.FIS.EnvioEmailComAcessoCredz
         public string DsName { get; set; }
         public string Store { get; set; }
         //public decimal? MaxDiscount { get; set; }
-        //public string? Description { get; set; }
+        public string? Description { get; set; }
         //public string? UrlImage { get; set; }
         public string? DsEmail { get; set; }
+    }
+
+    [Keyless]
+    public class EnvioSMS
+    {
+        public long IdPerson { get; set; }
+        public long IdProduct { get; set; }
+        public string CPF { get; set; }
+        public int Simulacoes { get; set; }
+        public string Nome { get; set; }
+        public string Store { get; set; }
+        public DateTime DtAcesso { get; set; }
+        public string Phone { get; set; }
+
     }
 
     public class PhoneUra

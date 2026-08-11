@@ -57,6 +57,7 @@ try
 "     ON bip.NrCNPJCPF = pe.NrCNPJCPF " +
 " INNER JOIN DIGICOB.dbo.Contract co " +
 "     ON co.IdPerson = bip.IdPerson " +
+"     AND co.CollectionCount > 0 " +
 " CROSS APPLY " +
 " ( " +
 "     SELECT STRING_AGG(em.DsEmail, ';') AS Contato " +
@@ -64,7 +65,7 @@ try
 "     WHERE em.IdPerson = pe.IdPerson " +
 " 	and (em.flBloqueado is null or em.flBloqueado = 0) " +
 " ) Emails " +
-" WHERE l.DtInsert >= CONVERT(date, GETDATE()) " +
+" WHERE l.DtInsert >= CONVERT(date, GETDATE()-1) " +
 "   AND Emails.Contato like '%@%.%' " +
 "   AND NOT EXISTS " +
 " 	( " +
@@ -101,7 +102,7 @@ try
                 if (idPerson != person.IdPerson)
                 {
                     idPerson = person.IdPerson;
-                    System.Threading.Thread.Sleep(500);
+                    System.Threading.Thread.Sleep(300);
                     Console.WriteLine("Enviando para " + person.Contato);
                     EnvioEmailThread.SendMail(person);
                 }

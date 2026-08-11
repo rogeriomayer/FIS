@@ -56,20 +56,46 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                 //IList<Person> listPerson = new PersonBLL().GetPersonSendSMS(dtLead).ToList();
 
                 var query =
-    " select distinct top 4000 pe.IdPerson, p.idproduct, pe.DsName,Age, case when Store is null then Subproduct else Store end Store, h.contato " +
-    " from FIS.dbo.Lead l " +
-    " 	inner join FIS.dbo.Product p " +
-    " 		on l.IdProduct = p.IdProduct " +
-    " 	inner join FIS.dbo.Person pe " +
-    " 		on pe.IdPerson = p.IdPerson " +
-    " 	inner join WORK.dbo.[BASEHOTDM-20072026] h " +
-    " 		on  RIGHT('00000000000' + CPF, 11) = pe.NrCNPJCPF " +
-    " 	inner join bi.dbo.Person bip " +
-    " 		on bip.NrCNPJCPF = pe.NrCNPJCPF " +
-    " 	inner join DIGICOB.dbo.Contract co " +
-    " 		on co.idperson = bip.IdPerson " +
-    " where l.DtInsert >= CONVERT(Date, getdate()) " +
-    " and age between 360 and 1500 " +
+      " select  top 2500 pe.IdPerson, p.idproduct, pe.DsName,Age, IdContract, case when Store is null then Subproduct else Store end Store, phs.Phone as Contato " +
+"  from FIS.dbo.Lead l " +
+"  	inner join FIS.dbo.Product p " +
+"  		on l.IdProduct = p.IdProduct " +
+"  	inner join FIS.dbo.Person pe " +
+"  		on pe.IdPerson = p.IdPerson " +
+" 	inner join bi.dbo.Person bip " +
+"  		on bip.NrCNPJCPF = pe.NrCNPJCPF " +
+"  	inner join DIGICOB.dbo.Contract co " +
+"  		on co.idperson = bip.IdPerson " +
+"       AND co.CollectionCount > 0 " +
+" 	OUTER APPLY ( " +
+" 				select top 1 tel.Phone, tel.Fonte, tel.dt, tel.score " +
+" 				from  " +
+" 				( " +
+" 					select contato as 'Phone', 'hot DM' as Fonte,  " +
+"                           COALESCE( " +
+"                           TRY_CONVERT(datetime, data_notificacao, 103),  " +
+"                               TRY_CONVERT(datetime, data_notificacao, 120)" +
+"                           ) AS dt, 10 as Score " +
+" 					from WORK.dbo.[BASEHOTDM-20072026] bh " +
+" 					where bh.cpf = pe.NrCNPJCPF " +
+" 					union all " +
+" 					select  Phone, 'Site' as Fonte, DtInsert as dt, 9 as Score " +
+" 					from CREDZ.dbo.Billet bl (nolock) " +
+" 					where Phone is not null " +
+" 					and bl.CPF = pe.NrCNPJCPF " +
+" 					union all " +
+" 					select CONVERT(varchar(11), telefone) as 'Phone', 'URA', ura.dtLigacao as dt, 8 as Score " +
+" 					from CREDZ.dbo.RetornoUra ura (nolock) " +
+" 					where ura.cpf = pe.NrCNPJCPF " +
+" 					union all " +
+" 					select  NrPhone as 'Phone', 'COBMAIS', DtUpdate as dt, ph.IdPhoneStatus as Score " +
+" 					from FIS.dbo.Phone ph (nolock) " +
+" 					where ph.IdPerson = pe.IdPerson " +
+" 				) as tel " +
+" 				order by tel.Score desc, Dt DESC " +
+" 				) phs   " +
+"  where l.DtInsert >= CONVERT(Date, getdate()-1) " +
+                " and age between 360 and 1500 " +
     " and not exists " +
     " ( " +
     " 	select * from fis.CREDZ.SMS sm  " +
@@ -163,11 +189,11 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
         }
         private static SingleRequest SendSMS(string phone, string nome, string loja)
         {
-            string message = nome + "!Você tem condições especiais para quitar seu Cartão DM " + loja + " pelo WhatsApp: https://zaps.chat/r/dm ou 34997973742";
+            string message = nome + "!Você tem condições especiais para quitar seu Cartão DM " + loja + " pelo WhatsApp: https://fmc.digital/dm ou 34997973742";
 
             if (message.Length > 160)
             {
-                message = nome + "!Você tem condições especiais para quitar seu Cartão DM " + loja + " pelo WhatsApp: https://zaps.chat/r/dm";
+                message = nome + "!Você tem condições especiais para quitar seu Cartão DM " + loja + " pelo WhatsApp: https://fmc.digital/dm";
             }
             else if (message.Length > 160)
             {

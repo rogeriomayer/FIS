@@ -21,10 +21,10 @@ namespace FMC.FIS.EnvioEmailCredz
             {
                 string body = GetBody(personRet.DsName, personRet.Store, personRet.IdContract);
 
-                string title = "Regularize seu Cartão DM com condições especiais";
+                string title = "Regularize seu Cartão DM " + personRet.Store + " com condições especiais";
                 var emails = personRet.Contato.Split(';').Where(p => Util.IsEmail(p)).ToList();
                 if (emails.Count > 0)
-                    if (SendMail(title, body, emails))
+                    if (SendMail(title, body, emails, personRet.Store))
                         new SendEmailBLL().Add
                             (
                                 new Business.Models.CREDZ.SendEmail()
@@ -56,11 +56,14 @@ namespace FMC.FIS.EnvioEmailCredz
             }
         }
 
-        private static bool SendMail(string subject, string body, IList<string> emails)
+        private static bool SendMail(string subject, string body, IList<string> emails, string store)
         {
             MailMessage mail = new MailMessage();
 
-            mail.From = new MailAddress("dm@fmcatendimento.com.br", "Pague DM<dm@fmcatendimento.com.br>");
+            if (store.ToUpper().Contains("CREDZ"))
+                mail.From = new MailAddress("credz@fmccobranca.com.br", store);
+            else
+                mail.From = new MailAddress("dm@fmcatendimento.com.br", store);
 
             if (emails.Count() > 1)
                 foreach (var email in emails)
@@ -136,8 +139,13 @@ namespace FMC.FIS.EnvioEmailCredz
             html.AppendLine("<tr>");
             html.AppendLine("<td style=\"font-size:15px;color:#555;line-height:24px;padding-bottom:20px;\">");
             html.AppendLine("Temos condições que podem facilitar a regularização do seu ");
-            html.AppendLine("<strong>Cartão DM</strong> referente à loja ");
-            html.AppendLine("<strong>" + loja + "</strong>.");
+            if (loja.ToUpper().Contains("EMPRESTIMO") || loja.ToUpper().Contains("EMPRÉSTIMO"))
+                html.AppendLine("<strong>Contrato DM</strong> referente à loja ");
+            else
+                html.AppendLine("<strong>Cartão DM</strong> referente à loja ");
+            html.AppendLine("<strong>" + loja + "</strong> com entrada a partir de apenas <strong>R$99,00</strong>.");
+            html.AppendLine("<br><br>");
+            html.AppendLine("<strong>Oferta por tempo limitado!</strong>");
             html.AppendLine("<br><br>");
             html.AppendLine("Clique em uma das opções abaixo para acessar o Portal de Negociação ");
             html.AppendLine("ou falar conosco pelo WhatsApp e verificar as alternativas ");
@@ -176,10 +184,10 @@ namespace FMC.FIS.EnvioEmailCredz
             // Central
             html.AppendLine("<tr>");
             html.AppendLine("<td style=\"padding-top:15px;font-size:13px;color:#666;line-height:22px;\">");
-            html.AppendLine("<strong>Central de Atendimento</strong><br>");
-            html.AppendLine("0800 702 5004<br>");
-            html.AppendLine("Segunda a Sexta: 08h às 20h<br>");
-            html.AppendLine("Sábado: 08h às 14h");
+            html.AppendLine("<strong>Central de Atendimento Whatsapp</strong><br>");
+            html.AppendLine("<a href=\"https://fmc.digital/wdm\" target=\"_blank\" style=\"color:#128C7E;text-decoration:none;font-weight:bold;\">");
+            html.AppendLine("&#x1F4F2; 34 3301-4040");
+            html.AppendLine("</a><br>");
             html.AppendLine("</td>");
             html.AppendLine("</tr>");
 

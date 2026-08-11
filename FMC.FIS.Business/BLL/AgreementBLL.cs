@@ -161,7 +161,7 @@ namespace FMC.FIS.Business.BLL
                                         {
                                             IdContract = Convert.ToInt64( agreementSimulateRequest.ParcelaCredz.FirstOrDefault().valor),
                                             ContractId = agreementSimulateRequest.ParcelaCredz.FirstOrDefault().negociacao_id,
-                                            CollectionIds = agreementSimulateRequest.ParcelaCredz.Select(p => p.id_parcela_original).ToList()
+                                            //CollectionIds = agreementSimulateRequest.ParcelaCredz.Select(p => p.id_parcela_original).ToList()
                                         }
                                 }
                             }
