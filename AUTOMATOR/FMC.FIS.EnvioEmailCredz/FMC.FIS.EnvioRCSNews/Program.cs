@@ -40,7 +40,11 @@ try
         //IList<Discount> Discounts = new DiscountBLL().GetByProductType(3).ToList();
         //IList<Person> listPerson = new PersonBLL().GetPersonSendRCSNews().ToList();
         var query =
-   " select  top 3000 pe.IdPerson, p.idproduct, pe.DsName,Age, IdContract, case when Store is null then Subproduct else Store end Store, phs.Phone as Contato " +"  from FIS.dbo.Lead l " +
+    " select  top 2500 pe.IdPerson, p.idproduct, pe.DsName,Age, IdContract, " +
+      " case when (co.Subproduct like '%MIGRAÇÃO%' or co.Subproduct like '%TOMBAMENTO%') then co.Store else co.Subproduct end Store, " + "" +
+      " phs.Phone as Contato, co.CustomerId, co.Id as 'ContractId' " +
+   "  from FIS.dbo.Lead l " +
+
 "  	inner join FIS.dbo.Product p " +
 "  		on l.IdProduct = p.IdProduct " +
 "  	inner join FIS.dbo.Person pe " +
@@ -50,6 +54,7 @@ try
 "  	inner join DIGICOB.dbo.Contract co " +
 "  		on co.idperson = bip.IdPerson " +
 "       AND co.CollectionCount > 0 " +
+"       AND co.Portfolio = 'DM' " +
 //"       AND CO.SUBPRODUCT LIKE '%Credz%'" + 
 " 	OUTER APPLY ( " +
 " 				select top 1 tel.Phone, tel.Fonte, tel.dt, tel.score " +
@@ -57,7 +62,7 @@ try
 " 				( " +
 " 					select contato as 'Phone', 'hot DM' as Fonte,  " +
 "                           COALESCE( " +
-"                           TRY_CONVERT(datetime, data_notificacao, 103),  "+
+"                           TRY_CONVERT(datetime, data_notificacao, 103),  " +
 "                               TRY_CONVERT(datetime, data_notificacao, 120)" +
 "                           ) AS dt, 10 as Score " +
 " 					from WORK.dbo.[BASEHOTDM-20072026] bh " +
@@ -78,8 +83,19 @@ try
 " 				) as tel " +
 " 				order by tel.Score desc, Dt DESC " +
 " 				) phs   " +
-"  where l.DtInsert >= CONVERT(Date, getdate()-1) " +
+"  where l.DtInsert >= CONVERT(Date, getdate()) " +
 "  and age between 91 and 120 " +
+"  and phs.Phone is not null " +
+"  and SUBSTRING(phs.Phone, 3,1) > 6 " +
+" and not exists " +
+" ( " +
+"   select 1 " +
+"   from DIGICOB.dbo.Agreement ag1 " +
+"       inner join DIGICOB.dbo.AgreementContract ac1 " +
+"           on ag1.IdAgreement = ac1.IdAgreement " +
+"   where ag1.CustomerId = co.CustomerId " +
+"       and ac1.ContractId = co.Id  " +
+" ) " +
 "  	and not exists " +
 " 	( " +
 " 		select * from fis.CREDZ.SendRCS rc " +
@@ -87,7 +103,7 @@ try
 " 		and rc.DtInsert >= '2026-07-30' " +
 " 	) " +
 " order by Age asc";
-        var listPerson = new GenericQueryBLL<PersonRet>().GetCollection(query); 
+        var listPerson = new GenericQueryBLL<PersonRet>().GetCollection(query);
         Util.SaveFile("Foram encontrados " + listPerson.Count + " CPFs ");
 
         if (listPerson.Count > 0)
@@ -136,10 +152,13 @@ try
                                     IdPerson = person.IdPerson,
                                     IdProduct = person.idproduct,
                                     Nome = person.DsName.Split(' ').FirstOrDefault(),
-                                    Phones = { person.contato },
+                                    Phones = { person.Contato },
                                     IdContract = person.IdContract,
+                                    ContractId = person.ContractId,
+                                    CustomerId = person.CustomerId,
                                     Atraso = person.Age,
-                                    NomeCartao = person.Store
+                                    NomeCartao = person.Store,
+
                                 }
                             );
                         if (!string.IsNullOrEmpty(envioRCS.Send()))

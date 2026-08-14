@@ -261,8 +261,8 @@ namespace FMC.FIS.Business.BLL
                 var productSpecification = product.IdProductSpecification.HasValue ? new ProductSpecificationBLL().GetBykey(product.IdProductSpecification) : null;
                 card.CardImage = productSpecification != null ? productSpecification.UrlImage : "";
 
-                card.CardName = productSpecification != null ? productSpecification.Description : "Cartão Credz";
-                card.CardNumber = product.DsProduct.Substring(3, 6).PadRight(16, '*');
+                //card.CardName = productSpecification != null ? productSpecification.Description : "Cartão Credz";
+                //card.CardNumber = product.DsProduct.Substring(3, 6).PadRight(16, '*');
                 card.AvailableBilling = false;
 
                 cards.Add(card);
@@ -327,9 +327,9 @@ namespace FMC.FIS.Business.BLL
 
                     //if (!person.Product.Where(p => p.Lead.Where(l => l.StatusLead.Where(s => s.Agreement.Where(a => a.IdAgreementStatus == 6).Any()).Any()).Any()).Any())
                     //{
-                        var contractDigicob = new DigicobAPI().GetContractAsync(cpf, "").GetAwaiter().GetResult();
-                        if (contractDigicob != null && contractDigicob.Count > 0)
-                            FillCardsDigicob(products, contractDigicob.ToList(), person, personResponse);
+                    var contractDigicob = new DigicobAPI().GetContractAsync(cpf, "").GetAwaiter().GetResult();
+                    if (contractDigicob != null && contractDigicob.Count > 0)
+                        FillCardsDigicob(products, contractDigicob.ToList(), person, personResponse);
                     //}
                     /*
                     else
@@ -875,7 +875,10 @@ namespace FMC.FIS.Business.BLL
                         }
 
                         card.CardNumber = contract.Product;
-                        card.CardName = contract.Store;
+                        if (contract.Subproduct.ToUpper().Contains("MIGRAÇÃO") || contract.Subproduct.ToUpper().Contains("TOMBAMENTO"))
+                            card.CardName = contract.Store;
+                        else
+                            card.CardName = contract.Subproduct;
                         card.AvailableBilling = contract.CollectionCount > 0 && contract.AgingMax >= 90;
 
                         FillAgreementDigicob(personResponse.CPF, ref card, contract);

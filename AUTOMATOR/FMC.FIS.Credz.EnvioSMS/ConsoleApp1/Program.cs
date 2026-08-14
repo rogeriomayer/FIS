@@ -11,7 +11,12 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace FMC.FIS.CREZ.EnvioEmailQuebra
 {
@@ -56,7 +61,9 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                 //IList<Person> listPerson = new PersonBLL().GetPersonSendSMS(dtLead).ToList();
 
                 var query =
-      " select  top 2500 pe.IdPerson, p.idproduct, pe.DsName,Age, IdContract, case when Store is null then Subproduct else Store end Store, phs.Phone as Contato " +
+      " select  top 2500 pe.IdPerson, p.idproduct, pe.DsName,Age, IdContract, " +
+      " case when (co.Subproduct like '%MIGRAÇÃO%' or co.Subproduct like '%TOMBAMENTO%') then co.Store else co.Subproduct end Store, " + "" +
+      " phs.Phone as Contato, co.CustomerId, co.Id as 'ContractId' " +
 "  from FIS.dbo.Lead l " +
 "  	inner join FIS.dbo.Product p " +
 "  		on l.IdProduct = p.IdProduct " +
@@ -67,6 +74,7 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
 "  	inner join DIGICOB.dbo.Contract co " +
 "  		on co.idperson = bip.IdPerson " +
 "       AND co.CollectionCount > 0 " +
+"       AND co.Portfolio = 'DM' " +
 " 	OUTER APPLY ( " +
 " 				select top 1 tel.Phone, tel.Fonte, tel.dt, tel.score " +
 " 				from  " +
@@ -94,15 +102,28 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
 " 				) as tel " +
 " 				order by tel.Score desc, Dt DESC " +
 " 				) phs   " +
-"  where l.DtInsert >= CONVERT(Date, getdate()-1) " +
+"  where l.DtInsert >= CONVERT(Date, getdate()) " +
                 " and age between 360 and 1500 " +
-    " and not exists " +
-    " ( " +
-    " 	select * from fis.CREDZ.SMS sm  " +
-    " 	where sm.IdPerson = p.IdPerson " +
-    " 	and sm.dtEnvio >= '2026-07-30' " +
-    " ) ";
-                ;
+                " and p.DsProduct = co.ExternalContractId " +
+                " and p.IdProduct = (select max(IdProduct) from fis.dbo.Product p1 where p1.IdPerson = p.IdPerson) " +
+                "  and age between 91 and 120 " +
+                "  and phs.Phone is not null " +
+                " and not exists " +
+                " ( " +
+                "   select 1 " +
+                "   from DIGICOB.dbo.Agreement ag1 " +
+                "       inner join DIGICOB.dbo.AgreementContract ac1 " +
+                "           on ag1.IdAgreement = ac1.IdAgreement " +
+                "   where ag1.CustomerId = co.CustomerId " +
+                "       and ac1.ContractId = co.Id  " +
+                " ) " +
+                " and not exists " +
+                " ( " +
+                " 	select * from fis.CREDZ.SMS sm  " +
+                " 	where sm.IdPerson = p.IdPerson " +
+                " 	and sm.dtEnvio >= '2026-07-30' " +
+                " )" +
+                " order by NEWID() ";
 
                 var listPerson = new GenericQueryBLL<PersonRet>().GetCollection(query);
 
@@ -120,41 +141,47 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                         Console.WriteLine("Total: " + count);
                         try
                         {
-
-                            var obj = SendSMS(person.contato, person.DsName.Split(' ').FirstOrDefault(), person.Store);
-                            if (obj != null)
+                            Thread.Sleep(300);
+                            var installmentValue = PostAgreementPlansAsync(person.CustomerId, person.ContractId, person.IdContract).GetAwaiter().GetResult();
+                            if (installmentValue > 0)
                             {
-                                count++;
-                                listSend.Add(obj);
-                                listSMS.Add
-                                    (
-                                        new Business.Models.FIS.SMS()
-                                        {
-                                            idPerson = person.IdPerson,
-                                            age = person.Age,
-                                            telefone = Convert.ToInt64(person.contato),
-                                            dtEnvio = DateTime.Now
-                                        }
-                                    );
-                                Console.WriteLine(listSend.Count);
-                                if (listSend.Count > 20)
-                                {
-                                    if (new BvSmsBLL().SmsBulk(new BulkRequest() { bulk = listSend }) == "OK")
-                                    {
-                                        try
-                                        {
-                                            new SmsBLL().AddRangeNormal(listSMS.ToList());
-                                        }
-                                        catch (Exception ex)
-                                        {
+                                var obj = SendSMS(person.Contato, person.DsName.Split(' ').FirstOrDefault(), person.Store, installmentValue);
 
+                                if (obj != null)
+                                {
+                                    count++;
+                                    listSend.Add(obj);
+                                    listSMS.Add
+                                        (
+                                            new Business.Models.FIS.SMS()
+                                            {
+                                                idPerson = person.IdPerson,
+                                                age = person.Age,
+                                                telefone = Convert.ToInt64(person.Contato),
+                                                dtEnvio = DateTime.Now
+                                            }
+                                        );
+                                    Console.WriteLine(listSend.Count);
+                                    if (listSend.Count > 20)
+                                    {
+                                        if (new BvSmsBLL().SmsBulk(new BulkRequest() { bulk = listSend }) == "OK")
+                                        {
+                                            try
+                                            {
+                                                new SmsBLL().AddRangeNormal(listSMS.ToList());
+                                            }
+                                            catch (Exception ex)
+                                            {
+
+                                            }
                                         }
+                                        listSend = new List<SingleRequest>();
+                                        listSMS = new List<SMS>();
                                     }
-                                    listSend = new List<SingleRequest>();
-                                    listSMS = new List<SMS>();
                                 }
                             }
-
+                            else
+                                Thread.Sleep(5000);
                         }
                         catch (Exception ex)
                         {
@@ -187,13 +214,13 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                 Util.SaveFile("Erro:" + erro);
             }
         }
-        private static SingleRequest SendSMS(string phone, string nome, string loja)
+        private static SingleRequest SendSMS(string phone, string nome, string loja, decimal valor)
         {
-            string message = nome + "!Você tem condições especiais para quitar seu Cartão DM " + loja + " pelo WhatsApp: https://fmc.digital/dm ou 34997973742";
+            string message = nome + "! Quite seu Cartão DM - " + loja + " por R$" + valor.ToString("N2") + " ou parcele pelo WhatsApp: https://fmc.digital/dm ou 3433014040";
 
             if (message.Length > 160)
             {
-                message = nome + "!Você tem condições especiais para quitar seu Cartão DM " + loja + " pelo WhatsApp: https://fmc.digital/dm";
+                message = nome + "!Quite seu Cartão DM " + loja + " por R$" + valor.ToString("N2") + " ou parcele pelo WhatsApp: https://fmc.digital/dm";
             }
             else if (message.Length > 160)
             {
@@ -206,6 +233,55 @@ namespace FMC.FIS.CREZ.EnvioEmailQuebra
                 carteiraId = 1064,
                 parceiroId = "credZ" + DateTime.Now.ToString("ddMMyyyyHHmmss")
             };
+        }
+
+
+        private static async Task<decimal> PostAgreementPlansAsync(long customerId, long contractId, long idContract)
+        {
+            try
+            {
+                using var httpClient = new HttpClient
+                {
+                    BaseAddress = new Uri("http://10.40.0.52/digicob/")
+                };
+
+                var payload = new
+                {
+                    down_payment_date = DateTime.Today.AddDays(7).ToString("yyyy-MM-dd"),
+                    channel = "Massivo",
+                    installment_count = new[] { 1 },
+                    IdPortalAccess = 0,
+                    contracts = new[]
+                    {
+                        new
+                        {
+                            contract_id = contractId,
+                            IdContract = idContract,
+                            collection_ids = Array.Empty<int>()
+                        }
+                    }
+                };
+
+                var response = await httpClient.PostAsJsonAsync($"api/agreement/plans/{customerId}", payload);
+
+                if (!response.IsSuccessStatusCode)
+                    return 0;
+
+                var json = await response.Content.ReadAsStringAsync();
+
+                using var document = JsonDocument.Parse(json);
+
+                var value = document.RootElement[0]
+                    .GetProperty("installments")[0]
+                    .GetProperty("value")
+                    .GetDecimal();
+
+                return value;
+            }
+            catch (Exception ex)
+            {
+                return 0;
+            }
         }
     }
 }

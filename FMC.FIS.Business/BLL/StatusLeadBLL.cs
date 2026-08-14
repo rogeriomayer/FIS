@@ -40,7 +40,7 @@ namespace FMC.FIS.BLL
         {
             StatusLead statusLeadReturn = null;
 
-            var lead = new LeadBLL().GetByCPF(cpf, 3);
+            var lead = new LeadBLL().GetByCPF(cpf, 4);
 
             statusLeadReturn = lead.StatusLead.Where(p => p.Agreement.Where(a => a.CdAgreement == statusLead.Agreement.FirstOrDefault().CdAgreement).Any()).OrderByDescending(p=> p.IdStatusLead).FirstOrDefault();
 

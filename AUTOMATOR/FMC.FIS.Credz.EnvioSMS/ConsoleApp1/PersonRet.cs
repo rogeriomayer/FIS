@@ -13,6 +13,10 @@ public class PersonRet
     public string DsName { get; set; }
     public int Age { get; set; }
     public string Store { get; set; }
-    public string contato { get; set; }
+    public string Contato { get; set; }
+    public long CustomerId { get; set; }
+    public long ContractId { get; set; }
+    public long IdContract { get; set; }
+    
 }
 
